@@ -1,0 +1,128 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  EDITOR
+}
+
+model User {
+  id           Int          @id @default(autoincrement())
+  email        String       @unique
+  passwordHash String
+  role         Role
+  createdAt    DateTime     @default(now())
+  fullName     String
+  usedTokens   UsedToken[]
+}
+
+model UsedToken {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  token     String   @unique
+  usedAt    DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model News {
+  id               Int         @id @default(autoincrement())
+  title_es         String
+  title_en         String
+  body_es          String
+  body_en          String
+  date             DateTime
+  tags             String[]
+  category         String
+  author           String
+  location_city    String
+  location_country String
+  coverImageUrl    String
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  category_en      String?
+  tags_en          String[]
+  newsImages       NewsImage[]
+
+  @@map("news")
+}
+
+model NewsImage {
+  id       Int    @id @default(autoincrement())
+  newsId   Int
+  imageUrl String
+  order    Int?
+  news     News   @relation(fields: [newsId], references: [id])
+
+  @@map("news_image")
+}
+
+model Event {
+  id               Int          @id @default(autoincrement())
+  title_es         String
+  title_en         String
+  body_es          String
+  body_en          String
+  date             DateTime
+  tags             String[]
+  category         String
+  author           String
+  location_city    String
+  location_country String
+  coverImageUrl    String
+  phrase           String?
+  credits          String
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  category_en      String?
+  tags_en          String[]
+  credits_en       String?
+  phrase_en        String?
+  eventImages      EventImage[]
+
+  @@map("event")
+}
+
+model EventImage {
+  id       Int    @id @default(autoincrement())
+  eventId  Int
+  imageUrl String
+  order    Int?
+  event    Event  @relation(fields: [eventId], references: [id])
+
+  @@map("event_image")
+}
+
+model Testimonial {
+  id        Int      @id @default(autoincrement())
+  author    String
+  role      String
+  body_es   String
+  body_en   String
+  imageUrl  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("testimonial")
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  resource  String
+  action    String
+  changes   Json
+  createdAt DateTime @default(now())
+}
