@@ -7,18 +7,18 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import Link from 'next/link'
 import { Eye, EyeOff } from 'lucide-react'
 
-export default function LoginPage() {
+export default function ConfigurePasswordPage() {
   const [showPassword, setShowPassword] = useState(false)
-  const [email, setEmail] = useState('')
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Implement login logic
-    console.log('Login attempt:', { email, password })
+    // TODO: Implement password configuration logic
+    console.log('Password configuration:', { password, confirmPassword })
   }
 
   return (
@@ -28,7 +28,7 @@ export default function LoginPage() {
         <Logo size="md" variant="white" />
       </div>
 
-      {/* Login Form */}
+      {/* Password Configuration Form */}
       <Card className="w-full max-w-md bg-white shadow-xl">
         <CardHeader className="pb-6">
           {/* Form Logo */}
@@ -37,48 +37,29 @@ export default function LoginPage() {
           </div>
           
           <h1 className="font-metropolis font-semibold text-2xl mb-2 text-left" style={{ color: '#313131' }}>
-            Iniciar Sesión
+            Configura tu contraseña
           </h1>
           
           <p className="font-metropolis font-normal text-sm text-left" style={{ color: '#313131' }}>
-            Ingresa las credenciales los cuales el administrador te otorgó
+            Tu contraseña pasada esta deshabilitada. Por favor ingrese una nueva contraseña para su cuenta.
           </p>
         </CardHeader>
 
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email Field */}
-            <div className="space-y-2">
-              <Label 
-                htmlFor="email" 
-                className="font-metropolis font-semibold text-title text-sm"
-              >
-                Correo Electrónico
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="john.doe@gmail.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="font-metropolis font-normal border-stroke focus:border-button focus:ring-button/20"
-                required
-              />
-            </div>
-
-            {/* Password Field */}
+            {/* Create Password Field */}
             <div className="space-y-2">
               <Label 
                 htmlFor="password" 
                 className="font-metropolis font-semibold text-title text-sm"
               >
-                Contraseña
+                Crear contraseña
               </Label>
               <div className="relative">
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
+                  placeholder="7789BM6X@@H&$K_"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="font-metropolis font-normal border-stroke focus:border-button focus:ring-button/20 pr-10"
@@ -98,33 +79,48 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Forgot Password Link */}
-            <div className="text-left" style={{ marginTop: '5px' }}>
-              <Link 
-                href="/forgot-password"
-                className="font-metropolis font-normal text-sm hover:text-button transition-colors"
-                style={{ color: '#4F4F4F' }}
+            {/* Confirm Password Field */}
+            <div className="space-y-2">
+              <Label 
+                htmlFor="confirmPassword" 
+                className="font-metropolis font-semibold text-title text-sm"
               >
-                ¿Olvidaste la contraseña?
-              </Link>
+                Confirmar contraseña
+              </Label>
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  placeholder="7789BM6X@@H&$K_"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="font-metropolis font-normal border-stroke focus:border-button focus:ring-button/20 pr-10"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text hover:text-title transition-colors"
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
             </div>
 
-            {/* Login Button */}
+            {/* Set Password Button */}
             <Button 
               type="submit" 
-              className="w-full font-metropolis font-semibold transition-all duration-200"
+              className="w-full font-metropolis font-semibold transition-colors"
               style={{
                 backgroundColor: '#5A6F80',
                 color: '#FFFDF6'
               }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#4A5A6B'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#5A6F80'
-              }}
             >
-              Iniciar Sesión
+              Establecer Contraseña
             </Button>
           </form>
         </CardContent>
