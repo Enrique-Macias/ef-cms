@@ -50,6 +50,31 @@ ef-cms/
 - Backend processes requests and returns responses
 - JWT tokens handle authentication
 
+## 🔗 **External API Integrations**
+
+### **Avatar Placeholder API**
+- **URL**: [https://avatar-placeholder.iran.liara.run/](https://avatar-placeholder.iran.liara.run/)
+- **Purpose**: Generate user avatars from names
+- **Usage**: 
+  ```typescript
+  // Generate avatar for user "John Doe"
+  const avatarUrl = `https://avatar.iran.liara.run/username?username=John+Doe&background=f4d9b2&color=FF9800&size=128`
+  ```
+- **Features**:
+  - Customizable background colors
+  - Font color options
+  - Size control (32-1024px)
+  - Bold/uppercase options
+  - PNG/JPG format support
+
+### **DeepL API**
+- **Purpose**: Professional translation services (ES ↔ EN)
+- **Use Cases**:
+  - Auto-translate content between Spanish and English
+  - Maintain bilingual content consistency
+  - Real-time translation in admin interface
+- **Integration**: Backend service for content translation
+
 ## 📱 **Frontend Pages Structure**
 
 ```
@@ -106,6 +131,11 @@ BACKEND_URL=http://localhost:3001
 FRONTEND_URL=http://localhost:3000
 DATABASE_URL=your-railway-postgresql-url
 JWT_SECRET=your-jwt-secret
+
+# External APIs
+DEEPL_API_KEY=your-deepl-api-key
+AVATAR_API_BASE_URL=https://avatar.iran.liara.run
+
 # ... other backend variables
 ```
 
@@ -116,3 +146,20 @@ User Action → Frontend Component → API Route → Express Backend → Databas
      ↑                                                              ↓
 Response ← Frontend Component ← API Route ← Express Backend ← Database
 ```
+
+## 🔧 **Key Benefits of This Structure**
+
+1. **Separation of Concerns**: Frontend and backend are independent
+2. **Scalability**: Can deploy frontend and backend separately
+3. **Development Experience**: Single repository, easy to manage
+4. **Type Safety**: Shared TypeScript types between services
+5. **Flexibility**: Can easily switch to separate repos later
+
+## 🚀 **Next Steps**
+
+1. **Create Content Management Pages**: News, Events, Testimonials CRUD
+2. **Add User Management**: Create, edit, delete users
+3. **Implement File Uploads**: Image management for content
+4. **Add Analytics**: Dashboard charts and metrics
+5. **Responsive Design**: Mobile-friendly interface
+6. **Testing**: Unit and integration tests

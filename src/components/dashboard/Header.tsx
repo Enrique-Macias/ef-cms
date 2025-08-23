@@ -54,9 +54,11 @@ export function Header() {
             {/* User menu */}
             <div className="relative">
               <button className="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
-                  <span className="text-sm font-medium text-white">A</span>
-                </div>
+                <img
+                  src="https://avatar.iran.liara.run/username?username=Admin+User&background=2563eb&color=ffffff&size=32"
+                  alt="Admin User"
+                  className="h-8 w-8 rounded-full"
+                />
               </button>
             </div>
           </div>
