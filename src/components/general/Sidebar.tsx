@@ -113,8 +113,8 @@ export function Sidebar() {
                   />
                 </div>
                 <div>
-                  <p className="font-metropolis font-semibold text-title text-sm">Alejandro</p>
-                  <p className="font-metropolis font-normal text-text text-xs">Administrador</p>
+                  <p className="font-metropolis font-regular text-base" style={{ color: '#0D141C' }}>Alejandro</p>
+                  <p className="font-metropolis font-regular text-sm" style={{ color: '#4A739C' }}>Administrador</p>
                 </div>
               </div>
             </div>
@@ -130,11 +130,12 @@ export function Sidebar() {
                   <div key={item.name}>
                     {item.hasDropdown ? (
                       <div
-                        className={`group flex items-center px-3 py-2 text-sm font-metropolis font-medium rounded-lg transition-colors cursor-pointer ${
+                        className={`group flex items-center px-3 py-2 text-sm font-metropolis font-regular rounded-lg transition-colors cursor-pointer ${
                           isActive || hasActiveSubmenu
-                            ? 'bg-[#E8EDF5] text-title'
-                            : 'text-text hover:bg-stroke/20 hover:text-title'
+                            ? 'bg-[#E8EDF5]'
+                            : 'hover:bg-stroke/20'
                         }`}
+                        style={{ color: '#0D141C' }}
                         onClick={() => {
                           setOpenDropdown(openDropdown === item.name ? null : item.name)
                         }}
@@ -162,11 +163,12 @@ export function Sidebar() {
                     ) : (
                       <Link
                         href={item.href}
-                        className={`group flex items-center px-3 py-2 text-sm font-metropolis font-medium rounded-lg transition-colors ${
+                        className={`group flex items-center px-3 py-2 text-sm font-metropolis font-regular rounded-lg transition-colors ${
                           isActive || hasActiveSubmenu
-                            ? 'bg-[#E8EDF5] text-title'
-                            : 'text-text hover:bg-stroke/20 hover:text-title'
+                            ? 'bg-[#E8EDF5]'
+                            : 'hover:bg-stroke/20'
                         }`}
+                        style={{ color: '#0D141C' }}
                       >
                         {(isActive || hasActiveSubmenu) && item.iconSolid ? (
                           <item.iconSolid
@@ -194,11 +196,12 @@ export function Sidebar() {
                             <Link
                               key={subItem.name}
                               href={subItem.href}
-                              className={`group flex items-center px-3 py-2 text-sm font-metropolis font-medium rounded-lg transition-colors ${
+                              className={`group flex items-center px-3 py-2 text-sm font-metropolis font-regular rounded-lg transition-colors ${
                                 isSubActive
                                   ? 'bg-[#5A6F80] text-button-text'
-                                  : 'text-text hover:bg-stroke/20 hover:text-title'
+                                  : 'hover:bg-stroke/20'
                               }`}
+                              style={{ color: isSubActive ? '#FFFDF6' : '#0D141C' }}
                             >
                               <subItem.icon
                                 className={`mr-3 flex-shrink-0 h-5 w-5 ${
@@ -222,7 +225,8 @@ export function Sidebar() {
           <div className="flex-shrink-0 flex border-t border-stroke p-4">
             <Link 
               href="/login"
-              className="flex items-center w-full px-3 py-2 text-sm font-metropolis font-medium text-text hover:text-title hover:bg-stroke/20 rounded-lg transition-colors"
+              className="flex items-center w-full px-3 py-2 text-sm font-metropolis font-regular hover:bg-stroke/20 rounded-lg transition-colors"
+            style={{ color: '#0D141C' }}
             >
               <ArrowRightOnRectangleIcon className="mr-3 h-5 w-5" />
               Cerrar Sesión
