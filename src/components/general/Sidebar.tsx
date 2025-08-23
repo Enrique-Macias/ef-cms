@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { 
@@ -11,20 +11,58 @@ import {
   Cog6ToothIcon,
   ArrowRightOnRectangleIcon,
   Bars3Icon,
-  XMarkIcon
+  XMarkIcon,
+  ChevronUpIcon,
+  ChevronDownIcon
 } from '@heroicons/react/24/outline'
+import {
+  HomeIcon as HomeIconSolid,
+  UsersIcon as UsersIconSolid,
+  FolderIcon as FolderIconSolid,
+  ChartBarIcon as ChartBarIconSolid,
+  Cog6ToothIcon as Cog6ToothIconSolid,
+  NewspaperIcon,
+  CalendarIcon,
+  ChatBubbleLeftRightIcon,
+  UserGroupIcon,
+  DocumentTextIcon
+} from '@heroicons/react/24/solid'
 
 const navigation = [
-  { name: 'Inicio', href: '/general', icon: HomeIcon },
-  { name: 'Gestión', href: '/general/gestion', icon: FolderIcon, hasDropdown: true },
-  { name: 'Usuarios', href: '/general/usuarios', icon: UsersIcon },
-  { name: 'Actividad', href: '/general/actividad', icon: ChartBarIcon },
-  { name: 'Configuración', href: '/general/configuracion', icon: Cog6ToothIcon },
+  { name: 'Inicio', href: '/general', icon: HomeIcon, iconSolid: HomeIconSolid },
+  { 
+    name: 'Gestión', 
+    href: '/general/gestion', 
+    icon: FolderIcon, 
+    iconSolid: FolderIconSolid,
+    hasDropdown: true,
+    submenu: [
+      { name: 'Noticias', href: '/general/gestion/noticias', icon: NewspaperIcon },
+      { name: 'Eventos', href: '/general/gestion/eventos', icon: CalendarIcon },
+      { name: 'Testimonios', href: '/general/gestion/testimonios', icon: ChatBubbleLeftRightIcon },
+      { name: 'Equipo', href: '/general/gestion/equipo', icon: UserGroupIcon },
+      { name: 'Artículos', href: '/general/gestion/articulos', icon: DocumentTextIcon },
+    ]
+  },
+  { name: 'Usuarios', href: '/general/usuarios', icon: UsersIcon, iconSolid: UsersIconSolid },
+  { name: 'Actividad', href: '/general/actividad', icon: ChartBarIcon, iconSolid: ChartBarIconSolid },
+  { name: 'Configuración', href: '/general/configuracion', icon: Cog6ToothIcon, iconSolid: Cog6ToothIconSolid },
 ]
 
 export function Sidebar() {
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null)
+
+  // Auto-open dropdown if current page is in a submenu
+  useEffect(() => {
+    const currentItem = navigation.find(item => 
+      item.submenu?.some(subItem => pathname === subItem.href)
+    )
+    if (currentItem) {
+      setOpenDropdown(currentItem.name)
+    }
+  }, [pathname])
 
   return (
     <>
@@ -69,7 +107,7 @@ export function Sidebar() {
               <div className="flex items-center space-x-3">
                 <div className="flex-shrink-0">
                   <img
-                    src="https://avatar.iran.liara.run/username?username=Alejandro&background=5A6F80&color=ffffff&size=40"
+                    src="https://avatar.iran.liara.run/username?username=Alejandro Medina"
                     alt="Alejandro"
                     className="h-10 w-10 rounded-full"
                   />
@@ -85,34 +123,96 @@ export function Sidebar() {
             <nav className="flex-1 px-2 space-y-1">
               {navigation.map((item) => {
                 const isActive = pathname === item.href
+                const isDropdownOpen = openDropdown === item.name
+                const hasActiveSubmenu = item.submenu?.some(subItem => pathname === subItem.href)
+                
                 return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className={`group flex items-center px-3 py-2 text-sm font-metropolis font-medium rounded-lg transition-colors ${
-                      isActive
-                        ? 'bg-[#E8EDF5] text-title'
-                        : 'text-text hover:bg-stroke/20 hover:text-title'
-                    }`}
-                  >
-                    <item.icon
-                      className={`mr-3 flex-shrink-0 h-5 w-5 ${
-                        isActive ? 'text-title' : 'text-text group-hover:text-title'
-                      }`}
-                      aria-hidden="true"
-                    />
-                    <span className="flex-1">{item.name}</span>
-                    {item.hasDropdown && (
-                      <svg 
-                        className="h-4 w-4 text-text" 
-                        fill="none" 
-                        viewBox="0 0 24 24" 
-                        stroke="currentColor"
+                  <div key={item.name}>
+                    {item.hasDropdown ? (
+                      <div
+                        className={`group flex items-center px-3 py-2 text-sm font-metropolis font-medium rounded-lg transition-colors cursor-pointer ${
+                          isActive || hasActiveSubmenu
+                            ? 'bg-[#E8EDF5] text-title'
+                            : 'text-text hover:bg-stroke/20 hover:text-title'
+                        }`}
+                        onClick={() => {
+                          setOpenDropdown(openDropdown === item.name ? null : item.name)
+                        }}
                       >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
+                        {(isActive || hasActiveSubmenu) && item.iconSolid ? (
+                          <item.iconSolid
+                            className="mr-3 flex-shrink-0 h-5 w-5 text-title"
+                            aria-hidden="true"
+                          />
+                        ) : (
+                          <item.icon
+                            className={`mr-3 flex-shrink-0 h-5 w-5 ${
+                              isActive || hasActiveSubmenu ? 'text-title' : 'text-text group-hover:text-title'
+                            }`}
+                            aria-hidden="true"
+                          />
+                        )}
+                        <span className="flex-1">{item.name}</span>
+                        {isDropdownOpen ? (
+                          <ChevronUpIcon className="h-4 w-4 text-text" />
+                        ) : (
+                          <ChevronDownIcon className="h-4 w-4 text-text" />
+                        )}
+                      </div>
+                    ) : (
+                      <Link
+                        href={item.href}
+                        className={`group flex items-center px-3 py-2 text-sm font-metropolis font-medium rounded-lg transition-colors ${
+                          isActive || hasActiveSubmenu
+                            ? 'bg-[#E8EDF5] text-title'
+                            : 'text-text hover:bg-stroke/20 hover:text-title'
+                        }`}
+                      >
+                        {(isActive || hasActiveSubmenu) && item.iconSolid ? (
+                          <item.iconSolid
+                            className="mr-3 flex-shrink-0 h-5 w-5 text-title"
+                            aria-hidden="true"
+                          />
+                        ) : (
+                          <item.icon
+                            className={`mr-3 flex-shrink-0 h-5 w-5 ${
+                              isActive || hasActiveSubmenu ? 'text-title' : 'text-text group-hover:text-title'
+                            }`}
+                            aria-hidden="true"
+                          />
+                        )}
+                        <span className="flex-1">{item.name}</span>
+                      </Link>
                     )}
-                  </Link>
+                    
+                    {/* Submenu */}
+                    {item.hasDropdown && isDropdownOpen && item.submenu && (
+                      <div className="ml-4 mt-1 space-y-1">
+                        {item.submenu.map((subItem) => {
+                          const isSubActive = pathname === subItem.href
+                          return (
+                            <Link
+                              key={subItem.name}
+                              href={subItem.href}
+                              className={`group flex items-center px-3 py-2 text-sm font-metropolis font-medium rounded-lg transition-colors ${
+                                isSubActive
+                                  ? 'bg-[#5A6F80] text-button-text'
+                                  : 'text-text hover:bg-stroke/20 hover:text-title'
+                              }`}
+                            >
+                              <subItem.icon
+                                className={`mr-3 flex-shrink-0 h-5 w-5 ${
+                                  isSubActive ? 'text-button-text' : 'text-text group-hover:text-title'
+                                }`}
+                                aria-hidden="true"
+                              />
+                              <span className="flex-1">{subItem.name}</span>
+                            </Link>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
                 )
               })}
             </nav>

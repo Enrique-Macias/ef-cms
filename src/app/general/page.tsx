@@ -27,9 +27,9 @@ export default function GeneralPage() {
         <div className="flex items-start space-x-6">
           <div className="flex-shrink-0">
             <img
-              src="https://avatar.iran.liara.run/username?username=Alejandro+Medina&background=5A6F80&color=ffffff&size=80"
+              src="https://avatar.iran.liara.run/username?username=Alejandro Medina"
               alt="Alejandro Medina"
-              className="h-20 w-20 rounded-full"
+              className="h-25 w-25 rounded-full"
             />
           </div>
           <div className="flex-1">
