@@ -6,7 +6,8 @@ export default function UsuariosPage() {
   const [roleFilter, setRoleFilter] = useState<string | null>(null)
   const [searchText, setSearchText] = useState('')
   const [isRoleMenuOpen, setIsRoleMenuOpen] = useState(false)
-  const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false)
+  const [isEditUserModalOpen, setIsEditUserModalOpen] = useState(false)
+  const [editingUser, setEditingUser] = useState<any>(null)
 
   // Datos de usuarios
   const users = [
@@ -153,10 +154,8 @@ export default function UsuariosPage() {
             </div>
 
             {/* Add User Button */}
-            <button 
-              onClick={() => setIsAddUserModalOpen(true)}
-              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 hover:bg-[#4A739C]"
-              style={{ backgroundColor: '#5A6F80', '--tw-ring-color': '#5A6F80' } as React.CSSProperties}>
+            <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 hover:bg-[#4A739C]"
+                    style={{ backgroundColor: '#5A6F80', '--tw-ring-color': '#5A6F80' } as React.CSSProperties}>
               <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
@@ -204,7 +203,12 @@ export default function UsuariosPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
-                      <button className="text-[#4A739C] hover:text-[#3A5D80]">
+                      <button 
+                        onClick={() => {
+                          setEditingUser(user)
+                          setIsEditUserModalOpen(true)
+                        }}
+                        className="text-[#4A739C] hover:text-[#3A5D80]">
                         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
@@ -242,13 +246,13 @@ export default function UsuariosPage() {
         </div>
       </div>
 
-      {/* Add User Modal */}
-      {isAddUserModalOpen && (
+      {/* Edit User Modal */}
+      {isEditUserModalOpen && editingUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           {/* Black overlay with 60% opacity */}
           <div 
             className="absolute inset-0 bg-black opacity-60"
-            onClick={() => setIsAddUserModalOpen(false)}
+            onClick={() => setIsEditUserModalOpen(false)}
           ></div>
           
           {/* Modal content */}
@@ -262,12 +266,12 @@ export default function UsuariosPage() {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="text-lg font-metropolis font-bold text-[#0D141C]">Nuevo Usuario</h3>
-                  <p className="text-sm font-metropolis font-regular text-[#4A739C]">Agregar usuario al sistema</p>
+                  <h3 className="text-lg font-metropolis font-bold text-[#0D141C]">{editingUser.name}</h3>
+                  <p className="text-sm font-metropolis font-regular text-[#4A739C]">{editingUser.email}</p>
                 </div>
               </div>
               <button
-                onClick={() => setIsAddUserModalOpen(false)}
+                onClick={() => setIsEditUserModalOpen(false)}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
               >
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -284,7 +288,7 @@ export default function UsuariosPage() {
                 </label>
                 <input
                   type="text"
-                  placeholder="Ingrese el nombre completo"
+                  defaultValue={editingUser.name}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
                 />
               </div>
@@ -295,18 +299,7 @@ export default function UsuariosPage() {
                 </label>
                 <input
                   type="email"
-                  placeholder="Ingrese el correo electrónico"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-metropolis font-medium text-[#0D141C] mb-2">
-                  Contraseña
-                </label>
-                <input
-                  type="password"
-                  placeholder="Ingrese la contraseña"
+                  defaultValue={editingUser.email}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
                 />
               </div>
@@ -315,8 +308,9 @@ export default function UsuariosPage() {
                 <label className="block text-sm font-metropolis font-medium text-[#0D141C] mb-2">
                   Rol
                 </label>
-                <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent">
-                  <option value="">Seleccionar rol</option>
+                <select 
+                  defaultValue={editingUser.role}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent">
                   <option value="Admin">Admin</option>
                   <option value="Editor">Editor</option>
                 </select>
@@ -326,13 +320,13 @@ export default function UsuariosPage() {
             {/* Modal footer */}
             <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
               <button
-                onClick={() => setIsAddUserModalOpen(false)}
+                onClick={() => setIsEditUserModalOpen(false)}
                 className="px-4 py-2 text-sm font-metropolis font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5A6F80]"
               >
                 Cancelar
               </button>
               <button className="px-4 py-2 text-sm font-metropolis font-medium text-white bg-[#5A6F80] border border-transparent rounded-md hover:bg-[#4A739C] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5A6F80] transition-colors">
-                Agregar Usuario
+                Guardar cambios
               </button>
             </div>
           </div>
