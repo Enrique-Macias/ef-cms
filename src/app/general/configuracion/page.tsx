@@ -84,9 +84,9 @@ export default function ConfiguracionPage() {
       </div>
 
       {/* Main Content */}
-      <div className="px-6 -mt-16 relative z-10">
+      <div className="px-6 -mt-8 relative z-10">
         {/* Breadcrumbs */}
-        <div className="mb-6">
+        <div className="mb-8">
           <nav className="text-base font-metropolis font-regular" style={{ color: '#4A739C' }}>
             <span>Configuración</span>
             <span className="mx-2 font-metropolis font-medium" style={{ color: '#4A739C' }}>/</span>
@@ -95,7 +95,7 @@ export default function ConfiguracionPage() {
         </div>
 
         {/* Profile Overview and Form Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
           {/* Left Column - Profile Summary and Section Header */}
           <div className="lg:col-span-1">
             {/* Profile Overview */}
@@ -123,9 +123,12 @@ export default function ConfiguracionPage() {
                 {userData.email}
               </p>
             </div>
+          </div>
 
+          {/* Right Column - Editable Form */}
+          <div className="lg:col-span-2">
             {/* Personal Information Section Header */}
-            <div className="text-left mb-12">
+            <div className="mb-6">
               <h2 className="font-metropolis font-bold text-2xl mb-2" style={{ color: '#0D141C' }}>
                 Información Personal
               </h2>
@@ -133,10 +136,7 @@ export default function ConfiguracionPage() {
                 Puedes cambiar tu información personal aquí.
               </p>
             </div>
-          </div>
 
-          {/* Right Column - Editable Form */}
-          <div className="lg:col-span-2">
             <div className="bg-white border rounded-lg p-6 shadow-lg" style={{ borderColor: '#CFDBE8' }}>
               <div className="space-y-6">
                 {/* Name Field */}
