@@ -1,6 +1,45 @@
 
 
 export default function GeneralPage() {
+  // Simulated general activity data
+  const general_activity = [
+    {
+      id: 1,
+      title: 'Design landing page',
+      type: 'Noticia',
+      status: 'In Progress',
+      date: '2024-08-15'
+    },
+    {
+      id: 2,
+      title: 'Implement user authentication',
+      type: 'Noticia',
+      status: 'Completed',
+      date: '2024-07-20'
+    },
+    {
+      id: 3,
+      title: 'Write documentation',
+      type: 'Evento',
+      status: 'Completed',
+      date: '2024-06-10'
+    },
+    {
+      id: 4,
+      title: 'Test application',
+      type: 'Noticia',
+      status: 'In Progress',
+      date: '2024-08-22'
+    },
+    {
+      id: 5,
+      title: 'Deploy to production',
+      type: 'Testimonio',
+      status: 'Completed',
+      date: '2024-05-15'
+    }
+  ]
+
   return (
     <div className="p-6">
       {/* Breadcrumbs */}
@@ -91,86 +130,24 @@ export default function GeneralPage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y" style={{ borderColor: '#CFDBE8' }}>
-              <tr>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-metropolis font-regular" style={{ color: '#0D141C' }}>
-                  Design landing page
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
-                  Noticia
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="inline-flex px-2 py-1 text-sm font-metropolis font-regular bg-[#E8EDF5] text-title rounded-full">
-                    In Progress
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
-                  2024-08-15
-                </td>
-              </tr>
-              <tr>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-metropolis font-regular" style={{ color: '#0D141C' }}>
-                  Implement user authentication
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
-                  Noticia
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="inline-flex px-2 py-1 text-sm font-metropolis font-regular bg-[#E8EDF5] text-text rounded-full">
-                    Completed
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
-                  2024-07-20
-                </td>
-              </tr>
-              <tr>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-metropolis font-regular" style={{ color: '#0D141C' }}>
-                  Write documentation
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
-                  Evento
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="inline-flex px-2 py-1 text-sm font-metropolis font-regular bg-[#E8EDF5] text-text rounded-full">
-                    Completed
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
-                  2024-06-10
-                </td>
-              </tr>
-              <tr>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-metropolis font-regular" style={{ color: '#0D141C' }}>
-                  Test application
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
-                  Noticia
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="inline-flex px-2 py-1 text-sm font-metropolis font-regular bg-[#E8EDF5] text-text rounded-full">
-                    In Progress
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
-                  2024-08-22
-                </td>
-              </tr>
-              <tr>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-metropolis font-regular" style={{ color: '#0D141C' }}>
-                  Deploy to production
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
-                  Testimonio
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="inline-flex px-2 py-1 text-sm font-metropolis font-regular bg-[#E8EDF5] text-text rounded-full">
-                    Completed
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
-                  2024-05-15
-                </td>
-              </tr>
+              {general_activity.map((activity) => (
+                <tr key={activity.id}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-metropolis font-regular" style={{ color: '#0D141C' }}>
+                    {activity.title}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
+                    {activity.type}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="inline-flex px-2 py-1 text-sm font-metropolis font-regular bg-[#E8EDF5] text-title rounded-full">
+                      {activity.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
+                    {activity.date}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
