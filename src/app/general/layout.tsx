@@ -1,4 +1,6 @@
 import { Sidebar } from '@/components/general/Sidebar'
+import { Spinner } from '@/components/ui/spinner'
+import { Suspense } from 'react'
 
 export default function GeneralLayout({
   children,
@@ -6,13 +8,19 @@ export default function GeneralLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="flex h-screen bg-page">
+    <div className="flex h-screen bg-gray-50">
       <Sidebar />
-      <main className="flex-1 overflow-auto bg-page pt-16 md:pt-0">
-        <div className="px-4 sm:px-6 lg:px-8">
-          {children}
-        </div>
-      </main>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <main className="flex-1 overflow-y-auto bg-gray-50">
+          <Suspense fallback={
+            <div className="flex items-center justify-center h-full">
+              <Spinner size="lg" />
+            </div>
+          }>
+            {children}
+          </Suspense>
+        </main>
+      </div>
     </div>
   )
 }

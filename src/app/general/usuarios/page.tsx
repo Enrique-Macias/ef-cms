@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Spinner } from '@/components/ui/spinner'
 
 export default function UsuariosPage() {
   const [roleFilter, setRoleFilter] = useState<string | null>(null)
@@ -11,6 +12,9 @@ export default function UsuariosPage() {
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [deletingUser, setDeletingUser] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // Datos de usuarios
   const users = [
@@ -30,6 +34,32 @@ export default function UsuariosPage() {
     
     return matchesRole && matchesSearch
   })
+
+  // Simulate loading when filtering
+  const handleSearch = (text: string) => {
+    setIsLoading(true)
+    setSearchText(text)
+    // Simulate API call delay
+    setTimeout(() => setIsLoading(false), 500)
+  }
+
+  const handleRoleFilter = (role: string | null) => {
+    setIsLoading(true)
+    setRoleFilter(role)
+    // Simulate API call delay
+    setTimeout(() => setIsLoading(false), 500)
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <Spinner size="lg" />
+          <p className="mt-4 text-[#4A739C] font-metropolis font-regular">Cargando usuarios...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="p-6">
@@ -91,7 +121,7 @@ export default function UsuariosPage() {
                   type="text"
                   placeholder="Buscar por nombre o correo"
                   value={searchText}
-                  onChange={(e) => setSearchText(e.target.value)}
+                  onChange={(e) => handleSearch(e.target.value)}
                   className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:border-gray-300 sm:text-sm"
                   style={{ '--tw-ring-color': '#5A6F80' } as React.CSSProperties}
                 />
@@ -122,7 +152,7 @@ export default function UsuariosPage() {
                           roleFilter === null ? 'bg-[#E8EDF5] text-[#0D141C]' : 'text-gray-700'
                         }`}
                         onClick={() => {
-                          setRoleFilter(null)
+                          handleRoleFilter(null)
                           setIsRoleMenuOpen(false)
                         }}
                       >
@@ -133,7 +163,7 @@ export default function UsuariosPage() {
                           roleFilter === 'Admin' ? 'bg-[#E8EDF5] text-[#0D141C]' : 'text-gray-700'
                         }`}
                         onClick={() => {
-                          setRoleFilter('Admin')
+                          handleRoleFilter('Admin')
                           setIsRoleMenuOpen(false)
                         }}
                       >
@@ -144,7 +174,7 @@ export default function UsuariosPage() {
                           roleFilter === 'Editor' ? 'bg-[#E8EDF5] text-[#0D141C]' : 'text-gray-700'
                         }`}
                         onClick={() => {
-                          setRoleFilter('Editor')
+                          handleRoleFilter('Editor')
                           setIsRoleMenuOpen(false)
                         }}
                       >
@@ -334,8 +364,26 @@ export default function UsuariosPage() {
               >
                 Cancelar
               </button>
-              <button className="px-4 py-2 text-sm font-metropolis font-medium text-white bg-[#5A6F80] border border-transparent rounded-md hover:bg-[#4A739C] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5A6F80] transition-colors">
-                Guardar cambios
+              <button 
+                onClick={() => {
+                  setIsSaving(true)
+                  // Simulate save operation
+                  setTimeout(() => {
+                    setIsSaving(false)
+                    setIsEditUserModalOpen(false)
+                  }, 1000)
+                }}
+                disabled={isSaving}
+                className="px-4 py-2 text-sm font-metropolis font-medium text-white bg-[#5A6F80] border border-transparent rounded-md hover:bg-[#4A739C] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5A6F80] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSaving ? (
+                  <div className="flex items-center space-x-2">
+                    <Spinner size="sm" />
+                    <span>Guardando...</span>
+                  </div>
+                ) : (
+                  'Guardar cambios'
+                )}
               </button>
             </div>
           </div>
@@ -431,8 +479,26 @@ export default function UsuariosPage() {
               >
                 Cancelar
               </button>
-              <button className="px-4 py-2 text-sm font-metropolis font-medium text-white bg-[#5A6F80] border border-transparent rounded-md hover:bg-[#4A739C] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5A6F80] transition-colors">
-                Agregar
+              <button 
+                onClick={() => {
+                  setIsSaving(true)
+                  // Simulate add operation
+                  setTimeout(() => {
+                    setIsSaving(false)
+                    setIsAddUserModalOpen(false)
+                  }, 1000)
+                }}
+                disabled={isSaving}
+                className="px-4 py-2 text-sm font-metropolis font-medium text-white bg-[#5A6F80] border border-transparent rounded-md hover:bg-[#4A739C] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5A6F80] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSaving ? (
+                  <div className="flex items-center space-x-2">
+                    <Spinner size="sm" />
+                    <span>Agregando...</span>
+                  </div>
+                ) : (
+                  'Agregar'
+                )}
               </button>
             </div>
           </div>
@@ -494,13 +560,25 @@ export default function UsuariosPage() {
               </button>
               <button 
                 onClick={() => {
-                  // TODO: Implement actual delete functionality
-                  setIsDeleteModalOpen(false)
-                  setDeletingUser(null)
+                  setIsDeleting(true)
+                  // Simulate delete operation
+                  setTimeout(() => {
+                    setIsDeleting(false)
+                    setIsDeleteModalOpen(false)
+                    setDeletingUser(null)
+                  }, 1000)
                 }}
-                className="px-4 py-2 text-sm font-metropolis font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                disabled={isDeleting}
+                className="px-4 py-2 text-sm font-metropolis font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Eliminar
+                {isDeleting ? (
+                  <div className="flex items-center space-x-2">
+                    <Spinner size="sm" />
+                    <span>Eliminando...</span>
+                  </div>
+                ) : (
+                  'Eliminar'
+                )}
               </button>
             </div>
           </div>
