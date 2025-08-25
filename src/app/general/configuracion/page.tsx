@@ -81,18 +81,18 @@ export default function ConfiguracionPage() {
     <div>
       {/* Gradient Banner */}
       <div className="h-32 bg-gradient-to-r from-[#F7FAFC] to-[#5A6F80] relative">
-      </div>
-
-      {/* Main Content */}
-      <div className="px-6 -mt-8 relative z-10">
-        {/* Breadcrumbs */}
-        <div className="mb-8">
+        {/* Breadcrumbs - Overlapping the banner */}
+        <div className="absolute top-4 left-6 z-10">
           <nav className="text-base font-metropolis font-regular" style={{ color: '#4A739C' }}>
             <span>Configuración</span>
             <span className="mx-2 font-metropolis font-medium" style={{ color: '#4A739C' }}>/</span>
             <span className="font-metropolis font-medium" style={{ color: '#0D141C' }}>Perfil</span>
           </nav>
         </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="px-6 -mt-8 relative z-10">
 
         {/* Profile Overview and Form Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
