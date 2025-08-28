@@ -298,34 +298,48 @@ export default function NoticiasPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {currentNews.map((item) => (
-              <Link key={item.id} href={`/general/gestion/noticias/editar/${item.id}`}>
-                              <div className="bg-white border rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow cursor-pointer" style={{ borderColor: '#CFDBE8' }}>
-                  {/* News Image */}
-                  <div className="relative">
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      className="w-full h-48 object-cover"
-                    />
-                  </div>
+              <div key={item.id} className="bg-white border rounded-lg overflow-hidden shadow-lg" style={{ borderColor: '#CFDBE8' }}>
+                {/* News Image */}
+                <div className="relative">
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    className="w-full h-48 object-cover"
+                  />
+                </div>
+                
+                {/* News Content */}
+                <div className="p-4">
+                  <h3 className="font-metropolis font-bold text-lg mb-2" style={{ color: '#0D141C' }}>
+                    {item.title}
+                  </h3>
+                  <p className="font-metropolis font-regular text-sm mb-3" style={{ color: '#4A739C' }}>
+                    {item.excerpt}
+                  </p>
                   
-                  {/* News Content */}
-                  <div className="p-4">
-                    <h3 className="font-metropolis font-bold text-lg mb-2" style={{ color: '#0D141C' }}>
-                      {item.title}
-                    </h3>
-                    <p className="font-metropolis font-regular text-sm mb-3" style={{ color: '#4A739C' }}>
-                      {item.excerpt}
-                    </p>
-                    
-                    {/* News Meta */}
-                    <div className="flex items-center justify-between text-xs" style={{ color: '#4A739C' }}>
-                      <span className="font-metropolis font-regular">{item.category}</span>
-                      <span className="font-metropolis font-regular">{new Date(item.date).toLocaleDateString('es-ES')}</span>
-                    </div>
+                  {/* News Meta */}
+                  <div className="flex items-center justify-between text-xs mb-4" style={{ color: '#4A739C' }}>
+                    <span className="font-metropolis font-regular">{item.category}</span>
+                    <span className="font-metropolis font-regular">{new Date(item.date).toLocaleDateString('es-ES')}</span>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center space-x-2">
+                    <Link
+                      href={`/general/gestion/noticias/ver/${item.id}`}
+                      className="inline-flex items-center px-3 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#5A6F80] hover:bg-[#4A739C] transition-colors"
+                    >
+                      Ver Noticia
+                    </Link>
+                    <Link
+                      href={`/general/gestion/noticias/editar/${item.id}`}
+                      className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-[#5A6F80] bg-white hover:bg-gray-50 transition-colors"
+                    >
+                      Editar Noticia
+                    </Link>
                   </div>
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
         )}
