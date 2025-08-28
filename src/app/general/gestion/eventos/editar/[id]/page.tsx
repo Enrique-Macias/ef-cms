@@ -240,6 +240,69 @@ export default function EditarEventoPage() {
     }
   }
 
+  // Handle cover image upload
+  const handleCoverImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      if (isEnglishMode) {
+        setFormDataEnglish(prev => ({ ...prev, coverImage: file }))
+      } else {
+        setFormData(prev => ({ ...prev, coverImage: file }))
+      }
+    }
+  }
+
+  // Handle multiple images upload
+  const handleImagesUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || [])
+    if (files.length > 0) {
+      if (isEnglishMode) {
+        setFormDataEnglish(prev => ({ ...prev, images: [...prev.images, ...files] }))
+      } else {
+        setFormData(prev => ({ ...prev, images: [...prev.images, ...files] }))
+      }
+    }
+  }
+
+  // Remove image from multiple images
+  const removeImage = (index: number) => {
+    if (isEnglishMode) {
+      setFormDataEnglish(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }))
+    } else {
+      setFormData(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }))
+    }
+  }
+
+  // Handle drag and drop for cover image
+  const handleCoverDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    const files = Array.from(e.dataTransfer.files)
+    if (files.length > 0) {
+      const imageFile = files[0]
+      if (imageFile.type.startsWith('image/')) {
+        if (isEnglishMode) {
+          setFormDataEnglish(prev => ({ ...prev, coverImage: imageFile }))
+        } else {
+          setFormData(prev => ({ ...prev, coverImage: imageFile }))
+        }
+      }
+    }
+  }
+
+  // Handle drag and drop for multiple images
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    const files = Array.from(e.dataTransfer.files)
+    const imageFiles = files.filter(file => file.type.startsWith('image/'))
+    if (imageFiles.length > 0) {
+      if (isEnglishMode) {
+        setFormDataEnglish(prev => ({ ...prev, images: [...prev.images, ...imageFiles] }))
+      } else {
+        setFormData(prev => ({ ...prev, images: [...prev.images, ...imageFiles] }))
+      }
+    }
+  }
+
   // Handle form submission
   const handleUpdate = async () => {
     // Validate both Spanish and English versions
@@ -316,6 +379,11 @@ export default function EditarEventoPage() {
     tags: isEnglishMode ? 'Tags' : 'Etiquetas',
     newCategory: isEnglishMode ? 'New category' : 'Nueva categoría',
     newTag: isEnglishMode ? 'New tag' : 'Nueva etiqueta',
+    coverImage: isEnglishMode ? 'Cover Image' : 'Imagen de Portada',
+    uploadImage: isEnglishMode ? 'Upload Image' : 'Subir Imagen',
+    dragDropImage: isEnglishMode ? 'Drag and drop an image here, or click to select' : 'Arrastra y suelta una imagen aquí, o haz clic para seleccionar',
+    multipleImages: isEnglishMode ? 'Event Images' : 'Imágenes del Evento',
+    dragDropImages: isEnglishMode ? 'Drag and drop images here, or click to select multiple' : 'Arrastra y suelta imágenes aquí, o haz clic para seleccionar múltiples',
     englishVersion: 'English Version',
     spanishVersion: 'Spanish Version'
   }
@@ -456,6 +524,103 @@ export default function EditarEventoPage() {
             </div>
           </div>
 
+          {/* Cover Image */}
+          <div>
+            <h2 className="font-metropolis font-bold text-xl mb-4" style={{ color: '#0D141C' }}>
+              {translations.coverImage}
+            </h2>
+            <div className="space-y-4">
+              {/* Current Cover Image Preview */}
+              {originalData?.coverImageUrl && (
+                <div className="mb-4">
+                  <p className="text-sm font-metropolis font-medium text-[#0D141C] mb-2">
+                    {isEnglishMode ? 'Current Cover Image:' : 'Imagen de Portada Actual:'}
+                  </p>
+                  <div className="w-32 h-32 bg-gray-200 rounded-lg overflow-hidden">
+                    <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
+                      <svg className="w-8 h-8 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* New Cover Image Upload */}
+              <div className="space-y-3">
+                <label className="block text-sm font-metropolis font-medium text-[#0D141C]">
+                  {translations.uploadImage}
+                </label>
+                
+                {/* Drag and Drop Area */}
+                <div
+                  className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                    getCurrentFormData().coverImage 
+                      ? 'border-[#5A6F80] bg-[#F0F4F8]' 
+                      : 'border-gray-300 hover:border-[#5A6F80] hover:bg-gray-50'
+                  }`}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={handleCoverDrop}
+                >
+                  {getCurrentFormData().coverImage ? (
+                    <div className="space-y-3">
+                      <div className="w-24 h-24 mx-auto bg-gray-200 rounded-lg overflow-hidden">
+                        <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
+                          <svg className="w-6 h-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                        </div>
+                      </div>
+                      <p className="text-sm font-metropolis font-medium text-[#0D141C]">
+                        {getCurrentFormData().coverImage?.name}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (isEnglishMode) {
+                            setFormDataEnglish(prev => ({ ...prev, coverImage: null }))
+                          } else {
+                            setFormData(prev => ({ ...prev, coverImage: null }))
+                          }
+                        }}
+                        className="text-sm text-red-600 hover:text-red-800 font-metropolis font-medium"
+                      >
+                        {isEnglishMode ? 'Remove' : 'Eliminar'}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <p className="text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
+                        {translations.dragDropImage}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* File Input */}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleCoverImageUpload}
+                  className="hidden"
+                  id="cover-image-upload"
+                />
+                <label
+                  htmlFor="cover-image-upload"
+                  className="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-[#5A6F80] bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5A6F80]"
+                >
+                  <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  {translations.uploadImage}
+                </label>
+              </div>
+            </div>
+          </div>
+
           {/* Event Date */}
           <div>
             <h2 className="font-metropolis font-bold text-xl mb-4" style={{ color: '#0D141C' }}>
@@ -511,6 +676,121 @@ export default function EditarEventoPage() {
               rows={6}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent resize-none"
             />
+          </div>
+
+          {/* Multiple Images */}
+          <div>
+            <h2 className="font-metropolis font-bold text-xl mb-4" style={{ color: '#0D141C' }}>
+              {translations.multipleImages}
+            </h2>
+            <div className="space-y-4">
+              {/* Current Images Preview */}
+              {originalData?.coverImageUrl && (
+                <div className="mb-4">
+                  <p className="text-sm font-metropolis font-medium text-[#0D141C] mb-2">
+                    {isEnglishMode ? 'Current Event Images:' : 'Imágenes del Evento Actuales:'}
+                  </p>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="w-24 h-24 bg-gray-200 rounded-lg overflow-hidden">
+                      <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
+                        <svg className="w-6 h-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* New Images Upload */}
+              <div className="space-y-3">
+                <label className="block text-sm font-metropolis font-medium text-[#0D141C]">
+                  {isEnglishMode ? 'Upload New Images' : 'Subir Nuevas Imágenes'}
+                </label>
+                
+                {/* Drag and Drop Area */}
+                <div
+                  className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                    getCurrentFormData().images.length > 0 
+                      ? 'border-[#5A6F80] bg-[#F0F4F8]' 
+                      : 'border-gray-300 hover:border-[#5A6F80] hover:bg-gray-50'
+                  }`}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={handleDrop}
+                >
+                  {getCurrentFormData().images.length > 0 ? (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {getCurrentFormData().images.map((image, index) => (
+                          <div key={index} className="relative">
+                            <div className="w-24 h-24 bg-gray-200 rounded-lg overflow-hidden">
+                              <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
+                                <svg className="w-6 h-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                              </div>
+                            </div>
+                            <p className="text-xs font-metropolis font-medium text-[#0D141C] mt-2 text-center truncate">
+                              {image.name}
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => removeImage(index)}
+                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors"
+                            >
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (isEnglishMode) {
+                            setFormDataEnglish(prev => ({ ...prev, images: [] }))
+                          } else {
+                            setFormData(prev => ({ ...prev, images: [] }))
+                          }
+                        }}
+                        className="text-sm text-red-600 hover:text-red-800 font-metropolis font-medium"
+                      >
+                        {isEnglishMode ? 'Remove All' : 'Eliminar Todas'}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <p className="text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
+                        {translations.dragDropImages}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* File Input */}
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleImagesUpload}
+                  className="hidden"
+                  id="multiple-images-upload"
+                />
+                <label
+                  htmlFor="multiple-images-upload"
+                  className="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-[#5A6F80] bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5A6F80]"
+                >
+                  <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  {isEnglishMode ? 'Upload Images' : 'Subir Imágenes'}
+                </label>
+              </div>
+            </div>
           </div>
 
           {/* Phrase */}

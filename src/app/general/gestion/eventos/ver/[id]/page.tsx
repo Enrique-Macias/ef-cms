@@ -37,6 +37,7 @@ export default function VerEventoPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [isEnglishMode, setIsEnglishMode] = useState(false)
   
   const toast = useToast()
 
@@ -216,10 +217,10 @@ export default function VerEventoPage() {
           {/* Event Info */}
           <div>
             <h1 className="font-metropolis font-bold text-3xl mb-2" style={{ color: '#0D141C' }}>
-              {event.title_es}
+              {isEnglishMode ? event.title_en : event.title_es}
             </h1>
             <div className="flex items-center space-x-4 text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
-              <span>Por {event.author}</span>
+              <span>{isEnglishMode ? 'By ' : 'Por '}{event.author}</span>
               <span>•</span>
               <span>{formatDate(event.date)}</span>
               <span>•</span>
@@ -230,6 +231,18 @@ export default function VerEventoPage() {
 
         {/* Action Buttons */}
         <div className="flex space-x-3">
+          {/* Language Toggle Button */}
+          <button
+            onClick={() => setIsEnglishMode(!isEnglishMode)}
+            className={`inline-flex items-center px-4 py-3 border rounded-md shadow-sm text-sm font-medium transition-all duration-200 ${
+              isEnglishMode 
+                ? 'border-[#5A6F80] text-[#5A6F80] bg-white hover:bg-gray-50' 
+                : 'border-[#5A6F80] text-white bg-[#5A6F80] hover:bg-[#4A739C]'
+            }`}
+          >
+            {isEnglishMode ? 'Spanish Version' : 'English Version'}
+          </button>
+
           {/* Delete Button */}
           <button
             onClick={() => setIsDeleteModalOpen(true)}
@@ -238,7 +251,7 @@ export default function VerEventoPage() {
             <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
-            Eliminar
+            {isEnglishMode ? 'Delete' : 'Eliminar'}
           </button>
 
           {/* Edit Button */}
@@ -250,10 +263,24 @@ export default function VerEventoPage() {
             <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
             </svg>
-            Editar Evento
+            {isEnglishMode ? 'Edit Event' : 'Editar Evento'}
           </button>
         </div>
       </div>
+
+      {/* Language Mode Indicator */}
+      {isEnglishMode && (
+        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-center space-x-2">
+            <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+            </svg>
+            <span className="text-blue-800 font-medium">
+              English Mode - Viewing English version of the event
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Event Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -278,10 +305,10 @@ export default function VerEventoPage() {
           {/* Event Description */}
           <div className="bg-white border rounded-lg shadow-lg p-6" style={{ borderColor: '#CFDBE8' }}>
             <h2 className="font-metropolis font-bold text-2xl mb-4" style={{ color: '#0D141C' }}>
-              Descripción del Evento
+              {isEnglishMode ? 'Event Description' : 'Descripción del Evento'}
             </h2>
             <div className="prose max-w-none">
-              {event.body_es.split('\n').map((paragraph, index) => (
+              {(isEnglishMode ? event.body_en : event.body_es).split('\n').map((paragraph, index) => (
                 <p key={index} className="text-base font-metropolis font-regular mb-4" style={{ color: '#4A739C' }}>
                   {paragraph}
                 </p>
@@ -292,10 +319,10 @@ export default function VerEventoPage() {
           {/* Tags */}
           <div className="bg-white border rounded-lg shadow-lg p-6" style={{ borderColor: '#CFDBE8' }}>
             <h2 className="font-metropolis font-bold text-2xl mb-4" style={{ color: '#0D141C' }}>
-              Etiquetas
+              {isEnglishMode ? 'Tags' : 'Etiquetas'}
             </h2>
             <div className="flex flex-wrap gap-3">
-              {event.tags.map((tag, index) => (
+              {(isEnglishMode ? event.tags_en : event.tags).map((tag, index) => (
                 <span
                   key={index}
                   className="inline-flex items-center px-4 py-2 text-sm font-metropolis font-medium bg-[#E8EDF5] text-[#0D141C] rounded-full"
@@ -312,7 +339,7 @@ export default function VerEventoPage() {
           {/* Event Details Card */}
           <div className="bg-white border rounded-lg shadow-lg p-6" style={{ borderColor: '#CFDBE8' }}>
             <h3 className="font-metropolis font-bold text-xl mb-4" style={{ color: '#0D141C' }}>
-              Detalles del Evento
+              {isEnglishMode ? 'Event Details' : 'Detalles del Evento'}
             </h3>
             <div className="space-y-4">
               {/* Date */}
@@ -321,7 +348,7 @@ export default function VerEventoPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
                 <div>
-                  <p className="text-sm font-metropolis font-medium text-[#0D141C]">Fecha</p>
+                  <p className="text-sm font-metropolis font-medium text-[#0D141C]">{isEnglishMode ? 'Date' : 'Fecha'}</p>
                   <p className="text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
                     {formatDate(event.date)}
                   </p>
@@ -335,7 +362,7 @@ export default function VerEventoPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
                 <div>
-                  <p className="text-sm font-metropolis font-medium text-[#0D141C]">Ubicación</p>
+                  <p className="text-sm font-metropolis font-medium text-[#0D141C]">{isEnglishMode ? 'Location' : 'Ubicación'}</p>
                   <p className="text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
                     {event.location_city}, {event.location_country}
                   </p>
@@ -345,12 +372,12 @@ export default function VerEventoPage() {
               {/* Category */}
               <div className="flex items-center space-x-3">
                 <svg className="w-5 h-5 text-[#4A739C]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.5 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                 </svg>
                 <div>
-                  <p className="text-sm font-metropolis font-medium text-[#0D141C]">Categoría</p>
+                  <p className="text-sm font-metropolis font-medium text-[#0D141C]">{isEnglishMode ? 'Category' : 'Categoría'}</p>
                   <p className="text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
-                    {event.category}
+                    {isEnglishMode ? event.category_en : event.category}
                   </p>
                 </div>
               </div>
@@ -361,7 +388,7 @@ export default function VerEventoPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
                 <div>
-                  <p className="text-sm font-metropolis font-medium text-[#0D141C]">Autor</p>
+                  <p className="text-sm font-metropolis font-medium text-[#0D141C]">{isEnglishMode ? 'Author' : 'Autor'}</p>
                   <p className="text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
                     {event.author}
                   </p>
@@ -373,11 +400,11 @@ export default function VerEventoPage() {
           {/* Phrase Card */}
           <div className="bg-white border rounded-lg shadow-lg p-6" style={{ borderColor: '#CFDBE8' }}>
             <h3 className="font-metropolis font-bold text-xl mb-4" style={{ color: '#0D141C' }}>
-              Frase del Evento
+              {isEnglishMode ? 'Event Phrase' : 'Frase del Evento'}
             </h3>
             <div className="text-center">
               <p className="text-lg font-metropolis font-medium italic" style={{ color: '#5A6F80' }}>
-                "{event.phrase}"
+                "{isEnglishMode ? event.phrase_en : event.phrase}"
               </p>
             </div>
           </div>
@@ -385,10 +412,10 @@ export default function VerEventoPage() {
           {/* Credits Card */}
           <div className="bg-white border rounded-lg shadow-lg p-6" style={{ borderColor: '#CFDBE8' }}>
             <h3 className="font-metropolis font-bold text-xl mb-4" style={{ color: '#0D141C' }}>
-              Créditos
+              {isEnglishMode ? 'Credits' : 'Créditos'}
             </h3>
             <div className="space-y-2">
-              {event.credits.split('|').map((credit, index) => (
+              {(isEnglishMode ? event.credits_en : event.credits).split('|').map((credit, index) => (
                 <p key={index} className="text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
                   {credit.trim()}
                 </p>
@@ -399,14 +426,14 @@ export default function VerEventoPage() {
           {/* Created/Updated Info */}
           <div className="bg-white border rounded-lg shadow-lg p-6" style={{ borderColor: '#CFDBE8' }}>
             <h3 className="font-metropolis font-bold text-xl mb-4" style={{ color: '#0D141C' }}>
-              Información del Sistema
+              {isEnglishMode ? 'System Information' : 'Información del Sistema'}
             </h3>
             <div className="space-y-3 text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
               <div>
-                <span className="font-medium">Creado:</span> {new Date(event.createdAt).toLocaleDateString('es-ES')}
+                <span className="font-medium">{isEnglishMode ? 'Created:' : 'Creado:'}</span> {new Date(event.createdAt).toLocaleDateString(isEnglishMode ? 'en-US' : 'es-ES')}
               </div>
               <div>
-                <span className="font-medium">Actualizado:</span> {new Date(event.updatedAt).toLocaleDateString('es-ES')}
+                <span className="font-medium">{isEnglishMode ? 'Updated:' : 'Actualizado:'}</span> {new Date(event.updatedAt).toLocaleDateString(isEnglishMode ? 'en-US' : 'es-ES')}
               </div>
             </div>
           </div>
