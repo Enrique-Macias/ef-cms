@@ -7,6 +7,8 @@ export default function ActividadPage() {
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false)
   const [typeFilter, setTypeFilter] = useState<string | null>(null)
   const [dateFilter, setDateFilter] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 8
 
   // Close filter menu when clicking outside
   useEffect(() => {
@@ -85,6 +87,102 @@ export default function ActividadPage() {
       action: 'Eliminar',
       author: 'Enrique Macias',
       date: '2024-07-15'
+    },
+    {
+      id: 9,
+      title: 'Optimize database queries',
+      type: 'Noticia',
+      action: 'Actualizar',
+      author: 'Carlos Rodríguez',
+      date: '2024-07-10'
+    },
+    {
+      id: 10,
+      title: 'Add new team member',
+      type: 'Equipo',
+      action: 'Creación',
+      author: 'Ana Martínez',
+      date: '2024-07-08'
+    },
+    {
+      id: 11,
+      title: 'Update privacy policy',
+      type: 'Evento',
+      action: 'Actualizar',
+      author: 'Luis González',
+      date: '2024-07-05'
+    },
+    {
+      id: 12,
+      title: 'Create backup system',
+      type: 'Noticia',
+      action: 'Creación',
+      author: 'María López',
+      date: '2024-07-01'
+    },
+    {
+      id: 13,
+      title: 'Fix security vulnerabilities',
+      type: 'Noticia',
+      action: 'Actualizar',
+      author: 'Pedro Sánchez',
+      date: '2024-06-28'
+    },
+    {
+      id: 14,
+      title: 'Add new testimonials',
+      type: 'Testimonio',
+      action: 'Creación',
+      author: 'Carmen Torres',
+      date: '2024-06-25'
+    },
+    {
+      id: 15,
+      title: 'Update contact information',
+      type: 'Equipo',
+      action: 'Actualizar',
+      author: 'Javier Ruiz',
+      date: '2024-06-20'
+    },
+    {
+      id: 16,
+      title: 'Remove old blog posts',
+      type: 'Evento',
+      action: 'Eliminar',
+      author: 'Isabel Moreno',
+      date: '2024-06-15'
+    },
+    {
+      id: 17,
+      title: 'Implement search functionality',
+      type: 'Noticia',
+      action: 'Creación',
+      author: 'Roberto Jiménez',
+      date: '2024-06-10'
+    },
+    {
+      id: 18,
+      title: 'Update user interface',
+      type: 'Noticia',
+      action: 'Actualizar',
+      author: 'Elena Castro',
+      date: '2024-06-05'
+    },
+    {
+      id: 19,
+      title: 'Add new event calendar',
+      type: 'Evento',
+      action: 'Creación',
+      author: 'Fernando Silva',
+      date: '2024-06-01'
+    },
+    {
+      id: 20,
+      title: 'Fix mobile responsiveness',
+      type: 'Noticia',
+      action: 'Actualizar',
+      author: 'Patricia Vega',
+      date: '2024-05-28'
     }
   ]
 
@@ -119,23 +217,33 @@ export default function ActividadPage() {
     return matchesSearch && matchesType && matchesDate
   }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
-  // Search and filter functions without loading states
+  // Pagination logic
+  const totalPages = Math.ceil(filteredActivity.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const currentActivity = filteredActivity.slice(startIndex, endIndex)
+
+  // Search and filter functions with pagination reset
   const handleSearch = (text: string) => {
     setSearchText(text)
+    setCurrentPage(1)
   }
 
   const handleTypeFilter = (type: string | null) => {
     setTypeFilter(type)
+    setCurrentPage(1)
   }
 
   const handleDateFilter = (date: string | null) => {
     setDateFilter(date)
+    setCurrentPage(1)
   }
 
   const clearAllFilters = () => {
     setSearchText('')
     setTypeFilter(null)
     setDateFilter(null)
+    setCurrentPage(1)
   }
 
   return (
@@ -323,7 +431,7 @@ export default function ActividadPage() {
             </tr>
           </thead>
           <tbody className="bg-white divide-y" style={{ borderColor: '#CFDBE8' }}>
-            {filteredActivity.map((item) => (
+            {currentActivity.map((item) => (
               <tr key={item.id}>
                 <td className="px-6 py-4 whitespace-nowrap text-base font-metropolis font-regular" style={{ color: '#0D141C' }}>
                   {item.title}
@@ -355,23 +463,160 @@ export default function ActividadPage() {
       </div>
 
       {/* Pagination */}
-      <div className="mt-6 flex items-center justify-center">
-        <div className="flex items-center space-x-2">
-          <button className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <span className="px-3 py-2 text-sm font-medium text-gray-700">
-            Página 1 de 10
-          </span>
-          <button className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
+      {totalPages > 1 && (
+        <div className="mt-6 flex items-center justify-center">
+          <div className="flex items-center space-x-2">
+            <button 
+              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            
+            {/* Page numbers with ellipsis */}
+            {(() => {
+              const pages = []
+              const maxVisiblePages = 7 // Show max 7 page numbers
+              
+              if (totalPages <= maxVisiblePages) {
+                // Show all pages if total is small
+                for (let i = 1; i <= totalPages; i++) {
+                  pages.push(
+                    <button
+                      key={i}
+                      onClick={() => setCurrentPage(i)}
+                      className={`px-3 py-2 text-sm font-medium rounded-md ${
+                        currentPage === i
+                          ? 'bg-[#5A6F80] text-white border border-[#5A6F80]'
+                          : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      {i}
+                    </button>
+                  )
+                }
+              } else {
+                // Smart pagination with ellipsis for large numbers
+                if (currentPage <= 4) {
+                  // Show first 5 pages + ellipsis + last page
+                  for (let i = 1; i <= 5; i++) {
+                    pages.push(
+                      <button
+                        key={i}
+                        onClick={() => setCurrentPage(i)}
+                        className={`px-3 py-2 text-sm font-medium rounded-md ${
+                          currentPage === i
+                            ? 'bg-[#5A6F80] text-white border border-[#5A6F80]'
+                            : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {i}
+                      </button>
+                    )
+                  }
+                  pages.push(
+                    <span key="ellipsis1" className="px-2 py-2 text-gray-500">...</span>
+                  )
+                  pages.push(
+                    <button
+                      key={totalPages}
+                      onClick={() => setCurrentPage(totalPages)}
+                      className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                    >
+                      {totalPages}
+                    </button>
+                  )
+                } else if (currentPage >= totalPages - 3) {
+                  // Show first page + ellipsis + last 5 pages
+                  pages.push(
+                    <button
+                      key={1}
+                      onClick={() => setCurrentPage(1)}
+                      className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                    >
+                      1
+                    </button>
+                  )
+                  pages.push(
+                    <span key="ellipsis2" className="px-2 py-2 text-gray-500">...</span>
+                  )
+                  for (let i = totalPages - 4; i <= totalPages; i++) {
+                    pages.push(
+                      <button
+                        key={i}
+                        onClick={() => setCurrentPage(i)}
+                        className={`px-3 py-2 text-sm font-medium rounded-md ${
+                          currentPage === i
+                            ? 'bg-[#5A6F80] text-white border border-[#5A6F80]'
+                            : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {i}
+                      </button>
+                    )
+                  }
+                } else {
+                  // Show first page + ellipsis + current page ± 1 + ellipsis + last page
+                  pages.push(
+                    <button
+                      key={1}
+                      onClick={() => setCurrentPage(1)}
+                      className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                    >
+                      1
+                    </button>
+                  )
+                  pages.push(
+                    <span key="ellipsis3" className="px-2 py-2 text-gray-500">...</span>
+                  )
+                  for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+                    pages.push(
+                      <button
+                        key={i}
+                        onClick={() => setCurrentPage(i)}
+                        className={`px-3 py-2 text-sm font-medium rounded-md ${
+                          currentPage === i
+                            ? 'bg-[#5A6F80] text-white border border-[#5A6F80]'
+                            : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {i}
+                      </button>
+                    )
+                  }
+                  pages.push(
+                    <span key="ellipsis4" className="px-2 py-2 text-gray-500">...</span>
+                  )
+                  pages.push(
+                    <button
+                      key={totalPages}
+                      onClick={() => setCurrentPage(totalPages)}
+                      className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                    >
+                      {totalPages}
+                    </button>
+                  )
+                }
+              }
+              
+              return pages
+            })()}
+            
+            <button 
+              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

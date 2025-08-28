@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Spinner } from '@/components/ui/spinner'
+import { useToast } from '@/hooks/useToast'
 
 export default function UsuariosPage() {
   const [roleFilter, setRoleFilter] = useState<string | null>(null)
@@ -15,6 +16,10 @@ export default function UsuariosPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 5
+  
+  const toast = useToast()
 
   // Datos de usuarios
   const users = [
@@ -23,6 +28,18 @@ export default function UsuariosPage() {
     { id: 3, name: 'Miguel Castellano', email: 'miguel.castellano@example.com', role: 'Editor' },
     { id: 4, name: 'Sergio Elías', email: 'sergio.elias@example.com', role: 'Editor' },
     { id: 5, name: 'Enrique Macías', email: 'enrique.macias@example.com', role: 'Editor' },
+    { id: 6, name: 'Carlos Rodríguez', email: 'carlos.rodriguez@example.com', role: 'Editor' },
+    { id: 7, name: 'Ana Martínez', email: 'ana.martinez@example.com', role: 'Editor' },
+    { id: 8, name: 'Luis González', email: 'luis.gonzalez@example.com', role: 'Editor' },
+    { id: 9, name: 'María López', email: 'maria.lopez@example.com', role: 'Editor' },
+    { id: 10, name: 'Pedro Sánchez', email: 'pedro.sanchez@example.com', role: 'Editor' },
+    { id: 11, name: 'Carmen Torres', email: 'carmen.torres@example.com', role: 'Editor' },
+    { id: 12, name: 'Javier Ruiz', email: 'javier.ruiz@example.com', role: 'Editor' },
+    { id: 13, name: 'Isabel Moreno', email: 'isabel.moreno@example.com', role: 'Editor' },
+    { id: 14, name: 'Roberto Jiménez', email: 'roberto.jimenez@example.com', role: 'Editor' },
+    { id: 15, name: 'Elena Castro', email: 'elena.castro@example.com', role: 'Editor' },
+    { id: 16, name: 'Fernando Silva', email: 'fernando.silva@example.com', role: 'Editor' },
+    { id: 17, name: 'Patricia Vega', email: 'patricia.vega@example.com', role: 'Editor' }
   ]
 
   // Filtrar usuarios basado en el rol seleccionado y texto de búsqueda
@@ -35,10 +52,17 @@ export default function UsuariosPage() {
     return matchesRole && matchesSearch
   })
 
-  // Simulate loading when filtering
+  // Pagination logic
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const currentUsers = filteredUsers.slice(startIndex, endIndex)
+
+  // Reset to first page when filters change
   const handleSearch = (text: string) => {
     setIsLoading(true)
     setSearchText(text)
+    setCurrentPage(1)
     // Simulate API call delay
     setTimeout(() => setIsLoading(false), 500)
   }
@@ -46,20 +70,14 @@ export default function UsuariosPage() {
   const handleRoleFilter = (role: string | null) => {
     setIsLoading(true)
     setRoleFilter(role)
+    setCurrentPage(1)
     // Simulate API call delay
     setTimeout(() => setIsLoading(false), 500)
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <Spinner size="lg" />
-          <p className="mt-4 text-[#4A739C] font-metropolis font-regular">Cargando usuarios...</p>
-        </div>
-      </div>
-    )
-  }
+
+
+
 
   return (
     <div className="p-6">
@@ -218,71 +236,229 @@ export default function UsuariosPage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y" style={{ borderColor: '#CFDBE8' }}>
-              {filteredUsers.map((user) => (
-                <tr key={user.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-base font-metropolis font-regular" style={{ color: '#0D141C' }}>
-                    {user.name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-base font-metropolis font-regular" style={{ color: '#4A739C' }}>
-                    {user.email}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-sm font-metropolis font-regular rounded-full ${
-                      user.role === 'Admin' 
-                        ? 'bg-[#E8EDF5] text-[#0D141C]' 
-                        : 'bg-stroke text-[#4A739C]'
-                    }`}>
-                      {user.role}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex space-x-2">
-                      <button 
-                        onClick={() => {
-                          setEditingUser(user)
-                          setIsEditUserModalOpen(true)
-                        }}
-                        className="text-[#4A739C] hover:text-[#3A5D80]">
-                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                      </button>
-                      <button 
-                        onClick={() => {
-                          setDeletingUser(user)
-                          setIsDeleteModalOpen(true)
-                        }}
-                        className="text-red-600 hover:text-red-900">
-                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
+              {isLoading ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-12">
+                    <div className="flex items-center justify-center">
+                      <div className="text-center">
+                        <Spinner size="lg" />
+                        <p className="mt-4 text-[#4A739C] font-metropolis font-regular">Cargando usuarios...</p>
+                      </div>
                     </div>
                   </td>
                 </tr>
-              ))}
+              ) : filteredUsers.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-12">
+                    <div className="text-center">
+                      <p className="text-[#4A739C] font-metropolis font-regular">No se encontraron usuarios</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                currentUsers.map((user) => (
+                  <tr key={user.id}>
+                    <td className="px-6 py-4 whitespace-nowrap text-base font-metropolis font-regular" style={{ color: '#0D141C' }}>
+                      {user.name}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-base font-metropolis font-regular" style={{ color: '#4A739C' }}>
+                      {user.email}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-1 text-sm font-metropolis font-regular rounded-full ${
+                        user.role === 'Admin' 
+                          ? 'bg-[#E8EDF5] text-[#0D141C]' 
+                          : 'bg-stroke text-[#4A739C]'
+                      }`}>
+                        {user.role}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex space-x-2">
+                        <button 
+                          onClick={() => {
+                            setEditingUser(user)
+                            setIsEditUserModalOpen(true)
+                          }}
+                          className="text-[#4A739C] hover:text-[#3A5D80]">
+                          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                        </button>
+                        <button 
+                          onClick={() => {
+                            setDeletingUser(user)
+                            setIsDeleteModalOpen(true)
+                          }}
+                          className="text-red-600 hover:text-red-900">
+                          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
 
         {/* Pagination */}
-        <div className="mt-6 flex items-center justify-center">
-          <div className="flex items-center space-x-2">
-            <button className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <span className="px-3 py-2 text-sm font-medium text-gray-700">
-              Página 1 de 10
-            </span>
-            <button className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
+        {totalPages > 1 && (
+          <div className="mt-6 flex items-center justify-center">
+            <div className="flex items-center space-x-2">
+              <button 
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              
+              {/* Page numbers with ellipsis */}
+              {(() => {
+                const pages = []
+                const maxVisiblePages = 7 // Show max 7 page numbers
+                
+                if (totalPages <= maxVisiblePages) {
+                  // Show all pages if total is small
+                  for (let i = 1; i <= totalPages; i++) {
+                    pages.push(
+                      <button
+                        key={i}
+                        onClick={() => setCurrentPage(i)}
+                        className={`px-3 py-2 text-sm font-medium rounded-md ${
+                          currentPage === i
+                            ? 'bg-[#5A6F80] text-white border border-[#5A6F80]'
+                            : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {i}
+                      </button>
+                    )
+                  }
+                } else {
+                  // Smart pagination with ellipsis for large numbers
+                  if (currentPage <= 4) {
+                    // Show first 5 pages + ellipsis + last page
+                    for (let i = 1; i <= 5; i++) {
+                      pages.push(
+                        <button
+                          key={i}
+                          onClick={() => setCurrentPage(i)}
+                          className={`px-3 py-2 text-sm font-medium rounded-md ${
+                            currentPage === i
+                              ? 'bg-[#5A6F80] text-white border border-[#5A6F80]'
+                              : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+                          }`}
+                        >
+                          {i}
+                        </button>
+                      )
+                    }
+                    pages.push(
+                      <span key="ellipsis1" className="px-2 py-2 text-gray-500">...</span>
+                    )
+                    pages.push(
+                      <button
+                        key={totalPages}
+                        onClick={() => setCurrentPage(totalPages)}
+                        className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                      >
+                        {totalPages}
+                      </button>
+                    )
+                  } else if (currentPage >= totalPages - 3) {
+                    // Show first page + ellipsis + last 5 pages
+                    pages.push(
+                      <button
+                        key={1}
+                        onClick={() => setCurrentPage(1)}
+                        className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                      >
+                        1
+                      </button>
+                    )
+                    pages.push(
+                      <span key="ellipsis2" className="px-2 py-2 text-gray-500">...</span>
+                    )
+                    for (let i = totalPages - 4; i <= totalPages; i++) {
+                      pages.push(
+                        <button
+                          key={i}
+                          onClick={() => setCurrentPage(i)}
+                          className={`px-3 py-2 text-sm font-medium rounded-md ${
+                            currentPage === i
+                              ? 'bg-[#5A6F80] text-white border border-[#5A6F80]'
+                              : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+                          }`}
+                        >
+                          {i}
+                        </button>
+                      )
+                    }
+                  } else {
+                    // Show first page + ellipsis + current page ± 1 + ellipsis + last page
+                    pages.push(
+                      <button
+                        key={1}
+                        onClick={() => setCurrentPage(1)}
+                        className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                      >
+                        1
+                      </button>
+                    )
+                    pages.push(
+                      <span key="ellipsis3" className="px-2 py-2 text-gray-500">...</span>
+                    )
+                    for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+                      pages.push(
+                        <button
+                          key={i}
+                          onClick={() => setCurrentPage(i)}
+                          className={`px-3 py-2 text-sm font-medium rounded-md ${
+                            currentPage === i
+                              ? 'bg-[#5A6F80] text-white border border-[#5A6F80]'
+                              : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+                          }`}
+                        >
+                          {i}
+                        </button>
+                      )
+                    }
+                    pages.push(
+                      <span key="ellipsis4" className="px-2 py-2 text-gray-500">...</span>
+                    )
+                    pages.push(
+                      <button
+                        key={totalPages}
+                        onClick={() => setCurrentPage(totalPages)}
+                        className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                      >
+                        {totalPages}
+                      </button>
+                    )
+                  }
+                }
+                
+                return pages
+              })()}
+              
+              <button 
+                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Edit User Modal */}
@@ -371,6 +547,7 @@ export default function UsuariosPage() {
                   setTimeout(() => {
                     setIsSaving(false)
                     setIsEditUserModalOpen(false)
+                    toast.success('Usuario actualizado exitosamente')
                   }, 1000)
                 }}
                 disabled={isSaving}
@@ -486,6 +663,7 @@ export default function UsuariosPage() {
                   setTimeout(() => {
                     setIsSaving(false)
                     setIsAddUserModalOpen(false)
+                    toast.success('Usuario agregado exitosamente')
                   }, 1000)
                 }}
                 disabled={isSaving}
@@ -566,10 +744,11 @@ export default function UsuariosPage() {
                     setIsDeleting(false)
                     setIsDeleteModalOpen(false)
                     setDeletingUser(null)
+                    toast.success('Usuario eliminado exitosamente')
                   }, 1000)
                 }}
                 disabled={isDeleting}
-                className="px-4 py-2 text-sm font-metropolis font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-sm font-metropolis font-medium text-white bg-[#F43F5E] border border-transparent rounded-md hover:bg-[#E11D48] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isDeleting ? (
                   <div className="flex items-center space-x-2">

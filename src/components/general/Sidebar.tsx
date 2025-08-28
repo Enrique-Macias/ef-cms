@@ -13,7 +13,12 @@ import {
   Bars3Icon,
   XMarkIcon,
   ChevronUpIcon,
-  ChevronDownIcon
+  ChevronDownIcon,
+  NewspaperIcon,
+  CalendarIcon,
+  ChatBubbleLeftRightIcon,
+  UserGroupIcon,
+  DocumentTextIcon
 } from '@heroicons/react/24/outline'
 import {
   HomeIcon as HomeIconSolid,
@@ -21,11 +26,11 @@ import {
   FolderIcon as FolderIconSolid,
   ChartBarIcon as ChartBarIconSolid,
   Cog6ToothIcon as Cog6ToothIconSolid,
-  NewspaperIcon,
-  CalendarIcon,
-  ChatBubbleLeftRightIcon,
-  UserGroupIcon,
-  DocumentTextIcon
+  NewspaperIcon as NewspaperIconSolid,
+  CalendarIcon as CalendarIconSolid,
+  ChatBubbleLeftRightIcon as ChatBubbleLeftRightIconSolid,
+  UserGroupIcon as UserGroupIconSolid,
+  DocumentTextIcon as DocumentTextIconSolid
 } from '@heroicons/react/24/solid'
 
 const navigation = [
@@ -37,11 +42,11 @@ const navigation = [
     iconSolid: FolderIconSolid,
     hasDropdown: true,
     submenu: [
-      { name: 'Noticias', href: '/general/gestion/noticias', icon: NewspaperIcon },
-      { name: 'Eventos', href: '/general/gestion/eventos', icon: CalendarIcon },
-      { name: 'Testimonios', href: '/general/gestion/testimonios', icon: ChatBubbleLeftRightIcon },
-      { name: 'Equipo', href: '/general/gestion/equipo', icon: UserGroupIcon },
-      { name: 'Artículos', href: '/general/gestion/articulos', icon: DocumentTextIcon },
+      { name: 'Noticias', href: '/general/gestion/noticias', icon: NewspaperIcon, iconSolid: NewspaperIconSolid },
+      { name: 'Eventos', href: '/general/gestion/eventos', icon: CalendarIcon, iconSolid: CalendarIconSolid },
+      { name: 'Testimonios', href: '/general/gestion/testimonios', icon: ChatBubbleLeftRightIcon, iconSolid: ChatBubbleLeftRightIconSolid },
+      { name: 'Equipo', href: '/general/gestion/equipo', icon: UserGroupIcon, iconSolid: UserGroupIconSolid },
+      { name: 'Artículos', href: '/general/gestion/articulos', icon: DocumentTextIcon, iconSolid: DocumentTextIconSolid },
     ]
   },
   { name: 'Usuarios', href: '/general/usuarios', icon: UsersIcon, iconSolid: UsersIconSolid },
@@ -57,7 +62,9 @@ export function Sidebar() {
   // Auto-open dropdown if current page is in a submenu
   useEffect(() => {
     const currentItem = navigation.find(item => 
-      item.submenu?.some(subItem => pathname === subItem.href)
+      item.submenu?.some(subItem => 
+        pathname === subItem.href || pathname.startsWith(subItem.href + '/')
+      )
     )
     if (currentItem) {
       setOpenDropdown(currentItem.name)
@@ -124,7 +131,9 @@ export function Sidebar() {
               {navigation.map((item) => {
                 const isActive = pathname === item.href
                 const isDropdownOpen = openDropdown === item.name
-                const hasActiveSubmenu = item.submenu?.some(subItem => pathname === subItem.href)
+                const hasActiveSubmenu = item.submenu?.some(subItem => 
+                  pathname === subItem.href || pathname.startsWith(subItem.href + '/')
+                )
                 
                 return (
                   <div key={item.name}>
@@ -191,7 +200,7 @@ export function Sidebar() {
                     {item.hasDropdown && isDropdownOpen && item.submenu && (
                       <div className="ml-4 mt-1 space-y-1">
                         {item.submenu.map((subItem) => {
-                          const isSubActive = pathname === subItem.href
+                          const isSubActive = pathname === subItem.href || pathname.startsWith(subItem.href + '/')
                           return (
                             <Link
                               key={subItem.name}
@@ -203,12 +212,19 @@ export function Sidebar() {
                               }`}
                               style={{ color: isSubActive ? '#FFFDF6' : '#0D141C' }}
                             >
-                              <subItem.icon
-                                className={`mr-3 flex-shrink-0 h-5 w-5 ${
-                                  isSubActive ? 'text-button-text' : 'text-text group-hover:text-title'
-                                }`}
-                                aria-hidden="true"
-                              />
+                              {isSubActive && subItem.iconSolid ? (
+                                <subItem.iconSolid
+                                  className="mr-3 flex-shrink-0 h-5 w-5 text-button-text"
+                                  aria-hidden="true"
+                                />
+                              ) : (
+                                <subItem.icon
+                                  className={`mr-3 flex-shrink-0 h-5 w-5 ${
+                                    isSubActive ? 'text-button-text' : 'text-text group-hover:text-title'
+                                  }`}
+                                  aria-hidden="true"
+                                />
+                              )}
                               <span className="flex-1">{subItem.name}</span>
                             </Link>
                           )
