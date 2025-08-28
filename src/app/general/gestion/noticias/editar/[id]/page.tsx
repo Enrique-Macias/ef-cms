@@ -21,6 +21,17 @@ export default function EditarNoticiaPage() {
     tags: [] as string[]
   })
 
+  const [formDataEnglish, setFormDataEnglish] = useState({
+    title: '',
+    author: '',
+    coverImage: null as File | null,
+    publicationDate: '',
+    description: '',
+    images: [] as File[],
+    categories: [] as string[],
+    tags: [] as string[]
+  })
+
   const [originalData, setOriginalData] = useState({
     title: '',
     author: '',
@@ -32,8 +43,22 @@ export default function EditarNoticiaPage() {
     tags: [] as string[]
   })
 
+  const [originalDataEnglish, setOriginalDataEnglish] = useState({
+    title: '',
+    author: '',
+    coverImage: null as File | null,
+    publicationDate: '',
+    description: '',
+    images: [] as File[],
+    categories: [] as string[],
+    tags: [] as string[]
+  })
+
+  const [isEnglishMode, setIsEnglishMode] = useState(false)
   const [newCategory, setNewCategory] = useState('')
   const [newTag, setNewTag] = useState('')
+  const [newCategoryEnglish, setNewCategoryEnglish] = useState('')
+  const [newTagEnglish, setNewTagEnglish] = useState('')
   const [isUpdating, setIsUpdating] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -46,24 +71,48 @@ export default function EditarNoticiaPage() {
   // Mock data for news (in a real app, this would come from an API)
   const mockNewsData = {
     1: {
-      title: 'Nueva Tecnología Revoluciona la Industria Local',
-      author: 'Alejandro Medina',
-      coverImage: null,
-      publicationDate: '2024-01-15',
-      description: 'Una empresa local ha desarrollado una innovadora tecnología que promete transformar completamente la forma en que trabajamos en la región. Esta innovación representa un avance significativo en la industria y abre nuevas posibilidades para el desarrollo económico local.',
-      images: [],
-      categories: ['Tecnología', 'Innovación'],
-      tags: ['Local', 'Desarrollo', 'Futuro']
+      spanish: {
+        title: 'Nueva Tecnología Revoluciona la Industria Local',
+        author: 'Alejandro Medina',
+        coverImage: null,
+        publicationDate: '2024-01-15',
+        description: 'Una empresa local ha desarrollado una innovadora tecnología que promete transformar completamente la forma en que trabajamos en la región. Esta innovación representa un avance significativo en la industria y abre nuevas posibilidades para el desarrollo económico local.',
+        images: [],
+        categories: ['Tecnología', 'Innovación'],
+        tags: ['Local', 'Desarrollo', 'Futuro']
+      },
+      english: {
+        title: 'New Technology Revolutionizes Local Industry',
+        author: 'Alejandro Medina',
+        coverImage: null,
+        publicationDate: '2024-01-15',
+        description: 'A local company has developed an innovative technology that promises to completely transform the way we work in the region. This innovation represents a significant advance in the industry and opens new possibilities for local economic development.',
+        images: [],
+        categories: ['Technology', 'Innovation'],
+        tags: ['Local', 'Development', 'Future']
+      }
     },
     2: {
-      title: 'Festival Cultural Atrae Miles de Visitantes',
-      author: 'María González',
-      coverImage: null,
-      publicationDate: '2024-01-14',
-      description: 'El evento cultural más importante del año superó todas las expectativas con más de 15,000 asistentes y presentaciones internacionales. El festival se convirtió en un punto de encuentro para artistas de todo el mundo.',
-      images: [],
-      categories: ['Cultura', 'Eventos'],
-      tags: ['Arte', 'Internacional', 'Festival']
+      spanish: {
+        title: 'Festival Cultural Atrae Miles de Visitantes',
+        author: 'María González',
+        coverImage: null,
+        publicationDate: '2024-01-14',
+        description: 'El evento cultural más importante del año superó todas las expectativas con más de 15,000 asistentes y presentaciones internacionales. El festival se convirtió en un punto de encuentro para artistas de todo el mundo.',
+        images: [],
+        categories: ['Cultura', 'Eventos'],
+        tags: ['Arte', 'Internacional', 'Festival']
+      },
+      english: {
+        title: 'Cultural Festival Attracts Thousands of Visitors',
+        author: 'María González',
+        coverImage: null,
+        publicationDate: '2024-01-14',
+        description: 'The most important cultural event of the year exceeded all expectations with more than 15,000 attendees and international presentations. The festival became a meeting point for artists from around the world.',
+        images: [],
+        categories: ['Culture', 'Events'],
+        tags: ['Art', 'International', 'Festival']
+      }
     }
   }
 
@@ -75,8 +124,10 @@ export default function EditarNoticiaPage() {
       setTimeout(() => {
         const newsData = mockNewsData[parseInt(newsId) as keyof typeof mockNewsData]
         if (newsData) {
-          setFormData(newsData)
-          setOriginalData(newsData)
+          setFormData(newsData.spanish)
+          setFormDataEnglish(newsData.english)
+          setOriginalData(newsData.spanish)
+          setOriginalDataEnglish(newsData.english)
         }
         setIsLoading(false)
       }, 1000)
@@ -86,18 +137,79 @@ export default function EditarNoticiaPage() {
   }, [newsId])
 
   // Check if form has changes
-  const hasChanges = JSON.stringify(formData) !== JSON.stringify(originalData)
+  const hasChanges = JSON.stringify(formData) !== JSON.stringify(originalData) || 
+                    JSON.stringify(formDataEnglish) !== JSON.stringify(originalDataEnglish)
+
+  // Get current form data based on language mode
+  const getCurrentFormData = () => isEnglishMode ? formDataEnglish : formData
+  const getCurrentNewCategory = () => isEnglishMode ? newCategoryEnglish : newCategory
+  const getCurrentNewTag = () => isEnglishMode ? newTagEnglish : newTag
+  const setCurrentNewCategory = (value: string) => isEnglishMode ? setNewCategoryEnglish(value) : setNewCategory(value)
+  const setCurrentNewTag = (value: string) => isEnglishMode ? setNewTagEnglish(value) : setNewTag(value)
+
+  // English translations
+  const translations = {
+    title: isEnglishMode ? 'News Title' : 'Titulo Noticia',
+    author: isEnglishMode ? 'Author Name' : 'Nombre del autor',
+    coverImage: isEnglishMode ? 'Cover Image' : 'Portada',
+    publicationDate: isEnglishMode ? 'Publication Date' : 'Fecha de Publicación',
+    description: isEnglishMode ? 'Description' : 'Descripción',
+    basicInfo: isEnglishMode ? 'Basic Information' : 'Información Básica',
+    cover: isEnglishMode ? 'Cover' : 'Portada',
+    images: isEnglishMode ? 'Images' : 'Imágenes',
+    categories: isEnglishMode ? 'Categories' : 'Categorías',
+    tags: isEnglishMode ? 'Tags' : 'Etiquetas',
+    newCategory: isEnglishMode ? 'New category' : 'Nueva categoría',
+    newTag: isEnglishMode ? 'New tag' : 'Nueva etiqueta',
+    editNews: isEnglishMode ? 'Edit News' : 'Editar Noticia',
+    updateNews: isEnglishMode ? 'Update News' : 'Actualizar Noticia',
+    updating: isEnglishMode ? 'Updating...' : 'Actualizando...',
+    delete: isEnglishMode ? 'Delete' : 'Eliminar',
+    coverDescription: isEnglishMode 
+      ? 'JPG or PNG, Maximum 300 KB. Drag and drop an image here.'
+      : 'JPG o PNG, Máximo 300 KB. Arrastra y suelta una imagen aquí.',
+    uploadImage: isEnglishMode ? 'Upload Image' : 'Subir Imagen',
+    imagesDescription: isEnglishMode 
+      ? 'JPG or PNG. Maximum 5 photos of 300 KB each.'
+      : 'JPG o PNG. Máximo 5 fotos de 300 KB c/u.',
+    pressToUpload: isEnglishMode ? 'Click here to upload images' : 'Presiona aquí para subir imágenes',
+    or: isEnglishMode ? 'or' : 'o',
+    dragAndDrop: isEnglishMode ? 'Drag and drop images here' : 'Arrastra y suelta imágenes aquí',
+    dropHere: isEnglishMode ? 'Drop here to upload!' : '¡Suelta aquí para subir!',
+    categoriesDescription: isEnglishMode 
+      ? 'Enter categories one by one.'
+      : 'Ingrese las categorías uno por uno.',
+    tagsDescription: isEnglishMode 
+      ? 'Enter tags one by one.'
+      : 'Ingrese las etiquetas uno por uno.',
+    descriptionPlaceholder: isEnglishMode 
+      ? 'Write the news description...'
+      : 'Escribe la descripción de la noticia...',
+    descriptionHelp: isEnglishMode 
+      ? 'General and detailed description about the news.'
+      : 'Descripción general y detallada sobre la noticia.',
+    englishVersion: 'English Version',
+    spanishVersion: 'Spanish Version'
+  }
 
   // Handle form input changes
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+    if (isEnglishMode) {
+      setFormDataEnglish(prev => ({ ...prev, [field]: value }))
+    } else {
+      setFormData(prev => ({ ...prev, [field]: value }))
+    }
   }
 
   // Handle cover image upload
   const handleCoverImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      setFormData(prev => ({ ...prev, coverImage: file }))
+      if (isEnglishMode) {
+        setFormDataEnglish(prev => ({ ...prev, coverImage: file }))
+      } else {
+        setFormData(prev => ({ ...prev, coverImage: file }))
+      }
     }
   }
 
@@ -105,7 +217,11 @@ export default function EditarNoticiaPage() {
   const handleImagesUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || [])
     if (files.length > 0) {
-      setFormData(prev => ({ ...prev, images: [...prev.images, ...files] }))
+      if (isEnglishMode) {
+        setFormDataEnglish(prev => ({ ...prev, images: [...prev.images, ...files] }))
+      } else {
+        setFormData(prev => ({ ...prev, images: [...prev.images, ...files] }))
+      }
     }
   }
 
@@ -131,7 +247,11 @@ export default function EditarNoticiaPage() {
     const imageFiles = files.filter(file => file.type.startsWith('image/'))
     
     if (imageFiles.length > 0) {
-      setFormData(prev => ({ ...prev, images: [...prev.images, ...imageFiles] }))
+      if (isEnglishMode) {
+        setFormDataEnglish(prev => ({ ...prev, images: [...prev.images, ...imageFiles] }))
+      } else {
+        setFormData(prev => ({ ...prev, images: [...prev.images, ...imageFiles] }))
+      }
     }
   }
 
@@ -157,40 +277,66 @@ export default function EditarNoticiaPage() {
     const imageFile = files.find(file => file.type.startsWith('image/'))
     
     if (imageFile) {
-      setFormData(prev => ({ ...prev, coverImage: imageFile }))
+      if (isEnglishMode) {
+        setFormDataEnglish(prev => ({ ...prev, coverImage: imageFile }))
+      } else {
+        setFormData(prev => ({ ...prev, coverImage: imageFile }))
+      }
     }
   }
 
   // Add new category
   const addCategory = () => {
-    if (newCategory.trim() && !formData.categories.includes(newCategory.trim())) {
-      setFormData(prev => ({ ...prev, categories: [...prev.categories, newCategory.trim()] }))
-      setNewCategory('')
+    if (isEnglishMode) {
+      if (newCategoryEnglish.trim() && !formDataEnglish.categories.includes(newCategoryEnglish.trim())) {
+        setFormDataEnglish(prev => ({ ...prev, categories: [...prev.categories, newCategoryEnglish.trim()] }))
+        setNewCategoryEnglish('')
+      }
+    } else {
+      if (newCategory.trim() && !formData.categories.includes(newCategory.trim())) {
+        setFormData(prev => ({ ...prev, categories: [...prev.categories, newCategory.trim()] }))
+        setNewCategory('')
+      }
     }
   }
 
   // Remove category
   const removeCategory = (category: string) => {
-    setFormData(prev => ({ ...prev, categories: prev.categories.filter(c => c !== category) }))
+    if (isEnglishMode) {
+      setFormDataEnglish(prev => ({ ...prev, categories: prev.categories.filter(c => c !== category) }))
+    } else {
+      setFormData(prev => ({ ...prev, categories: prev.categories.filter(c => c !== category) }))
+    }
   }
 
   // Add new tag
   const addTag = () => {
-    if (newTag.trim() && !formData.tags.includes(newTag.trim())) {
-      setFormData(prev => ({ ...prev, tags: [...prev.tags, newTag.trim()] }))
-      setNewTag('')
+    if (isEnglishMode) {
+      if (newTagEnglish.trim() && !formDataEnglish.tags.includes(newTagEnglish.trim())) {
+        setFormDataEnglish(prev => ({ ...prev, tags: [...prev.tags, newTagEnglish.trim()] }))
+        setNewTagEnglish('')
+      }
+    } else {
+      if (newTag.trim() && !formData.tags.includes(newTag.trim())) {
+        setFormData(prev => ({ ...prev, tags: [...prev.tags, newTag.trim()] }))
+        setNewTag('')
+      }
     }
   }
 
   // Remove tag
   const removeTag = (tag: string) => {
-    setFormData(prev => ({ ...prev, tags: prev.tags.filter(t => t !== tag) }))
+    if (isEnglishMode) {
+      setFormDataEnglish(prev => ({ ...prev, tags: prev.tags.filter(t => t !== tag) }))
+    } else {
+      setFormData(prev => ({ ...prev, tags: prev.tags.filter(t => t !== tag) }))
+    }
   }
 
   // Handle form submission (update)
   const handleUpdate = async () => {
-    // Validate required fields
-    const requiredFields = {
+    // Always validate both Spanish and English versions
+    const spanishRequiredFields = {
       title: formData.title.trim(),
       author: formData.author.trim(),
       coverImage: formData.coverImage,
@@ -198,23 +344,69 @@ export default function EditarNoticiaPage() {
       description: formData.description.trim()
     }
     
-    const missingFields = Object.entries(requiredFields)
+    const englishRequiredFields = {
+      title: formDataEnglish.title.trim(),
+      author: formDataEnglish.author.trim(),
+      coverImage: formDataEnglish.coverImage,
+      publicationDate: formDataEnglish.publicationDate,
+      description: formDataEnglish.description.trim()
+    }
+    
+    const spanishMissingFields = Object.entries(spanishRequiredFields)
       .filter(([key, value]) => !value)
       .map(([key]) => key)
     
-    if (missingFields.length > 0) {
-      // Show warning toast for missing fields
-      const fieldNames = {
-        title: 'Título',
-        author: 'Autor',
-        coverImage: 'Portada',
-        publicationDate: 'Fecha de publicación',
-        description: 'Descripción'
-      }
-      
-      const missingFieldNames = missingFields.map(field => fieldNames[field as keyof typeof fieldNames])
+    const englishMissingFields = Object.entries(englishRequiredFields)
+      .filter(([key, value]) => !value)
+      .map(([key]) => key)
+    
+    // Field names for both languages
+    const spanishFieldNames = {
+      title: 'Título',
+      author: 'Autor',
+      coverImage: 'Portada',
+      publicationDate: 'Fecha de publicación',
+      description: 'Descripción'
+    }
+    
+    const englishFieldNames = {
+      title: 'Title',
+      author: 'Author',
+      coverImage: 'Cover Image',
+      publicationDate: 'Publication Date',
+      description: 'Description'
+    }
+    
+    // Check if we're in Spanish mode and Spanish fields are missing
+    if (!isEnglishMode && spanishMissingFields.length > 0) {
+      const missingFieldNames = spanishMissingFields.map(field => spanishFieldNames[field as keyof typeof spanishFieldNames])
       toast.warning(`Debes llenar todos los campos obligatorios: ${missingFieldNames.join(', ')}`)
       return
+    }
+    
+    // Check if we're in English mode and English fields are missing
+    if (isEnglishMode && englishMissingFields.length > 0) {
+      const missingFieldNames = englishMissingFields.map(field => englishFieldNames[field as keyof typeof englishFieldNames])
+      toast.warning(`You must fill all required fields: ${missingFieldNames.join(', ')}`)
+      return
+    }
+    
+    // If we're in Spanish mode, also check English fields
+    if (!isEnglishMode) {
+      if (englishMissingFields.length > 0) {
+        const missingFieldNames = englishMissingFields.map(field => englishFieldNames[field as keyof typeof englishFieldNames])
+        toast.warning(`También debes llenar todos los campos obligatorios de la versión en inglés: ${missingFieldNames.join(', ')}`)
+        return
+      }
+    }
+    
+    // If we're in English mode, also check Spanish fields
+    if (isEnglishMode) {
+      if (spanishMissingFields.length > 0) {
+        const missingFieldNames = spanishMissingFields.map(field => spanishFieldNames[field as keyof typeof spanishFieldNames])
+        toast.warning(`You must also fill all required fields in the Spanish version: ${missingFieldNames.join(', ')}`)
+        return
+      }
     }
     
     setIsUpdating(true)
@@ -223,8 +415,10 @@ export default function EditarNoticiaPage() {
       setIsUpdating(false)
       // Update original data to reflect changes
       setOriginalData(formData)
+      setOriginalDataEnglish(formDataEnglish)
       // Show success toast
-      toast.success('Noticia actualizada exitosamente')
+      const successMessage = isEnglishMode ? 'News updated successfully' : 'Noticia actualizada exitosamente'
+      toast.success(successMessage)
     }, 2000)
   }
 
@@ -236,7 +430,8 @@ export default function EditarNoticiaPage() {
       setIsDeleting(false)
       setIsDeleteModalOpen(false)
       // Show success toast and redirect
-      toast.success('Noticia eliminada exitosamente')
+      const successMessage = isEnglishMode ? 'News deleted successfully' : 'Noticia eliminada exitosamente'
+      toast.success(successMessage)
       router.push('/general/gestion/noticias')
     }, 2000)
   }
@@ -265,7 +460,7 @@ export default function EditarNoticiaPage() {
           <span className="mx-2 font-metropolis font-medium" style={{ color: '#4A739C' }}>/</span>
           <span>Noticias</span>
           <span className="mx-2 font-metropolis font-medium" style={{ color: '#4A739C' }}>/</span>
-          <span className="font-metropolis font-medium" style={{ color: '#0D141C' }}>Editar Noticia</span>
+          <span className="font-metropolis font-medium" style={{ color: '#0D141C' }}>{translations.editNews}</span>
         </nav>
       </div>
 
@@ -274,9 +469,9 @@ export default function EditarNoticiaPage() {
         <div className="flex items-center space-x-4 mb-4 lg:mb-0">
           {/* Preview Image */}
           <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden">
-            {formData.coverImage ? (
+            {getCurrentFormData().coverImage ? (
               <img
-                src={URL.createObjectURL(formData.coverImage)}
+                src={URL.createObjectURL(getCurrentFormData().coverImage!)}
                 alt="Preview"
                 className="w-full h-full object-cover"
               />
@@ -292,16 +487,28 @@ export default function EditarNoticiaPage() {
           {/* Preview Info */}
           <div>
             <h1 className="font-metropolis font-bold text-2xl mb-1" style={{ color: '#0D141C' }}>
-              {formData.title || 'Titulo Noticia'}
+              {getCurrentFormData().title || translations.title}
             </h1>
             <p className="font-metropolis font-regular text-sm" style={{ color: '#4A739C' }}>
-              {formData.author} | {new Date(formData.publicationDate).getFullYear()}
+              {getCurrentFormData().author} | {new Date(getCurrentFormData().publicationDate).getFullYear()}
             </p>
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex space-x-3">
+        {/* Language Toggle and Action Buttons */}
+        <div className="flex items-center space-x-3">
+          {/* Language Toggle Button */}
+          <button
+            onClick={() => setIsEnglishMode(!isEnglishMode)}
+            className={`inline-flex items-center px-4 py-3 border rounded-md shadow-sm text-sm font-medium transition-all duration-200 ${
+              isEnglishMode 
+                ? 'border-[#5A6F80] text-[#5A6F80] bg-white hover:bg-gray-50' 
+                : 'border-[#5A6F80] text-white bg-[#5A6F80] hover:bg-[#4A739C]'
+            }`}
+          >
+            {isEnglishMode ? translations.spanishVersion : translations.englishVersion}
+          </button>
+
           {/* Delete Button */}
           <button
             onClick={() => setIsDeleteModalOpen(true)}
@@ -310,7 +517,7 @@ export default function EditarNoticiaPage() {
             <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
-            Eliminar
+            {translations.delete}
           </button>
 
           {/* Update Button */}
@@ -323,14 +530,28 @@ export default function EditarNoticiaPage() {
             {isUpdating ? (
               <div className="flex items-center space-x-2">
                 <Spinner size="sm" />
-                <span>Actualizando...</span>
+                <span>{translations.updating}</span>
               </div>
             ) : (
-              'Actualizar Noticia'
+              translations.updateNews
             )}
           </button>
         </div>
       </div>
+
+      {/* Language Mode Indicator */}
+      {isEnglishMode && (
+        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-center space-x-2">
+            <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+            </svg>
+            <span className="text-blue-800 font-medium">
+              English Mode - This section will be filled in English. The DeepL translation endpoint will be integrated later.
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Form */}
       <div className="bg-white border rounded-lg p-6 shadow-lg" style={{ borderColor: '#CFDBE8' }}>
@@ -338,30 +559,30 @@ export default function EditarNoticiaPage() {
           {/* Basic Information Section */}
           <div>
             <h2 className="font-metropolis font-bold text-xl mb-4" style={{ color: '#0D141C' }}>
-              Información Básica
+              {translations.basicInfo}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-metropolis font-medium text-[#0D141C] mb-2">
-                  Título <span className="text-red-500">*</span>
+                  {translations.title} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
-                  value={formData.title}
+                  value={getCurrentFormData().title}
                   onChange={(e) => handleInputChange('title', e.target.value)}
-                  placeholder="Titulo Noticia"
+                  placeholder={translations.title}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
                 />
               </div>
               <div>
                 <label className="block text-sm font-metropolis font-medium text-[#0D141C] mb-2">
-                  Autor <span className="text-red-500">*</span>
+                  {translations.author} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
-                  value={formData.author}
+                  value={getCurrentFormData().author}
                   onChange={(e) => handleInputChange('author', e.target.value)}
-                  placeholder="Nombre del autor"
+                  placeholder={translations.author}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
                 />
               </div>
@@ -371,11 +592,11 @@ export default function EditarNoticiaPage() {
           {/* Cover Image Section */}
           <div>
             <h2 className="font-metropolis font-bold text-xl mb-4" style={{ color: '#0D141C' }}>
-              Portada <span className="text-red-500">*</span>
+              {translations.cover} <span className="text-red-500">*</span>
             </h2>
             <div className="space-y-4">
               <p className="text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
-                JPG o PNG, Máximo 300 KB. Arrastra y suelta una imagen aquí.
+                {translations.coverDescription}
               </p>
               <div className="flex items-center space-x-4">
                 {/* Image Preview */}
@@ -390,9 +611,9 @@ export default function EditarNoticiaPage() {
                   onDrop={handleCoverDrop}
                   onClick={() => document.getElementById('coverImageInput')?.click()}
                 >
-                  {formData.coverImage ? (
+                  {getCurrentFormData().coverImage ? (
                     <img
-                      src={URL.createObjectURL(formData.coverImage)}
+                      src={URL.createObjectURL(getCurrentFormData().coverImage!)}
                       alt="Cover preview"
                       className="w-full h-full object-cover"
                     />
@@ -410,7 +631,7 @@ export default function EditarNoticiaPage() {
                   <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
-                  Subir Imagen
+                  {translations.uploadImage}
                   <input
                     id="coverImageInput"
                     type="file"
@@ -426,7 +647,7 @@ export default function EditarNoticiaPage() {
           {/* Publication Date Section */}
           <div>
             <h2 className="font-metropolis font-bold text-xl mb-4" style={{ color: '#0D141C' }}>
-              Fecha de Publicación <span className="text-red-500">*</span>
+              {translations.publicationDate} <span className="text-red-500">*</span>
             </h2>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -434,39 +655,39 @@ export default function EditarNoticiaPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
               </div>
-              <input
-                type="date"
-                value={formData.publicationDate}
-                onChange={(e) => handleInputChange('publicationDate', e.target.value)}
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
-              />
+                              <input
+                  type="date"
+                  value={getCurrentFormData().publicationDate}
+                  onChange={(e) => handleInputChange('publicationDate', e.target.value)}
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
+                />
             </div>
           </div>
 
           {/* Description Section */}
           <div>
             <h2 className="font-metropolis font-bold text-xl mb-4" style={{ color: '#0D141C' }}>
-              Descripción <span className="text-red-500">*</span>
+              {translations.description} <span className="text-red-500">*</span>
             </h2>
             <p className="text-sm font-metropolis font-regular mb-3" style={{ color: '#4A739C' }}>
-              Descripción general y detallada sobre la noticia.
+              {translations.descriptionHelp}
             </p>
             <textarea
-              value={formData.description}
+              value={getCurrentFormData().description}
               onChange={(e) => handleInputChange('description', e.target.value)}
               rows={6}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent resize-none"
-              placeholder="Escribe la descripción de la noticia..."
+              placeholder={translations.descriptionPlaceholder}
             />
           </div>
 
           {/* Images Section */}
           <div>
             <h2 className="font-metropolis font-bold text-xl mb-4" style={{ color: '#0D141C' }}>
-              Imágenes
+              {translations.images}
             </h2>
             <p className="text-sm font-metropolis font-regular mb-3" style={{ color: '#4A739C' }}>
-              JPG o PNG. Máximo 5 fotos de 300 KB c/u.
+              {translations.imagesDescription}
             </p>
             <label 
               className={`block w-full border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer ${
@@ -483,16 +704,16 @@ export default function EditarNoticiaPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                 </svg>
                 <p className="text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
-                  Presiona aquí para subir imágenes
+                  {translations.pressToUpload}
                 </p>
                 <p className="text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
-                  o
+                  {translations.or}
                   <br />
-                  Arrastra y suelta imágenes aquí
+                  {translations.dragAndDrop}
                 </p>
                 {isDragOver && (
                   <p className="text-sm font-metropolis font-medium text-[#5A6F80] animate-pulse">
-                    ¡Suelta aquí para subir!
+                    {translations.dropHere}
                   </p>
                 )}
               </div>
@@ -505,20 +726,26 @@ export default function EditarNoticiaPage() {
               />
             </label>
             
-            {/* Uploaded Images Preview */}
-            {formData.images.length > 0 && (
+                        {/* Uploaded Images Preview */}
+            {getCurrentFormData().images.length > 0 && (
               <div className="mt-4 grid grid-cols-2 md:grid-cols-5 gap-3">
-                {formData.images.map((image, index) => (
+                {getCurrentFormData().images.map((image, index) => (
                   <div key={index} className="relative">
                     <img
                       src={URL.createObjectURL(image)}
                       alt={`Uploaded ${index + 1}`}
                       className="w-full h-20 object-cover rounded-lg"
                     />
-                                         <button
-                       onClick={() => setFormData(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }))}
-                       className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors"
-                     >
+                    <button
+                      onClick={() => {
+                        if (isEnglishMode) {
+                          setFormDataEnglish(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }))
+                        } else {
+                          setFormData(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }))
+                        }
+                      }}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors"
+                    >
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
@@ -532,19 +759,19 @@ export default function EditarNoticiaPage() {
           {/* Categories Section */}
           <div>
             <h2 className="font-metropolis font-bold text-xl mb-4" style={{ color: '#0D141C' }}>
-              Categorías
+              {translations.categories}
             </h2>
             <p className="text-sm font-metropolis font-regular mb-3" style={{ color: '#4A739C' }}>
-              Ingrese las categorías uno por uno.
+              {translations.categoriesDescription}
             </p>
             <div className="space-y-3">
               <div className="flex space-x-2">
                 <input
                   type="text"
-                  value={newCategory}
-                  onChange={(e) => setNewCategory(e.target.value)}
+                  value={getCurrentNewCategory()}
+                  onChange={(e) => setCurrentNewCategory(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && addCategory()}
-                  placeholder="Nueva categoría"
+                  placeholder={translations.newCategory}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
                 />
                 <button
@@ -559,7 +786,7 @@ export default function EditarNoticiaPage() {
               
               {/* Categories Tags */}
               <div className="flex flex-wrap gap-2">
-                {formData.categories.map((category, index) => (
+                {getCurrentFormData().categories.map((category, index) => (
                   <span
                     key={index}
                     className="inline-flex items-center px-3 py-1 text-sm font-metropolis font-medium bg-[#E8EDF5] text-[#0D141C] rounded-full"
@@ -582,19 +809,19 @@ export default function EditarNoticiaPage() {
           {/* Tags Section */}
           <div>
             <h2 className="font-metropolis font-bold text-xl mb-4" style={{ color: '#0D141C' }}>
-              Etiquetas
+              {translations.tags}
             </h2>
             <p className="text-sm font-metropolis font-regular mb-3" style={{ color: '#4A739C' }}>
-              Ingrese las etiquetas uno por uno.
+              {translations.tagsDescription}
             </p>
             <div className="space-y-3">
               <div className="flex space-x-2">
                 <input
                   type="text"
-                  value={newTag}
-                  onChange={(e) => setNewTag(e.target.value)}
+                  value={getCurrentNewTag()}
+                  onChange={(e) => setCurrentNewTag(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && addTag()}
-                  placeholder="Nueva etiqueta"
+                  placeholder={translations.newTag}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
                 />
                 <button
@@ -609,7 +836,7 @@ export default function EditarNoticiaPage() {
               
               {/* Tags */}
               <div className="flex flex-wrap gap-2">
-                {formData.tags.map((tag, index) => (
+                {getCurrentFormData().tags.map((tag, index) => (
                   <span
                     key={index}
                     className="inline-flex items-center px-3 py-1 text-sm font-metropolis font-medium bg-[#E8EDF5] text-[#0D141C] rounded-full"
@@ -651,49 +878,49 @@ export default function EditarNoticiaPage() {
               </div>
               
               <h3 className="text-lg font-metropolis font-bold text-[#0D141C] mb-2">
-                ¿Estás seguro que deseas eliminar esta noticia?
+                {isEnglishMode ? 'Are you sure you want to delete this news?' : '¿Estás seguro que deseas eliminar esta noticia?'}
               </h3>
               
               <p className="text-sm font-metropolis font-regular text-[#4A739C] mb-6">
-                No podrás revertir esta acción.
+                {isEnglishMode ? 'You will not be able to reverse this action.' : 'No podrás revertir esta acción.'}
               </p>
 
               {/* News info */}
               <div className="bg-gray-50 rounded-lg p-4 mb-6">
                 <p className="text-sm font-metropolis font-medium text-[#0D141C]">
-                  {formData.title}
+                  {getCurrentFormData().title}
                 </p>
                 <p className="text-sm font-metropolis font-regular text-[#4A739C]">
-                  {formData.author}
+                  {getCurrentFormData().author}
                 </p>
                 <span className="inline-flex px-2 py-1 text-xs font-metropolis font-regular rounded-full mt-2 bg-[#E8EDF5] text-[#0D141C]">
-                  {formData.categories.join(', ')}
+                  {getCurrentFormData().categories.join(', ')}
                 </span>
               </div>
             </div>
 
             {/* Modal footer */}
             <div className="flex items-center justify-center space-x-3 p-6 border-t border-gray-200">
-              <button
-                onClick={() => setIsDeleteModalOpen(false)}
-                className="px-4 py-2 text-sm font-metropolis font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5A6F80]"
-              >
-                Cancelar
-              </button>
-              <button 
-                onClick={handleDelete}
-                disabled={isDeleting}
-                className="px-4 py-2 text-sm font-metropolis font-medium text-white bg-[#F43F5E] border border-transparent rounded-md hover:bg-[#E11D48] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isDeleting ? (
-                  <div className="flex items-center space-x-2">
-                    <Spinner size="sm" />
-                    <span>Eliminando...</span>
-                  </div>
-                ) : (
-                  'Eliminar'
-                )}
-              </button>
+                              <button
+                  onClick={() => setIsDeleteModalOpen(false)}
+                  className="px-4 py-2 text-sm font-metropolis font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5A6F80]"
+                >
+                  {isEnglishMode ? 'Cancel' : 'Cancelar'}
+                </button>
+                <button 
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  className="px-4 py-2 text-sm font-metropolis font-medium text-white bg-[#F43F5E] border border-transparent rounded-md hover:bg-[#E11D48] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isDeleting ? (
+                    <div className="flex items-center space-x-2">
+                      <Spinner size="sm" />
+                      <span>{isEnglishMode ? 'Deleting...' : 'Eliminando...'}</span>
+                    </div>
+                  ) : (
+                    isEnglishMode ? 'Delete' : 'Eliminar'
+                  )}
+                </button>
             </div>
           </div>
         </div>
