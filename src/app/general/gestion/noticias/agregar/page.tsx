@@ -181,42 +181,78 @@ export default function AgregarNoticiaPage() {
 
   // Handle form submission
   const handleSubmit = async () => {
-    // Validate required fields
-    const currentFormData = isEnglishMode ? formDataEnglish : formData
-    const requiredFields = {
-      title: currentFormData.title.trim(),
-      author: currentFormData.author.trim(),
-      coverImage: currentFormData.coverImage,
-      publicationDate: currentFormData.publicationDate,
-      description: currentFormData.description.trim()
+    // Always validate both Spanish and English versions
+    const spanishRequiredFields = {
+      title: formData.title.trim(),
+      author: formData.author.trim(),
+      coverImage: formData.coverImage,
+      publicationDate: formData.publicationDate,
+      description: formData.description.trim()
     }
     
-    const missingFields = Object.entries(requiredFields)
+    const englishRequiredFields = {
+      title: formDataEnglish.title.trim(),
+      author: formDataEnglish.author.trim(),
+      coverImage: formDataEnglish.coverImage,
+      publicationDate: formDataEnglish.publicationDate,
+      description: formDataEnglish.description.trim()
+    }
+    
+    const spanishMissingFields = Object.entries(spanishRequiredFields)
       .filter(([key, value]) => !value)
       .map(([key]) => key)
     
-    if (missingFields.length > 0) {
-      // Show warning toast for missing fields
-      const fieldNames = isEnglishMode ? {
-        title: 'Title',
-        author: 'Author',
-        coverImage: 'Cover Image',
-        publicationDate: 'Publication Date',
-        description: 'Description'
-      } : {
-        title: 'Título',
-        author: 'Autor',
-        coverImage: 'Portada',
-        publicationDate: 'Fecha de publicación',
-        description: 'Descripción'
-      }
-      
-      const missingFieldNames = missingFields.map(field => fieldNames[field as keyof typeof fieldNames])
-      const message = isEnglishMode 
-        ? `You must fill all required fields: ${missingFieldNames.join(', ')}`
-        : `Debes llenar todos los campos obligatorios: ${missingFieldNames.join(', ')}`
-      toast.warning(message)
+    const englishMissingFields = Object.entries(englishRequiredFields)
+      .filter(([key, value]) => !value)
+      .map(([key]) => key)
+    
+    // Field names for both languages
+    const spanishFieldNames = {
+      title: 'Título',
+      author: 'Autor',
+      coverImage: 'Portada',
+      publicationDate: 'Fecha de publicación',
+      description: 'Descripción'
+    }
+    
+    const englishFieldNames = {
+      title: 'Title',
+      author: 'Author',
+      coverImage: 'Cover Image',
+      publicationDate: 'Publication Date',
+      description: 'Description'
+    }
+    
+    // Check if we're in Spanish mode and Spanish fields are missing
+    if (!isEnglishMode && spanishMissingFields.length > 0) {
+      const missingFieldNames = spanishMissingFields.map(field => spanishFieldNames[field as keyof typeof spanishFieldNames])
+      toast.warning(`Debes llenar todos los campos obligatorios: ${missingFieldNames.join(', ')}`)
       return
+    }
+    
+    // Check if we're in English mode and English fields are missing
+    if (isEnglishMode && englishMissingFields.length > 0) {
+      const missingFieldNames = englishMissingFields.map(field => englishFieldNames[field as keyof typeof englishFieldNames])
+      toast.warning(`You must fill all required fields: ${missingFieldNames.join(', ')}`)
+      return
+    }
+    
+    // If we're in Spanish mode, also check English fields
+    if (!isEnglishMode) {
+      if (englishMissingFields.length > 0) {
+        const missingFieldNames = englishMissingFields.map(field => englishFieldNames[field as keyof typeof englishFieldNames])
+        toast.warning(`También debes llenar todos los campos obligatorios de la versión en inglés: ${missingFieldNames.join(', ')}`)
+        return
+      }
+    }
+    
+    // If we're in English mode, also check Spanish fields
+    if (isEnglishMode) {
+      if (spanishMissingFields.length > 0) {
+        const missingFieldNames = spanishMissingFields.map(field => spanishFieldNames[field as keyof typeof spanishFieldNames])
+        toast.warning(`You must also fill all required fields in the Spanish version: ${missingFieldNames.join(', ')}`)
+        return
+      }
     }
     
     setIsPublishing(true)
