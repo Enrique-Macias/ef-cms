@@ -313,8 +313,8 @@ export default function AgregarNoticiaPage() {
     descriptionHelp: isEnglishMode 
       ? 'General and detailed description about the news.'
       : 'Descripción general y detallada sobre la noticia.',
-    englishVersion: 'English Version',
-    spanishVersion: 'Spanish Version'
+    englishVersion: 'English',
+    spanishVersion: 'Spanish'
   }
 
   return (

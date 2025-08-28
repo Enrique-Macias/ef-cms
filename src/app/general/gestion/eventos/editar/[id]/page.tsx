@@ -392,8 +392,8 @@ export default function EditarEventoPage() {
     or: isEnglishMode ? 'or' : 'o',
     dragAndDrop: isEnglishMode ? 'Drag and drop images here' : 'Arrastra y suelta imágenes aquí',
     dropHere: isEnglishMode ? 'Drop here' : 'Suelta aquí',
-    englishVersion: 'English Version',
-    spanishVersion: 'Spanish Version'
+    englishVersion: 'English',
+    spanishVersion: 'Spanish'
   }
 
   if (isLoading) {

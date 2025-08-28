@@ -103,7 +103,6 @@ export default function VerNoticiaPage() {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
     return date.toLocaleDateString('es-ES', {
-      weekday: 'long',
       year: 'numeric',
       month: 'long',
       day: 'numeric'
@@ -211,7 +210,7 @@ export default function VerNoticiaPage() {
                 : 'border-[#5A6F80] text-white bg-[#5A6F80] hover:bg-[#4A739C]'
             }`}
           >
-            {isEnglishMode ? 'Spanish Version' : 'English Version'}
+            {isEnglishMode ? 'Spanish' : 'English'}
           </button>
 
           {/* Delete Button */}

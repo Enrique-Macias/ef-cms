@@ -188,8 +188,8 @@ export default function EditarNoticiaPage() {
     descriptionHelp: isEnglishMode 
       ? 'General and detailed description about the news.'
       : 'Descripción general y detallada sobre la noticia.',
-    englishVersion: 'English Version',
-    spanishVersion: 'Spanish Version'
+    englishVersion: 'English',
+    spanishVersion: 'Spanish'
   }
 
   // Handle form input changes

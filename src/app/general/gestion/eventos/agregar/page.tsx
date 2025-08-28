@@ -353,8 +353,8 @@ export default function AgregarEventoPage() {
     creditsHelp: isEnglishMode 
       ? 'Credit the people who contributed to the event.'
       : 'Acredita a las personas que contribuyeron al evento.',
-    englishVersion: 'English Version',
-    spanishVersion: 'Spanish Version'
+    englishVersion: 'English',
+    spanishVersion: 'Spanish'
   }
 
   return (

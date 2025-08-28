@@ -125,8 +125,7 @@ export default function VerEventoPage() {
     return date.toLocaleDateString('es-ES', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric',
-      weekday: 'long'
+      day: 'numeric'
     })
   }
 
@@ -240,7 +239,7 @@ export default function VerEventoPage() {
                 : 'border-[#5A6F80] text-white bg-[#5A6F80] hover:bg-[#4A739C]'
             }`}
           >
-            {isEnglishMode ? 'Spanish Version' : 'English Version'}
+            {isEnglishMode ? 'Spanish' : 'English'}
           </button>
 
           {/* Delete Button */}
@@ -430,10 +429,18 @@ export default function VerEventoPage() {
             </h3>
             <div className="space-y-3 text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
               <div>
-                <span className="font-medium">{isEnglishMode ? 'Created:' : 'Creado:'}</span> {new Date(event.createdAt).toLocaleDateString(isEnglishMode ? 'en-US' : 'es-ES')}
+                <span className="font-medium">{isEnglishMode ? 'Created:' : 'Creado:'}</span> {new Date(event.createdAt).toLocaleDateString(isEnglishMode ? 'en-US' : 'es-ES', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}
               </div>
               <div>
-                <span className="font-medium">{isEnglishMode ? 'Updated:' : 'Actualizado:'}</span> {new Date(event.updatedAt).toLocaleDateString(isEnglishMode ? 'en-US' : 'es-ES')}
+                <span className="font-medium">{isEnglishMode ? 'Updated:' : 'Actualizado:'}</span> {new Date(event.updatedAt).toLocaleDateString(isEnglishMode ? 'en-US' : 'es-ES', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}
               </div>
             </div>
           </div>
