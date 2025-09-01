@@ -165,11 +165,27 @@ export default function NoticiasPage() {
         </nav>
       </div>
 
-      {/* Page Title */}
-      <div className="mb-8">
-        <h1 className="font-metropolis font-bold text-4xl mb-2" style={{ color: '#0D141C' }}>
-          Noticias Recientes
-        </h1>
+      {/* Header Section */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8">
+        <div>
+          <h1 className="font-metropolis font-bold text-3xl mb-2" style={{ color: '#0D141C' }}>
+            Noticias Recientes
+          </h1>
+          <p className="font-metropolis font-regular text-lg" style={{ color: '#4A739C' }}>
+            Gestiona y visualiza todas las noticias de la plataforma
+          </p>
+        </div>
+
+        {/* Add News Button */}
+        <Link href="/general/gestion/noticias/agregar">
+          <button className="inline-flex items-center px-6 py-3 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 hover:bg-[#4A739C]"
+                  style={{ backgroundColor: '#5A6F80', '--tw-ring-color': '#5A6F80' } as React.CSSProperties}>
+            <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Agregar Noticia
+          </button>
+        </Link>
       </div>
 
       {/* Search and Filter Bar */}
@@ -193,86 +209,75 @@ export default function NoticiasPage() {
               />
             </div>
 
-                          {/* Filter Button */}
-              <div className="relative">
-                <button 
-                  className={`inline-flex items-center justify-center w-10 h-10 border rounded-full shadow-sm text-sm font-medium transition-colors ${
-                    dateFilter 
-                      ? 'border-[#5A6F80] bg-[#E8EDF5] text-[#0D141C]' 
-                      : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
-                  }`}
-                  style={{ '--tw-ring-color': '#5A6F80' } as React.CSSProperties}
-                  onClick={() => setIsFilterMenuOpen(!isFilterMenuOpen)}
-                >
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                  </svg>
-                </button>
+            {/* Filter Button */}
+            <div className="relative">
+              <button 
+                className={`inline-flex items-center justify-center w-10 h-10 border rounded-full shadow-sm text-sm font-medium transition-colors ${
+                  dateFilter 
+                    ? 'border-[#5A6F80] bg-[#E8EDF5] text-[#0D141C]' 
+                    : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                }`}
+                style={{ '--tw-ring-color': '#5A6F80' } as React.CSSProperties}
+                onClick={() => setIsFilterMenuOpen(!isFilterMenuOpen)}
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+              </button>
 
-                {/* Filter Dropdown Menu */}
-                {isFilterMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 border border-gray-200">
-                    <div className="py-1">
-                      <button
-                        className={`block w-full text-left px-4 py-2 text-sm transition-colors ${
-                          dateFilter === null ? 'bg-[#E8EDF5] text-[#0D141C]' : 'text-gray-700 hover:bg-gray-100'
-                        }`}
-                        onClick={() => {
-                          handleDateFilter(null)
-                          setIsFilterMenuOpen(false)
-                        }}
-                      >
-                        Todas las fechas
-                      </button>
-                      <button
-                        className={`block w-full text-left px-4 py-2 text-sm transition-colors ${
-                          dateFilter === 'hoy' ? 'bg-[#E8EDF5] text-[#0D141C]' : 'text-gray-700 hover:bg-gray-100'
-                        }`}
-                        onClick={() => {
-                          handleDateFilter('hoy')
-                          setIsFilterMenuOpen(false)
-                        }}
-                      >
-                        Hoy
-                      </button>
-                      <button
-                        className={`block w-full text-left px-4 py-2 text-sm transition-colors ${
-                          dateFilter === 'ultima-semana' ? 'bg-[#E8EDF5] text-[#0D141C]' : 'text-gray-700 hover:bg-gray-100'
-                        }`}
-                        onClick={() => {
-                          handleDateFilter('ultima-semana')
-                          setIsFilterMenuOpen(false)
-                        }}
-                      >
-                        Última semana
-                      </button>
-                      <button
-                        className={`block w-full text-left px-4 py-2 text-sm transition-colors ${
-                          dateFilter === 'ultimo-mes' ? 'bg-[#E8EDF5] text-[#0D141C]' : 'text-gray-700 hover:bg-gray-100'
-                        }`}
-                        onClick={() => {
-                          handleDateFilter('ultimo-mes')
-                          setIsFilterMenuOpen(false)
-                        }}
-                      >
-                        Último mes
-                      </button>
-                    </div>
+              {/* Filter Dropdown Menu */}
+              {isFilterMenuOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 border border-gray-200">
+                  <div className="py-1">
+                    <button
+                      className={`block w-full text-left px-4 py-2 text-sm transition-colors ${
+                        dateFilter === null ? 'bg-[#E8EDF5] text-[#0D141C]' : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                      onClick={() => {
+                        handleDateFilter(null)
+                        setIsFilterMenuOpen(false)
+                      }}
+                    >
+                      Todas las fechas
+                    </button>
+                    <button
+                      className={`block w-full text-left px-4 py-2 text-sm transition-colors ${
+                        dateFilter === 'hoy' ? 'bg-[#E8EDF5] text-[#0D141C]' : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                      onClick={() => {
+                        handleDateFilter('hoy')
+                        setIsFilterMenuOpen(false)
+                      }}
+                    >
+                      Hoy
+                    </button>
+                    <button
+                      className={`block w-full text-left px-4 py-2 text-sm transition-colors ${
+                        dateFilter === 'ultima-semana' ? 'bg-[#E8EDF5] text-[#0D141C]' : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                      onClick={() => {
+                        handleDateFilter('ultima-semana')
+                        setIsFilterMenuOpen(false)
+                      }}
+                    >
+                      Última semana
+                    </button>
+                    <button
+                      className={`block w-full text-left px-4 py-2 text-sm transition-colors ${
+                        dateFilter === 'ultimo-mes' ? 'bg-[#E8EDF5] text-[#0D141C]' : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                      onClick={() => {
+                        handleDateFilter('ultimo-mes')
+                        setIsFilterMenuOpen(false)
+                      }}
+                    >
+                      Último mes
+                    </button>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
+            </div>
           </div>
-
-          {/* Add News Button */}
-          <Link href="/general/gestion/noticias/agregar">
-            <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 hover:bg-[#4A739C]"
-                    style={{ backgroundColor: '#5A6F80', '--tw-ring-color': '#5A6F80' } as React.CSSProperties}>
-              <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              Agregar Noticia
-            </button>
-          </Link>
         </div>
       </div>
 
