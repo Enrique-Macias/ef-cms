@@ -1,10 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
 
 export default function AgregarEventoPage() {
+  const router = useRouter()
   const [formData, setFormData] = useState({
     title: '',
     author: '',
@@ -55,15 +57,36 @@ export default function AgregarEventoPage() {
     }
   }
 
+  // Handle language mode toggle - preserve images between modes
+  const handleLanguageToggle = () => {
+    const newEnglishMode = !isEnglishMode
+    
+    if (newEnglishMode) {
+      // Switching to English mode - copy images from Spanish to English
+      setFormDataEnglish(prev => ({
+        ...prev,
+        coverImage: formData.coverImage,
+        images: formData.images
+      }))
+    } else {
+      // Switching to Spanish mode - copy images from English to Spanish
+      setFormData(prev => ({
+        ...prev,
+        coverImage: formDataEnglish.coverImage,
+        images: formDataEnglish.images
+      }))
+    }
+    
+    setIsEnglishMode(newEnglishMode)
+  }
+
   // Handle cover image upload
   const handleCoverImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      if (isEnglishMode) {
-        setFormDataEnglish(prev => ({ ...prev, coverImage: file }))
-      } else {
-        setFormData(prev => ({ ...prev, coverImage: file }))
-      }
+      // Update both Spanish and English forms to keep images synchronized
+      setFormData(prev => ({ ...prev, coverImage: file }))
+      setFormDataEnglish(prev => ({ ...prev, coverImage: file }))
     }
   }
 
@@ -71,11 +94,9 @@ export default function AgregarEventoPage() {
   const handleImagesUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || [])
     if (files.length > 0) {
-      if (isEnglishMode) {
-        setFormDataEnglish(prev => ({ ...prev, images: [...prev.images, ...files] }))
-      } else {
-        setFormData(prev => ({ ...prev, images: [...prev.images, ...files] }))
-      }
+      // Update both Spanish and English forms to keep images synchronized
+      setFormData(prev => ({ ...prev, images: [...prev.images, ...files] }))
+      setFormDataEnglish(prev => ({ ...prev, images: [...prev.images, ...files] }))
     }
   }
 
@@ -101,11 +122,9 @@ export default function AgregarEventoPage() {
     const imageFiles = files.filter(file => file.type.startsWith('image/'))
     
     if (imageFiles.length > 0) {
-      if (isEnglishMode) {
-        setFormDataEnglish(prev => ({ ...prev, images: [...prev.images, ...imageFiles] }))
-      } else {
-        setFormData(prev => ({ ...prev, images: [...prev.images, ...imageFiles] }))
-      }
+      // Update both Spanish and English forms to keep images synchronized
+      setFormData(prev => ({ ...prev, images: [...prev.images, ...imageFiles] }))
+      setFormDataEnglish(prev => ({ ...prev, images: [...prev.images, ...imageFiles] }))
     }
   }
 
@@ -131,11 +150,9 @@ export default function AgregarEventoPage() {
     const imageFile = files.find(file => file.type.startsWith('image/'))
     
     if (imageFile) {
-      if (isEnglishMode) {
-        setFormDataEnglish(prev => ({ ...prev, coverImage: imageFile }))
-      } else {
-        setFormData(prev => ({ ...prev, coverImage: imageFile }))
-      }
+      // Update both Spanish and English forms to keep images synchronized
+      setFormData(prev => ({ ...prev, coverImage: imageFile }))
+      setFormDataEnglish(prev => ({ ...prev, coverImage: imageFile }))
     }
   }
 
@@ -185,6 +202,16 @@ export default function AgregarEventoPage() {
     } else {
       setFormData(prev => ({ ...prev, tags: prev.tags.filter(t => t !== tag) }))
     }
+  }
+
+  // Helper function to convert File to base64
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.readAsDataURL(file)
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = error => reject(error)
+    })
   }
 
   // Handle form submission
@@ -280,14 +307,73 @@ export default function AgregarEventoPage() {
     }
     
     setIsPublishing(true)
-    // Simulate API call
-    setTimeout(() => {
-      setIsPublishing(false)
+    
+    try {
+      // Convert cover image to base64 if it's a File
+      let coverImageUrl = null
+      if (formData.coverImage instanceof File) {
+        coverImageUrl = await fileToBase64(formData.coverImage)
+      }
+      
+      // Convert images to base64 if they are Files
+      const images = []
+      for (const image of formData.images) {
+        if (image instanceof File) {
+          const base64Image = await fileToBase64(image)
+          images.push(base64Image)
+        }
+      }
+      
+      // Prepare event data
+      const eventData = {
+        title_es: formData.title,
+        title_en: formDataEnglish.title,
+        body_es: formData.description,
+        body_en: formDataEnglish.description,
+        date: new Date(formData.eventDate + 'T00:00:00.000Z').toISOString(),
+        author: formData.author,
+        location_city: formData.locationCity,
+        location_country: formData.locationCountry,
+        coverImageUrl,
+        phrase: formData.phrase,
+        phrase_en: formDataEnglish.phrase,
+        credits: formData.credits,
+        credits_en: formDataEnglish.credits,
+        category: formData.categories[0] || '',
+        category_en: formDataEnglish.categories[0] || '',
+        tags: formData.tags,
+        tags_en: formDataEnglish.tags,
+        images
+      }
+      
+      // Make API call
+      const response = await fetch('/api/events', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(eventData),
+      })
+      
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to create event')
+      }
+      
+      const result = await response.json()
+      
       // Show success toast
       const successMessage = isEnglishMode ? 'Event created successfully' : 'Evento creado exitosamente'
       toast.success(successMessage)
-      // Here you would typically redirect
-    }, 2000)
+      
+      // Redirect to events listing page
+      router.push('/general/gestion/eventos')
+    } catch (error) {
+      console.error('Error creating event:', error)
+      toast.error(error instanceof Error ? error.message : 'Error creating event')
+    } finally {
+      setIsPublishing(false)
+    }
   }
 
   // Get current form data based on language mode
@@ -412,7 +498,7 @@ export default function AgregarEventoPage() {
         <div className="flex items-center space-x-3">
           {/* Language Toggle Button */}
           <button
-            onClick={() => setIsEnglishMode(!isEnglishMode)}
+            onClick={handleLanguageToggle}
             className={`inline-flex items-center px-4 py-3 border rounded-md shadow-sm text-sm font-medium transition-all duration-200 ${
               isEnglishMode 
                 ? 'border-[#5A6F80] text-[#5A6F80] bg-white hover:bg-gray-50' 

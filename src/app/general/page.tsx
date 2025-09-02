@@ -1,6 +1,23 @@
 
+'use client'
+
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function GeneralPage() {
+  const { user } = useAuth()
+
+  // Function to get role-specific permissions description
+  const getRolePermissions = (role: string) => {
+    switch (role) {
+      case 'ADMIN':
+        return 'Este usuario tiene permisos completos para crear, editar y eliminar usuarios, noticias, eventos, testimonios, artículos y miembros del equipo. También puede gestionar todo el contenido de la página de Escalando Fronteras.'
+      case 'EDITOR':
+        return 'Este usuario puede crear, editar y eliminar noticias, eventos, testimonios, artículos y miembros del equipo. No tiene permisos para gestionar otros usuarios.'
+      default:
+        return 'Este usuario tiene permisos limitados para ver el contenido de la página de Escalando Fronteras.'
+    }
+  }
+
   // Simulated general activity data
   const general_activity = [
     {
@@ -57,33 +74,47 @@ export default function GeneralPage() {
           Información General
         </h1>
         <p className="font-metropolis font-regular text-xl" style={{ color: '#4A739C' }}>
-          Bienvenido, Alejandro
+          Bienvenido, {user?.fullName || 'Usuario'}
         </p>
       </div>
 
       {/* User Profile Section */}
-      <div className="bg-white border rounded-lg p-6 mb-8" style={{ borderColor: '#CFDBE8' }}>
-        <div className="flex items-start space-x-6">
-          <div className="flex-shrink-0">
-            <img
-              src="https://avatar.iran.liara.run/username?username=Alejandro Medina"
-              alt="Alejandro Medina"
-              className="h-25 w-25 rounded-full"
-            />
-          </div>
-          <div className="flex-1">
-            <h2 className="font-metropolis font-bold text-xl mb-1" style={{ color: '#0D141C' }}>
-              Alejandro Medina
-            </h2>
-            <p className="font-metropolis font-regular text-base mb-3" style={{ color: '#4A739C' }}>
-              Administrador
-            </p>
-            <p className="font-metropolis font-regular text-base" style={{ color: '#4A739C' }}>
-              Este usuario tiene permisos para crear, editar y eliminar usuarios. También puede gestionar el contenido de la página de Escalando Fronteras.
-            </p>
-          </div>
-        </div> 
-      </div>
+      {user && (
+        <div className="bg-white border rounded-lg p-6 mb-8" style={{ borderColor: '#CFDBE8' }}>
+          <div className="flex items-start space-x-6">
+            <div className="flex-shrink-0">
+              <img
+                src={user.avatarUrl || `https://avatar.iran.liara.run/username?username=${encodeURIComponent(user.fullName)}`}
+                alt={`Avatar de ${user.fullName}`}
+                className="h-25 w-25 rounded-full object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement
+                  target.style.display = 'none'
+                  const fallback = target.nextElementSibling as HTMLElement
+                  if (fallback) fallback.style.display = 'flex'
+                }}
+              />
+              <div
+                className="h-25 w-25 rounded-full bg-[#5A6F80] flex items-center justify-center text-white text-lg font-medium hidden"
+                style={{ display: 'none' }}
+              >
+                {user.fullName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)}
+              </div>
+            </div>
+            <div className="flex-1">
+              <h2 className="font-metropolis font-bold text-xl mb-1" style={{ color: '#0D141C' }}>
+                {user.fullName}
+              </h2>
+              <p className="font-metropolis font-regular text-base mb-3" style={{ color: '#4A739C' }}>
+                {user.role === 'ADMIN' ? 'Administrador' : 'Editor'}
+              </p>
+              <p className="font-metropolis font-regular text-base" style={{ color: '#4A739C' }}>
+                {getRolePermissions(user.role)}
+              </p>
+            </div>
+          </div> 
+        </div>
+      )}
 
       {/* Overview Section */}
       <div className="mb-8">

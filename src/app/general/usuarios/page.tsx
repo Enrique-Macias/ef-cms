@@ -1,10 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useAuth } from '@/contexts/AuthContext'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
 
 export default function UsuariosPage() {
+  const { user } = useAuth()
   const [roleFilter, setRoleFilter] = useState<string | null>(null)
   const [searchText, setSearchText] = useState('')
   const [isRoleMenuOpen, setIsRoleMenuOpen] = useState(false)
@@ -17,62 +19,106 @@ export default function UsuariosPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
+  const [users, setUsers] = useState<any[]>([])
+  const [userStats, setUserStats] = useState({ total: 0, admins: 0, editors: 0 })
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalUsers, setTotalUsers] = useState(0)
   const itemsPerPage = 5
   
   const toast = useToast()
 
-  // Datos de usuarios
-  const users = [
-    { id: 1, name: 'Alejandro Medina', email: 'alejandro.medina@example.com', role: 'Admin' },
-    { id: 2, name: 'Guillermo Morales', email: 'guillermo.morales@example.com', role: 'Editor' },
-    { id: 3, name: 'Miguel Castellano', email: 'miguel.castellano@example.com', role: 'Editor' },
-    { id: 4, name: 'Sergio Elías', email: 'sergio.elias@example.com', role: 'Editor' },
-    { id: 5, name: 'Enrique Macías', email: 'enrique.macias@example.com', role: 'Editor' },
-    { id: 6, name: 'Carlos Rodríguez', email: 'carlos.rodriguez@example.com', role: 'Editor' },
-    { id: 7, name: 'Ana Martínez', email: 'ana.martinez@example.com', role: 'Editor' },
-    { id: 8, name: 'Luis González', email: 'luis.gonzalez@example.com', role: 'Editor' },
-    { id: 9, name: 'María López', email: 'maria.lopez@example.com', role: 'Editor' },
-    { id: 10, name: 'Pedro Sánchez', email: 'pedro.sanchez@example.com', role: 'Editor' },
-    { id: 11, name: 'Carmen Torres', email: 'carmen.torres@example.com', role: 'Editor' },
-    { id: 12, name: 'Javier Ruiz', email: 'javier.ruiz@example.com', role: 'Editor' },
-    { id: 13, name: 'Isabel Moreno', email: 'isabel.moreno@example.com', role: 'Editor' },
-    { id: 14, name: 'Roberto Jiménez', email: 'roberto.jimenez@example.com', role: 'Editor' },
-    { id: 15, name: 'Elena Castro', email: 'elena.castro@example.com', role: 'Editor' },
-    { id: 16, name: 'Fernando Silva', email: 'fernando.silva@example.com', role: 'Editor' },
-    { id: 17, name: 'Patricia Vega', email: 'patricia.vega@example.com', role: 'Editor' }
-  ]
+  // Show loading state if user is not loaded
+  if (!user) {
+    return (
+      <div className="p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <Spinner size="lg" />
+            <p className="mt-4 text-[#4A739C] font-metropolis font-regular">Verificando permisos...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
-  // Filtrar usuarios basado en el rol seleccionado y texto de búsqueda
-  const filteredUsers = users.filter(user => {
-    const matchesRole = !roleFilter || user.role === roleFilter
-    const matchesSearch = !searchText || 
-      user.name.toLowerCase().includes(searchText.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchText.toLowerCase())
-    
-    return matchesRole && matchesSearch
-  })
+  // Check if user has admin access
+  if (user.role !== 'ADMIN') {
+    return (
+      <div className="p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+              <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-metropolis font-bold text-[#0D141C] mb-2">
+              Acceso Denegado
+            </h3>
+            <p className="text-sm font-metropolis font-regular text-[#4A739C]">
+              No tienes permisos para acceder a esta página. Solo los administradores pueden gestionar usuarios.
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
-  // Pagination logic
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const endIndex = startIndex + itemsPerPage
-  const currentUsers = filteredUsers.slice(startIndex, endIndex)
+  // Fetch users from API
+  const fetchUsers = async () => {
+    setIsLoading(true)
+    try {
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: itemsPerPage.toString()
+      })
+      
+      if (searchText) params.append('search', searchText)
+      if (roleFilter) params.append('role', roleFilter)
+      
+      const response = await fetch(`/api/users?${params}`)
+      if (!response.ok) throw new Error('Failed to fetch users')
+      
+      const data = await response.json()
+      setUsers(data.users)
+      setTotalPages(data.totalPages)
+      setTotalUsers(data.total)
+    } catch (error) {
+      console.error('Error fetching users:', error)
+      toast.error('Error al cargar usuarios')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Fetch user statistics
+  const fetchUserStats = async () => {
+    try {
+      const response = await fetch('/api/users/stats')
+      if (!response.ok) throw new Error('Failed to fetch user stats')
+      
+      const stats = await response.json()
+      setUserStats(stats)
+    } catch (error) {
+      console.error('Error fetching user stats:', error)
+    }
+  }
+
+  // Load data on component mount and when filters change
+  useEffect(() => {
+    fetchUsers()
+    fetchUserStats()
+  }, [currentPage, searchText, roleFilter])
 
   // Reset to first page when filters change
   const handleSearch = (text: string) => {
-    setIsLoading(true)
     setSearchText(text)
     setCurrentPage(1)
-    // Simulate API call delay
-    setTimeout(() => setIsLoading(false), 500)
   }
 
   const handleRoleFilter = (role: string | null) => {
-    setIsLoading(true)
     setRoleFilter(role)
     setCurrentPage(1)
-    // Simulate API call delay
-    setTimeout(() => setIsLoading(false), 500)
   }
 
 
@@ -95,6 +141,9 @@ export default function UsuariosPage() {
         <h1 className="font-metropolis font-bold text-4xl mb-2" style={{ color: '#0D141C' }}>
           Gestión de Usuarios
         </h1>
+        <p className="font-metropolis font-regular text-lg" style={{ color: '#4A739C' }}>
+          Panel de administración - Solo para administradores
+        </p>
       </div>
 
       {/* General Overview Cards */}
@@ -105,15 +154,15 @@ export default function UsuariosPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white border rounded-lg p-6" style={{ borderColor: '#CFDBE8' }}>
             <h3 className="font-metropolis font-regular text-base mb-2" style={{ color: '#0D141C' }}>Administradores</h3>
-            <p className="font-metropolis font-bold text-3xl" style={{ color: '#0D141C' }}>3</p>
+            <p className="font-metropolis font-bold text-3xl" style={{ color: '#0D141C' }}>{userStats.admins}</p>
           </div>
           <div className="bg-white border rounded-lg p-6" style={{ borderColor: '#CFDBE8' }}>
             <h3 className="font-metropolis font-regular text-base mb-2" style={{ color: '#0D141C' }}>Editores</h3>
-            <p className="font-metropolis font-bold text-3xl" style={{ color: '#0D141C' }}>14</p>
+            <p className="font-metropolis font-bold text-3xl" style={{ color: '#0D141C' }}>{userStats.editors}</p>
           </div>
           <div className="bg-white border rounded-lg p-6" style={{ borderColor: '#CFDBE8' }}>
             <h3 className="font-metropolis font-regular text-base mb-2" style={{ color: '#0D141C' }}>Miembros Totales</h3>
-            <p className="font-metropolis font-bold text-3xl" style={{ color: '#0D141C' }}>17</p>
+            <p className="font-metropolis font-bold text-3xl" style={{ color: '#0D141C' }}>{userStats.total}</p>
           </div>
         </div>
       </div>
@@ -222,6 +271,9 @@ export default function UsuariosPage() {
             <thead className="bg-stroke/20">
               <tr>
                 <th className="px-6 py-3 text-left text-sm font-metropolis font-regular" style={{ color: '#0D141C' }}>
+                  Avatar
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-metropolis font-regular" style={{ color: '#0D141C' }}>
                   Nombre
                 </th>
                 <th className="px-6 py-3 text-left text-sm font-metropolis font-regular" style={{ color: '#0D141C' }}>
@@ -238,7 +290,7 @@ export default function UsuariosPage() {
             <tbody className="bg-white divide-y" style={{ borderColor: '#CFDBE8' }}>
               {isLoading ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-12">
+                  <td colSpan={5} className="px-6 py-12">
                     <div className="flex items-center justify-center">
                       <div className="text-center">
                         <Spinner size="lg" />
@@ -247,30 +299,52 @@ export default function UsuariosPage() {
                     </div>
                   </td>
                 </tr>
-              ) : filteredUsers.length === 0 ? (
+              ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-12">
+                  <td colSpan={5} className="px-6 py-12">
                     <div className="text-center">
                       <p className="text-[#4A739C] font-metropolis font-regular">No se encontraron usuarios</p>
                     </div>
                   </td>
                 </tr>
               ) : (
-                currentUsers.map((user) => (
+                users.map((user: any) => (
                   <tr key={user.id}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <img 
+                          src={user.avatarUrl || `https://avatar.iran.liara.run/username?username=${encodeURIComponent(user.fullName)}`}
+                          alt={`Avatar de ${user.fullName}`}
+                          className="h-8 w-8 rounded-full object-cover"
+                          onError={(e) => {
+                            // Fallback to initials if image fails to load
+                            const target = e.target as HTMLImageElement
+                            target.style.display = 'none'
+                            const fallback = target.nextElementSibling as HTMLElement
+                            if (fallback) fallback.style.display = 'flex'
+                          }}
+                        />
+                        <div 
+                          className="h-8 w-8 rounded-full bg-[#5A6F80] flex items-center justify-center text-white text-sm font-medium hidden"
+                          style={{ display: 'none' }}
+                        >
+                          {user.fullName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)}
+                        </div>
+                      </div>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-base font-metropolis font-regular" style={{ color: '#0D141C' }}>
-                      {user.name}
+                      {user.fullName}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-base font-metropolis font-regular" style={{ color: '#4A739C' }}>
                       {user.email}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-sm font-metropolis font-regular rounded-full ${
-                        user.role === 'Admin' 
+                        user.role === 'ADMIN' 
                           ? 'bg-[#E8EDF5] text-[#0D141C]' 
                           : 'bg-stroke text-[#4A739C]'
                       }`}>
-                        {user.role}
+                        {user.role === 'ADMIN' ? 'Admin' : 'Editor'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -481,7 +555,7 @@ export default function UsuariosPage() {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="text-lg font-metropolis font-bold text-[#0D141C]">{editingUser.name}</h3>
+                  <h3 className="text-lg font-metropolis font-bold text-[#0D141C]">{editingUser.fullName}</h3>
                   <p className="text-sm font-metropolis font-regular text-[#4A739C]">{editingUser.email}</p>
                 </div>
               </div>
@@ -496,14 +570,15 @@ export default function UsuariosPage() {
             </div>
 
             {/* Modal body */}
-            <div className="p-6 space-y-4">
+            <form id="editUserForm" className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-metropolis font-medium text-[#0D141C] mb-2">
                   Nombre
                 </label>
                 <input
+                  name="fullName"
                   type="text"
-                  defaultValue={editingUser.name}
+                  defaultValue={editingUser.fullName}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
                 />
               </div>
@@ -513,6 +588,7 @@ export default function UsuariosPage() {
                   Email
                 </label>
                 <input
+                  name="email"
                   type="email"
                   defaultValue={editingUser.email}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
@@ -524,13 +600,14 @@ export default function UsuariosPage() {
                   Rol
                 </label>
                 <select 
+                  name="role"
                   defaultValue={editingUser.role}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent">
-                  <option value="Admin">Admin</option>
-                  <option value="Editor">Editor</option>
+                  <option value="ADMIN">Admin</option>
+                  <option value="EDITOR">Editor</option>
                 </select>
               </div>
-            </div>
+            </form>
 
             {/* Modal footer */}
             <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
@@ -541,14 +618,36 @@ export default function UsuariosPage() {
                 Cancelar
               </button>
               <button 
-                onClick={() => {
+                onClick={async () => {
                   setIsSaving(true)
-                  // Simulate save operation
-                  setTimeout(() => {
-                    setIsSaving(false)
-                    setIsEditUserModalOpen(false)
+                  try {
+                    const formData = new FormData(document.getElementById('editUserForm') as HTMLFormElement)
+                    const updateData = {
+                      fullName: formData.get('fullName') as string,
+                      email: formData.get('email') as string,
+                      role: formData.get('role') as string
+                    }
+
+                    const response = await fetch(`/api/users/${editingUser.id}`, {
+                      method: 'PUT',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify(updateData)
+                    })
+
+                    if (!response.ok) {
+                      const error = await response.json()
+                      throw new Error(error.error || 'Failed to update user')
+                    }
+
                     toast.success('Usuario actualizado exitosamente')
-                  }, 1000)
+                    setIsEditUserModalOpen(false)
+                    fetchUsers() // Refresh the list
+                  } catch (error: any) {
+                    console.error('Error updating user:', error)
+                    toast.error(error.message || 'Error al actualizar usuario')
+                  } finally {
+                    setIsSaving(false)
+                  }
                 }}
                 disabled={isSaving}
                 className="px-4 py-2 text-sm font-metropolis font-medium text-white bg-[#5A6F80] border border-transparent rounded-md hover:bg-[#4A739C] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5A6F80] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -602,12 +701,13 @@ export default function UsuariosPage() {
             </div>
 
             {/* Modal body */}
-            <div className="p-6 space-y-4">
+            <form id="addUserForm" className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-metropolis font-medium text-[#0D141C] mb-2">
                   Nombre
                 </label>
                 <input
+                  name="fullName"
                   type="text"
                   placeholder="Ingrese el nombre completo"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
@@ -619,6 +719,7 @@ export default function UsuariosPage() {
                   Email
                 </label>
                 <input
+                  name="email"
                   type="email"
                   placeholder="Ingrese el correo electrónico"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
@@ -630,6 +731,7 @@ export default function UsuariosPage() {
                   Contraseña
                 </label>
                 <input
+                  name="password"
                   type="password"
                   placeholder="Ingrese la contraseña"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
@@ -640,13 +742,13 @@ export default function UsuariosPage() {
                 <label className="block text-sm font-metropolis font-medium text-[#0D141C] mb-2">
                   Rol
                 </label>
-                <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent">
+                <select name="role" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent">
                   <option value="">Seleccionar rol</option>
-                  <option value="Admin">Admin</option>
-                  <option value="Editor">Editor</option>
+                  <option value="ADMIN">Admin</option>
+                  <option value="EDITOR">Editor</option>
                 </select>
               </div>
-            </div>
+            </form>
 
             {/* Modal footer */}
             <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
@@ -657,14 +759,38 @@ export default function UsuariosPage() {
                 Cancelar
               </button>
               <button 
-                onClick={() => {
+                onClick={async () => {
                   setIsSaving(true)
-                  // Simulate add operation
-                  setTimeout(() => {
-                    setIsSaving(false)
-                    setIsAddUserModalOpen(false)
+                  try {
+                    const formData = new FormData(document.getElementById('addUserForm') as HTMLFormElement)
+                    const userData = {
+                      fullName: formData.get('fullName') as string,
+                      email: formData.get('email') as string,
+                      password: formData.get('password') as string,
+                      role: formData.get('role') as string
+                    }
+
+                    const response = await fetch('/api/users', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify(userData)
+                    })
+
+                    if (!response.ok) {
+                      const error = await response.json()
+                      throw new Error(error.error || 'Failed to create user')
+                    }
+
                     toast.success('Usuario agregado exitosamente')
-                  }, 1000)
+                    setIsAddUserModalOpen(false)
+                    fetchUsers() // Refresh the list
+                    fetchUserStats() // Refresh stats
+                  } catch (error: any) {
+                    console.error('Error creating user:', error)
+                    toast.error(error.message || 'Error al agregar usuario')
+                  } finally {
+                    setIsSaving(false)
+                  }
                 }}
                 disabled={isSaving}
                 className="px-4 py-2 text-sm font-metropolis font-medium text-white bg-[#5A6F80] border border-transparent rounded-md hover:bg-[#4A739C] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5A6F80] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -713,17 +839,17 @@ export default function UsuariosPage() {
               {/* User info */}
               <div className="bg-gray-50 rounded-lg p-4 mb-6">
                 <p className="text-sm font-metropolis font-medium text-[#0D141C]">
-                  {deletingUser.name}
+                  {deletingUser.fullName}
                 </p>
                 <p className="text-sm font-metropolis font-regular text-[#4A739C]">
                   {deletingUser.email}
                 </p>
                 <span className={`inline-flex px-2 py-1 text-xs font-metropolis font-regular rounded-full mt-2 ${
-                  deletingUser.role === 'Admin' 
+                  deletingUser.role === 'ADMIN' 
                     ? 'bg-[#E8EDF5] text-[#0D141C]' 
                     : 'bg-stroke text-[#4A739C]'
                 }`}>
-                  {deletingUser.role}
+                  {deletingUser.role === 'ADMIN' ? 'Admin' : 'Editor'}
                 </span>
               </div>
             </div>
@@ -737,15 +863,30 @@ export default function UsuariosPage() {
                 Cancelar
               </button>
               <button 
-                onClick={() => {
+                onClick={async () => {
                   setIsDeleting(true)
-                  // Simulate delete operation
-                  setTimeout(() => {
-                    setIsDeleting(false)
+                  try {
+                    const response = await fetch(`/api/users/${deletingUser.id}`, {
+                      method: 'DELETE',
+                      headers: { 'Content-Type': 'application/json' }
+                    })
+
+                    if (!response.ok) {
+                      const error = await response.json()
+                      throw new Error(error.error || 'Failed to delete user')
+                    }
+
+                    toast.success('Usuario eliminado exitosamente')
                     setIsDeleteModalOpen(false)
                     setDeletingUser(null)
-                    toast.success('Usuario eliminado exitosamente')
-                  }, 1000)
+                    fetchUsers() // Refresh the list
+                    fetchUserStats() // Refresh stats
+                  } catch (error: any) {
+                    console.error('Error deleting user:', error)
+                    toast.error(error.message || 'Error al eliminar usuario')
+                  } finally {
+                    setIsDeleting(false)
+                  }
                 }}
                 disabled={isDeleting}
                 className="px-4 py-2 text-sm font-metropolis font-medium text-white bg-[#F43F5E] border border-transparent rounded-md hover:bg-[#E11D48] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"

@@ -8,12 +8,14 @@ import { useToast } from '@/hooks/useToast'
 interface NewsData {
   title: string
   author: string
-  coverImage: File | null
+  coverImage: string | null
   publicationDate: string
   description: string
-  images: File[]
+  images: Array<{ imageUrl: string; order?: number }>
   categories: string[]
   tags: string[]
+  location_city: string
+  location_country: string
 }
 
 interface News {
@@ -34,66 +36,53 @@ export default function VerNoticiaPage() {
   
   const toast = useToast()
 
-  // Mock data for news (in a real app, this would come from an API)
-  const mockNewsData: { [key: number]: News } = {
-    1: {
-      spanish: {
-        title: 'Nueva Tecnología Revoluciona la Industria Local',
-        author: 'Alejandro Medina',
-        coverImage: null,
-        publicationDate: '2024-01-15',
-        description: 'Una empresa local ha desarrollado una innovadora tecnología que promete transformar completamente la forma en que trabajamos en la región. Esta innovación representa un avance significativo en la industria y abre nuevas posibilidades para el desarrollo económico local.\n\nLa tecnología, desarrollada por un equipo de ingenieros locales, incluye características revolucionarias como:\n• Inteligencia artificial avanzada para optimización de procesos\n• Integración con sistemas existentes sin interrupciones\n• Escalabilidad para empresas de todos los tamaños\n• Soporte técnico local disponible 24/7',
-        images: [],
-        categories: ['Tecnología', 'Innovación'],
-        tags: ['Local', 'Desarrollo', 'Futuro', 'Industria', 'Avance']
-      },
-      english: {
-        title: 'New Technology Revolutionizes Local Industry',
-        author: 'Alejandro Medina',
-        coverImage: null,
-        publicationDate: '2024-01-15',
-        description: 'A local company has developed an innovative technology that promises to completely transform the way we work in the region. This innovation represents a significant advance in the industry and opens new possibilities for local economic development.\n\nThe technology, developed by a team of local engineers, includes revolutionary features such as:\n• Advanced artificial intelligence for process optimization\n• Integration with existing systems without interruptions\n• Scalability for companies of all sizes\n• Local technical support available 24/7',
-        images: [],
-        categories: ['Technology', 'Innovation'],
-        tags: ['Local', 'Development', 'Future', 'Industry', 'Advance']
-      }
-    },
-    2: {
-      spanish: {
-        title: 'Festival Cultural Atrae Miles de Visitantes',
-        author: 'María González',
-        coverImage: null,
-        publicationDate: '2024-01-14',
-        description: 'El Festival Cultural de la Ciudad ha sido un éxito rotundo, atrayendo a más de 10,000 visitantes durante sus tres días de duración. El evento, que celebra la diversidad cultural de nuestra región, ha superado todas las expectativas y se ha convertido en un referente cultural a nivel nacional.\n\nActividades destacadas incluyeron:\n• Exposiciones de arte contemporáneo\n• Presentaciones de música tradicional\n• Talleres de artesanía local\n• Degustaciones gastronómicas regionales',
-        images: [],
-        categories: ['Cultura', 'Eventos'],
-        tags: ['Festival', 'Arte', 'Música', 'Gastronomía', 'Tradición']
-      },
-      english: {
-        title: 'Cultural Festival Attracts Thousands of Visitors',
-        author: 'María González',
-        coverImage: null,
-        publicationDate: '2024-01-14',
-        description: 'The City Cultural Festival has been a resounding success, attracting more than 10,000 visitors during its three-day duration. The event, which celebrates the cultural diversity of our region, has exceeded all expectations and has become a cultural benchmark at the national level.\n\nHighlighted activities included:\n• Contemporary art exhibitions\n• Traditional music presentations\n• Local craft workshops\n• Regional gastronomic tastings',
-        images: [],
-        categories: ['Culture', 'Events'],
-        tags: ['Festival', 'Art', 'Music', 'Gastronomy', 'Tradition']
-      }
-    }
-  }
-
   // Load news data on component mount
   useEffect(() => {
     const loadNewsData = async () => {
       setIsLoading(true)
-      // Simulate API call
-      setTimeout(() => {
-        const newsData = mockNewsData[parseInt(newsId)]
-        if (newsData) {
-          setNews(newsData)
+      try {
+        const response = await fetch(`/api/news/${newsId}`)
+        if (!response.ok) {
+          throw new Error('Failed to fetch news')
         }
+        
+        const data = await response.json()
+        
+        // Transform database data to match the expected format
+        const transformedNews: News = {
+          spanish: {
+            title: data.news.title_es,
+            author: data.news.author,
+            coverImage: data.news.coverImageUrl || null,
+            publicationDate: data.news.date,
+            description: data.news.body_es,
+            images: data.news.newsImages || [],
+            categories: [data.news.category],
+            tags: data.news.tags || [],
+            location_city: data.news.location_city || '',
+            location_country: data.news.location_country || ''
+          },
+          english: {
+            title: data.news.title_en,
+            author: data.news.author,
+            coverImage: data.news.coverImageUrl || null,
+            publicationDate: data.news.date,
+            description: data.news.body_en,
+            images: data.news.newsImages || [],
+            categories: [data.news.category_en || data.news.category],
+            tags: data.news.tags_en || [],
+            location_city: data.news.location_city || '',
+            location_country: data.news.location_country || ''
+          }
+        }
+        
+        setNews(transformedNews)
+      } catch (error) {
+        console.error('Error loading news:', error)
+        toast.error('Error al cargar la noticia')
+      } finally {
         setIsLoading(false)
-      }, 1000)
+      }
     }
 
     loadNewsData()
@@ -112,13 +101,25 @@ export default function VerNoticiaPage() {
   // Handle delete news
   const handleDelete = async () => {
     setIsDeleting(true)
-    // Simulate API call
-    setTimeout(() => {
-      setIsDeleting(false)
+    try {
+      const response = await fetch(`/api/news/${newsId}`, {
+        method: 'DELETE'
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to delete news')
+      }
+
       setIsDeleteModalOpen(false)
       toast.success('Noticia eliminada exitosamente')
       router.push('/general/gestion/noticias')
-    }, 2000)
+    } catch (error: any) {
+      console.error('Error deleting news:', error)
+      toast.error(error.message || 'Error al eliminar noticia')
+    } finally {
+      setIsDeleting(false)
+    }
   }
 
   // Get current news data based on language mode
@@ -179,11 +180,19 @@ export default function VerNoticiaPage() {
         <div className="flex items-center space-x-4 mb-4 lg:mb-0">
           {/* News Image */}
           <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden">
-            <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
-              <svg className="w-10 h-10 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-              </svg>
-            </div>
+            {currentNews.coverImage ? (
+              <img
+                src={currentNews.coverImage}
+                alt={currentNews.title}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
+                <svg className="w-10 h-10 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                </svg>
+              </div>
+            )}
           </div>
           
           {/* News Info */}
@@ -259,11 +268,19 @@ export default function VerNoticiaPage() {
           {/* Cover Image */}
           <div className="bg-white border rounded-lg shadow-lg overflow-hidden" style={{ borderColor: '#CFDBE8' }}>
             <div className="relative h-80 bg-gray-200">
-              <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
-                <svg className="w-24 h-24 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-                </svg>
-              </div>
+              {currentNews.coverImage ? (
+                <img
+                  src={currentNews.coverImage}
+                  alt={currentNews.title}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
+                  <svg className="w-24 h-24 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                  </svg>
+                </div>
+              )}
             </div>
           </div>
 
@@ -297,6 +314,26 @@ export default function VerNoticiaPage() {
               ))}
             </div>
           </div>
+
+          {/* News Images */}
+          {currentNews.images && currentNews.images.length > 0 && (
+            <div className="bg-white border rounded-lg shadow-lg p-6" style={{ borderColor: '#CFDBE8' }}>
+              <h2 className="font-metropolis font-bold text-2xl mb-4" style={{ color: '#0D141C' }}>
+                {isEnglishMode ? 'News Images' : 'Imágenes de la Noticia'}
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {currentNews.images.map((image, index) => (
+                  <div key={index} className="relative">
+                    <img
+                      src={image.imageUrl}
+                      alt={`${currentNews.title} - Image ${index + 1}`}
+                      className="w-full h-48 object-cover rounded-lg"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Sidebar */}
@@ -358,6 +395,24 @@ export default function VerNoticiaPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Location */}
+              {(currentNews.location_city || currentNews.location_country) && (
+                <div className="flex items-center space-x-3">
+                  <svg className="w-5 h-5 text-[#4A739C]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <div>
+                    <p className="text-sm font-metropolis font-medium text-[#0D141C]">
+                      {isEnglishMode ? 'Location' : 'Ubicación'}
+                    </p>
+                    <p className="text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
+                      {[currentNews.location_city, currentNews.location_country].filter(Boolean).join(', ') || (isEnglishMode ? 'Not specified' : 'No especificada')}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './fonts/metropolis.css'
 import './globals.css'
 import { Toaster } from '@/components/ui/sonner'
+import { AuthProvider } from '@/contexts/AuthContext'
 
 export const metadata: Metadata = {
   title: 'EF CMS - Content Management System',
@@ -15,10 +16,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-              <body className="font-metropolis antialiased">
+      <body className="font-metropolis antialiased">
         <div className="min-h-screen bg-page">
-          {children}
-          <Toaster />
+          <AuthProvider>
+            {children}
+            <Toaster />
+          </AuthProvider>
         </div>
       </body>
     </html>

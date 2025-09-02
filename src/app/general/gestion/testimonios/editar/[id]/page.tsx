@@ -107,7 +107,7 @@ export default function EditarTestimonioPage() {
       setIsLoading(true)
       // Simulate API call
       setTimeout(() => {
-        const data = mockTestimonialsData[testimonialId as keyof typeof mockTestimonialsData]
+        const data = mockTestimonialsData[parseInt(testimonialId) as keyof typeof mockTestimonialsData]
         if (data) {
           setOriginalData(data)
           setOriginalDataEnglish(data.english)

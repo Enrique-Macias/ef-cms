@@ -1,10 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
 
 export default function AgregarArticuloPage() {
+  const router = useRouter()
   const [formData, setFormData] = useState({
     title: '',
     author: '',
@@ -163,7 +165,8 @@ export default function AgregarArticuloPage() {
       // Show success toast
       const successMessage = isEnglishMode ? 'Article published successfully' : 'Artículo publicado exitosamente'
       toast.success(successMessage)
-      // Here you would typically redirect
+      // Redirect to articles listing page
+      router.push('/general/gestion/articulos')
     }, 2000)
   }
 

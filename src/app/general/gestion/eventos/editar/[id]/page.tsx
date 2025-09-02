@@ -75,39 +75,18 @@ export default function EditarEventoPage() {
   
   const toast = useToast()
 
-  // Mock data for events
-  const mockEvents: { [key: number]: Event } = {
-    1: {
-      id: 1,
-      title_es: 'Festival de Tecnología e Innovación 2024',
-      title_en: 'Technology and Innovation Festival 2024',
-      body_es: 'Un evento revolucionario que reúne a los mejores expertos en tecnología, innovación y emprendimiento.',
-      body_en: 'A revolutionary event that brings together the best experts in technology, innovation and entrepreneurship.',
-      date: '2024-03-15',
-      tags: ['Tecnología', 'Innovación', 'Emprendimiento'],
-      tags_en: ['Technology', 'Innovation', 'Entrepreneurship'],
-      category: 'Tecnología',
-      category_en: 'Technology',
-      author: 'Equipo EF',
-      location_city: 'Monterrey',
-      location_country: 'México',
-      coverImageUrl: '/images/events/tech-festival.jpg',
-      phrase: 'El futuro es ahora',
-      phrase_en: 'The future is now',
-      credits: 'Fotografía: Carlos Mendoza | Diseño: Ana García',
-      credits_en: 'Photography: Carlos Mendoza | Design: Ana García',
-      createdAt: '2024-01-15T10:00:00Z',
-      updatedAt: '2024-01-15T10:00:00Z'
-    }
-  }
+
 
   // Load event data on component mount
   useEffect(() => {
     const loadEventData = async () => {
       setIsLoading(true)
-      setTimeout(() => {
-        const eventData = mockEvents[parseInt(eventId)]
-        if (eventData) {
+      try {
+        const response = await fetch(`/api/events/${eventId}`)
+        if (response.ok) {
+          const data = await response.json()
+          const eventData = data.event
+          
           setOriginalData(eventData)
           setOriginalDataEnglish(eventData)
           
@@ -116,12 +95,12 @@ export default function EditarEventoPage() {
             title: eventData.title_es,
             author: eventData.author,
             coverImage: null,
-            eventDate: eventData.date,
+            eventDate: eventData.date.split('T')[0], // Convert to YYYY-MM-DD format
             description: eventData.body_es,
             images: [],
             categories: [eventData.category],
             tags: eventData.tags,
-            phrase: eventData.phrase,
+            phrase: eventData.phrase || '',
             credits: eventData.credits,
             locationCity: eventData.location_city,
             locationCountry: eventData.location_country
@@ -132,23 +111,29 @@ export default function EditarEventoPage() {
             title: eventData.title_en,
             author: eventData.author,
             coverImage: null,
-            eventDate: eventData.date,
+            eventDate: eventData.date.split('T')[0], // Convert to YYYY-MM-DD format
             description: eventData.body_en,
             images: [],
-            categories: [eventData.category_en],
+            categories: [eventData.category_en || ''],
             tags: eventData.tags_en,
-            phrase: eventData.phrase_en,
-            credits: eventData.credits_en,
+            phrase: eventData.phrase_en || '',
+            credits: eventData.credits_en || '',
             locationCity: eventData.location_city,
             locationCountry: eventData.location_country
           })
+        } else {
+          toast.error('Error loading event')
         }
+      } catch (error) {
+        console.error('Error loading event:', error)
+        toast.error('Error loading event')
+      } finally {
         setIsLoading(false)
-      }, 1000)
+      }
     }
 
     loadEventData()
-  }, [eventId])
+  }, [eventId]) // Remove toast dependency to prevent infinite loops
 
   // Check if there are changes
   const hasChanges = () => {
@@ -190,6 +175,29 @@ export default function EditarEventoPage() {
     } else {
       setFormData(prev => ({ ...prev, [field]: value }))
     }
+  }
+
+  // Handle language mode toggle - preserve images between modes
+  const handleLanguageToggle = () => {
+    const newEnglishMode = !isEnglishMode
+    
+    if (newEnglishMode) {
+      // Switching to English mode - copy images from Spanish to English
+      setFormDataEnglish(prev => ({
+        ...prev,
+        coverImage: formData.coverImage,
+        images: formData.images
+      }))
+    } else {
+      // Switching to Spanish mode - copy images from English to Spanish
+      setFormData(prev => ({
+        ...prev,
+        coverImage: formDataEnglish.coverImage,
+        images: formDataEnglish.images
+      }))
+    }
+    
+    setIsEnglishMode(newEnglishMode)
   }
 
   // Add new category
@@ -244,11 +252,9 @@ export default function EditarEventoPage() {
   const handleCoverImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      if (isEnglishMode) {
-        setFormDataEnglish(prev => ({ ...prev, coverImage: file }))
-      } else {
-        setFormData(prev => ({ ...prev, coverImage: file }))
-      }
+      // Update both Spanish and English forms to keep images synchronized
+      setFormData(prev => ({ ...prev, coverImage: file }))
+      setFormDataEnglish(prev => ({ ...prev, coverImage: file }))
     }
   }
 
@@ -256,21 +262,17 @@ export default function EditarEventoPage() {
   const handleImagesUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || [])
     if (files.length > 0) {
-      if (isEnglishMode) {
-        setFormDataEnglish(prev => ({ ...prev, images: [...prev.images, ...files] }))
-      } else {
-        setFormData(prev => ({ ...prev, images: [...prev.images, ...files] }))
-      }
+      // Update both Spanish and English forms to keep images synchronized
+      setFormData(prev => ({ ...prev, images: [...prev.images, ...files] }))
+      setFormDataEnglish(prev => ({ ...prev, images: [...prev.images, ...files] }))
     }
   }
 
   // Remove image from multiple images
   const removeImage = (index: number) => {
-    if (isEnglishMode) {
-      setFormDataEnglish(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }))
-    } else {
-      setFormData(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }))
-    }
+    // Remove from both Spanish and English forms to keep images synchronized
+    setFormData(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }))
+    setFormDataEnglish(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }))
   }
 
   // Handle drag and drop for cover image
@@ -280,11 +282,9 @@ export default function EditarEventoPage() {
     if (files.length > 0) {
       const imageFile = files[0]
       if (imageFile.type.startsWith('image/')) {
-        if (isEnglishMode) {
-          setFormDataEnglish(prev => ({ ...prev, coverImage: imageFile }))
-        } else {
-          setFormData(prev => ({ ...prev, coverImage: imageFile }))
-        }
+        // Update both Spanish and English forms to keep images synchronized
+        setFormData(prev => ({ ...prev, coverImage: imageFile }))
+        setFormDataEnglish(prev => ({ ...prev, coverImage: imageFile }))
       }
     }
   }
@@ -295,12 +295,20 @@ export default function EditarEventoPage() {
     const files = Array.from(e.dataTransfer.files)
     const imageFiles = files.filter(file => file.type.startsWith('image/'))
     if (imageFiles.length > 0) {
-      if (isEnglishMode) {
-        setFormDataEnglish(prev => ({ ...prev, images: [...prev.images, ...imageFiles] }))
-      } else {
-        setFormData(prev => ({ ...prev, images: [...prev.images, ...imageFiles] }))
-      }
+      // Update both Spanish and English forms to keep images synchronized
+      setFormData(prev => ({ ...prev, images: [...prev.images, ...imageFiles] }))
+      setFormDataEnglish(prev => ({ ...prev, images: [...prev.images, ...imageFiles] }))
     }
+  }
+
+  // Helper function to convert File to base64
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.readAsDataURL(file)
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = error => reject(error)
+    })
   }
 
   // Handle form submission
@@ -347,12 +355,70 @@ export default function EditarEventoPage() {
     }
     
     setIsUpdating(true)
-    setTimeout(() => {
-      setIsUpdating(false)
+    
+    try {
+      // Convert cover image to base64 if it's a File
+      let coverImageUrl = null
+      if (formData.coverImage instanceof File) {
+        coverImageUrl = await fileToBase64(formData.coverImage)
+      }
+      
+      // Convert images to base64 if they are Files
+      const images = []
+      for (const image of formData.images) {
+        if (image instanceof File) {
+          const base64Image = await fileToBase64(image)
+          images.push(base64Image)
+        }
+      }
+      
+      // Prepare event data
+      const eventData = {
+        title_es: formData.title,
+        title_en: formDataEnglish.title,
+        body_es: formData.description,
+        body_en: formDataEnglish.description,
+        date: new Date(formData.eventDate + 'T00:00:00.000Z').toISOString(),
+        author: formData.author,
+        location_city: formData.locationCity,
+        location_country: formData.locationCountry,
+        coverImageUrl,
+        phrase: formData.phrase,
+        phrase_en: formDataEnglish.phrase,
+        credits: formData.credits,
+        credits_en: formDataEnglish.credits,
+        category: formData.categories[0] || '',
+        category_en: formDataEnglish.categories[0] || '',
+        tags: formData.tags,
+        tags_en: formDataEnglish.tags,
+        images
+      }
+      
+      // Make API call
+      const response = await fetch(`/api/events/${eventId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(eventData),
+      })
+      
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to update event')
+      }
+      
+      const result = await response.json()
+      
       const successMessage = isEnglishMode ? 'Event updated successfully' : 'Evento actualizado exitosamente'
       toast.success(successMessage)
       router.push('/general/gestion/eventos')
-    }, 2000)
+    } catch (error) {
+      console.error('Error updating event:', error)
+      toast.error(error instanceof Error ? error.message : 'Error updating event')
+    } finally {
+      setIsUpdating(false)
+    }
   }
 
   // Get current form data based on language mode
@@ -476,7 +542,7 @@ export default function EditarEventoPage() {
         {/* Language Toggle and Update Buttons */}
         <div className="flex items-center space-x-3">
           <button
-            onClick={() => setIsEnglishMode(!isEnglishMode)}
+            onClick={handleLanguageToggle}
             className={`inline-flex items-center px-4 py-3 border rounded-md shadow-sm text-sm font-medium transition-all duration-200 ${
               isEnglishMode 
                 ? 'border-[#5A6F80] text-[#5A6F80] bg-white hover:bg-gray-50' 

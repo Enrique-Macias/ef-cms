@@ -142,11 +142,11 @@ export async function translateContent<T extends Record<string, string>>(
   sourceLang: 'ES' | 'EN',
   targetLang: 'ES' | 'EN'
 ): Promise<T> {
-  const translatedContent = { ...content };
+  const translatedContent = { ...content } as T;
   
   for (const [key, value] of Object.entries(content)) {
     if (typeof value === 'string' && value.trim()) {
-      translatedContent[key] = await translateText({
+      (translatedContent as any)[key] = await translateText({
         text: value,
         sourceLang,
         targetLang

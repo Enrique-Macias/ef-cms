@@ -1,10 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useAuth } from '@/contexts/AuthContext'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
 
 export default function ConfiguracionPage() {
+  const { user, updateUser } = useAuth()
   const [isSaving, setIsSaving] = useState(false)
   const [isDeletingAvatar, setIsDeletingAvatar] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
@@ -12,13 +14,12 @@ export default function ConfiguracionPage() {
   
   const toast = useToast()
 
-  // Simulated user data
+  // Use real user data from AuthContext
   const userData = {
-    name: 'Alejandro Medina',
-    email: 'alejandro@admin.com',
-    password: 'Hello',
-    role: 'Admin',
-    avatar: 'https://avatar.iran.liara.run/username?username=Alejandro Medina'
+    name: user?.fullName || '',
+    email: user?.email || '',
+    role: user?.role === 'ADMIN' ? 'Admin' : 'Editor',
+    avatar: user?.avatarUrl || `https://avatar.iran.liara.run/username?username=${encodeURIComponent(user?.fullName || '')}`
   }
 
   // Avatar options from the API
@@ -128,10 +129,20 @@ export default function ConfiguracionPage() {
     avatar: userData.avatar
   })
 
+  // Update form data when user data changes
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        name: user.fullName,
+        avatar: user.avatarUrl || `https://avatar.iran.liara.run/username?username=${encodeURIComponent(user.fullName)}`
+      })
+    }
+  }, [user])
+
   // Check if there are changes
   const checkForChanges = (newData: typeof formData) => {
-    const nameChanged = newData.name !== userData.name
-    const avatarChanged = newData.avatar !== userData.avatar
+    const nameChanged = newData.name !== user?.fullName
+    const avatarChanged = newData.avatar !== (user?.avatarUrl || `https://avatar.iran.liara.run/username?username=${encodeURIComponent(user?.fullName || '')}`)
     setHasChanges(nameChanged || avatarChanged)
   }
 
@@ -153,59 +164,97 @@ export default function ConfiguracionPage() {
   // Handle form submission
   const handleSave = async () => {
     setIsSaving(true)
-    // Simulate API call
-    setTimeout(() => {
-      setIsSaving(false)
-      setHasChanges(false)
-      // Update userData with new values
-      userData.name = formData.name
-      userData.avatar = formData.avatar
+    
+    try {
+      // Prepare update data
+      const updateData: any = {}
+      if (formData.name !== user?.fullName) {
+        updateData.fullName = formData.name
+      }
+      if (formData.avatar !== (user?.avatarUrl || `https://avatar.iran.liara.run/username?username=${encodeURIComponent(user?.fullName || '')}`)) {
+        updateData.avatarUrl = formData.avatar
+      }
+
+      // Call the updateUser function from AuthContext
+      const result = await updateUser(updateData)
       
-      // Show success toast with specific information about what was updated
-      const nameChanged = formData.name !== userData.name
-      const avatarChanged = formData.avatar !== userData.avatar
-      
-      if (nameChanged && avatarChanged) {
-        toast.success('Nombre y avatar actualizados exitosamente')
-      } else if (nameChanged) {
-        toast.success('Nombre actualizado exitosamente')
-      } else if (avatarChanged) {
-        if (formData.avatar === 'https://avatar.iran.liara.run/username?username=Alejandro Medina') {
-          toast.success('Avatar cambiado a iniciales exitosamente')
+      if (result.success) {
+        setHasChanges(false)
+        
+        // Show success toast with specific information about what was updated
+        const nameChanged = formData.name !== user?.fullName
+        const avatarChanged = formData.avatar !== (user?.avatarUrl || `https://avatar.iran.liara.run/username?username=${encodeURIComponent(user?.fullName || '')}`)
+        
+        if (nameChanged && avatarChanged) {
+          toast.success('Nombre y avatar actualizados exitosamente')
+        } else if (nameChanged) {
+          toast.success('Nombre actualizado exitosamente')
+        } else if (avatarChanged) {
+          if (formData.avatar.includes('username?username=')) {
+            toast.success('Avatar cambiado a iniciales exitosamente')
+          } else {
+            toast.success('Avatar actualizado exitosamente')
+          }
         } else {
-          toast.success('Avatar actualizado exitosamente')
+          toast.success('Información del perfil actualizada exitosamente')
         }
       } else {
-        toast.success('Información del perfil actualizada exitosamente')
+        toast.error(result.error || 'Error al actualizar el perfil')
       }
-    }, 1000)
+    } catch (error) {
+      console.error('Save error:', error)
+      toast.error('Error de conexión al guardar')
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   // Handle cancel
   const handleCancel = () => {
-    setFormData({
-      name: userData.name,
-      avatar: userData.avatar
-    })
+    if (user) {
+      setFormData({
+        name: user.fullName,
+        avatar: user.avatarUrl || `https://avatar.iran.liara.run/username?username=${encodeURIComponent(user.fullName)}`
+      })
+    }
     setHasChanges(false)
   }
 
   // Handle avatar deletion
   const handleDeleteAvatar = async () => {
     setIsDeletingAvatar(true)
-    // Simulate API call
-    setTimeout(() => {
+    
+    try {
+      // Call the updateUser function to remove avatar
+      const result = await updateUser({ avatarUrl: null })
+      
+      if (result.success) {
+        handleAvatarChange('')
+        toast.success('Avatar eliminado exitosamente')
+      } else {
+        toast.error(result.error || 'Error al eliminar el avatar')
+      }
+    } catch (error) {
+      console.error('Delete avatar error:', error)
+      toast.error('Error de conexión al eliminar avatar')
+    } finally {
       setIsDeletingAvatar(false)
-      handleAvatarChange('')
-      // Show success toast
-      toast.success('Avatar eliminado exitosamente')
-    }, 1000)
+    }
   }
 
   // Handle avatar selection from modal
   const handleAvatarSelect = (avatarUrl: string) => {
     handleAvatarChange(avatarUrl)
     setShowAvatarModal(false)
+  }
+
+  // Show loading state if user is not loaded
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Spinner size="lg" />
+      </div>
+    )
   }
 
   return (
@@ -252,11 +301,11 @@ export default function ConfiguracionPage() {
                   {formData.name}
                 </h1>
                 <span className="inline-flex px-3 py-1 text-sm font-metropolis font-medium bg-[#E8EDF5] text-[#0D141C] rounded-full">
-                  {userData.role}
+                  {user?.role === 'ADMIN' ? 'Admin' : 'Editor'}
                 </span>
               </div>
               <p className="font-metropolis font-regular text-lg" style={{ color: '#4A739C' }}>
-                {userData.email}
+                {user?.email}
               </p>
             </div>
 
@@ -312,7 +361,7 @@ export default function ConfiguracionPage() {
                       </div>
                       <input
                         type="email"
-                        value={userData.email}
+                        value={user?.email || ''}
                         disabled
                         className="w-full pl-10 pr-3 py-2 border border-gray-200 bg-gray-50 text-gray-500 rounded-md cursor-not-allowed"
                       />
@@ -335,7 +384,7 @@ export default function ConfiguracionPage() {
                       </div>
                       <input
                         type="password"
-                        value={userData.password}
+                        value="••••••••"
                         disabled
                         className="w-full pl-10 pr-3 py-2 border border-gray-200 bg-gray-50 text-gray-500 rounded-md cursor-not-allowed"
                       />
@@ -350,7 +399,7 @@ export default function ConfiguracionPage() {
                     <div className="relative">
                       <input
                         type="text"
-                        value={userData.role}
+                        value={user?.role === 'ADMIN' ? 'Admin' : 'Editor'}
                         disabled
                         className="w-full px-3 py-2 border border-gray-200 bg-gray-50 text-gray-500 rounded-md cursor-not-allowed"
                       />
@@ -456,7 +505,7 @@ export default function ConfiguracionPage() {
                 {/* Default avatar option */}
                 <div 
                   className="flex flex-col items-center cursor-pointer hover:scale-105 transition-transform"
-                  onClick={() => handleAvatarSelect('https://avatar.iran.liara.run/username?username=Alejandro Medina')}
+                  onClick={() => handleAvatarSelect(`https://avatar.iran.liara.run/username?username=${encodeURIComponent(user?.fullName || '')}`)}
                 >
                   <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold text-sm mb-2">
                     AM

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useAuth } from '@/contexts/AuthContext'
 import { 
   HomeIcon, 
   UsersIcon, 
@@ -33,7 +34,17 @@ import {
   DocumentTextIcon as DocumentTextIconSolid
 } from '@heroicons/react/24/solid'
 
-const navigation = [
+interface NavigationItem {
+  name: string
+  href: string
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>
+  iconSolid: React.ComponentType<React.SVGProps<SVGSVGElement>>
+  hasDropdown?: boolean
+  submenu?: NavigationItem[]
+  adminOnly?: boolean
+}
+
+const navigation: NavigationItem[] = [
   { name: 'Inicio', href: '/general', icon: HomeIcon, iconSolid: HomeIconSolid },
   { 
     name: 'Gestión', 
@@ -49,7 +60,7 @@ const navigation = [
       { name: 'Artículos', href: '/general/gestion/articulos', icon: DocumentTextIcon, iconSolid: DocumentTextIconSolid },
     ]
   },
-  { name: 'Usuarios', href: '/general/usuarios', icon: UsersIcon, iconSolid: UsersIconSolid },
+  { name: 'Usuarios', href: '/general/usuarios', icon: UsersIcon, iconSolid: UsersIconSolid, adminOnly: true },
   { name: 'Actividad', href: '/general/actividad', icon: ChartBarIcon, iconSolid: ChartBarIconSolid },
   { name: 'Configuración', href: '/general/configuracion', icon: Cog6ToothIcon, iconSolid: Cog6ToothIconSolid },
 ]
@@ -58,6 +69,7 @@ export function Sidebar() {
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
+  const { logout, user } = useAuth()
 
   // Auto-open dropdown if current page is in a submenu
   useEffect(() => {
@@ -110,25 +122,46 @@ export function Sidebar() {
           
           <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
             {/* User Profile Section */}
-            <div className="px-4 mb-6">
-              <div className="flex items-center space-x-3">
-                <div className="flex-shrink-0">
-                  <img
-                    src="https://avatar.iran.liara.run/username?username=Alejandro Medina"
-                    alt="Alejandro"
-                    className="h-10 w-10 rounded-full"
-                  />
-                </div>
-                <div>
-                  <p className="font-metropolis font-regular text-base" style={{ color: '#0D141C' }}>Alejandro</p>
-                  <p className="font-metropolis font-regular text-sm" style={{ color: '#4A739C' }}>Administrador</p>
+            {user && (
+              <div className="px-4 mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="flex-shrink-0">
+                    <img
+                      src={user.avatarUrl || `https://avatar.iran.liara.run/username?username=${encodeURIComponent(user.fullName)}`}
+                      alt={`Avatar de ${user.fullName}`}
+                      className="h-10 w-10 rounded-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement
+                        target.style.display = 'none'
+                        const fallback = target.nextElementSibling as HTMLElement
+                        if (fallback) fallback.style.display = 'flex'
+                      }}
+                    />
+                    <div
+                      className="h-10 w-10 rounded-full bg-[#5A6F80] flex items-center justify-center text-white text-sm font-medium hidden"
+                      style={{ display: 'none' }}
+                    >
+                      {user.fullName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="font-metropolis font-regular text-base" style={{ color: '#0D141C' }}>{user.fullName}</p>
+                    <p className="font-metropolis font-regular text-sm" style={{ color: '#4A739C' }}>
+                      {user.role === 'ADMIN' ? 'Administrador' : 'Editor'}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Navigation Menu */}
             <nav className="flex-1 px-2 space-y-1">
               {navigation.map((item) => {
+                // Skip admin-only items for non-admin users
+                if (item.adminOnly && user?.role !== 'ADMIN') {
+                  return null
+                }
+                
                 const isActive = pathname === item.href
                 const isDropdownOpen = openDropdown === item.name
                 const hasActiveSubmenu = item.submenu?.some(subItem => 
@@ -237,16 +270,17 @@ export function Sidebar() {
             </nav>
           </div>
 
-          {/* Logout Section */}
-          <div className="flex-shrink-0 flex border-t border-stroke p-4">
-            <Link 
-              href="/login"
+          {/* User Info and Logout Section */}
+          <div className="flex-shrink-0 flex flex-col border-t border-stroke p-4">
+            {/* Logout Button */}
+            <button 
+              onClick={logout}
               className="flex items-center w-full px-3 py-2 text-sm font-metropolis font-regular hover:bg-[#E8EDF5] rounded-lg transition-colors"
-            style={{ color: '#0D141C' }}
+              style={{ color: '#0D141C' }}
             >
               <ArrowRightOnRectangleIcon className="mr-3 h-5 w-5" />
               Cerrar Sesión
-            </Link>
+            </button>
           </div>
         </div>
       </div>

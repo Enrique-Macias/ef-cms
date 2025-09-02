@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Logo } from '@/components/ui/Logo'
 import { AuthBackground } from '@/components/ui/AuthBackground'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
@@ -9,16 +10,48 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import Link from 'next/link'
 import { Eye, EyeOff } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
+import { Spinner } from '@/components/ui/spinner'
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
+  
+  const { login, isAuthenticated } = useAuth()
+  const router = useRouter()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace('/general')
+    }
+  }, [isAuthenticated, router])
+
+  // Don't render the form if already authenticated
+  if (isAuthenticated) {
+    return null
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Implement login logic
-    console.log('Login attempt:', { email, password })
+    setError('')
+    setIsLoading(true)
+
+    try {
+      const result = await login(email, password)
+      if (result.success) {
+        router.replace('/general')
+      } else {
+        setError(result.error || 'Error al iniciar sesión')
+      }
+    } catch (error) {
+      setError('Error de conexión')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -98,6 +131,13 @@ export default function LoginPage() {
               </div>
             </div>
 
+            {/* Error Message */}
+            {error && (
+              <div className="text-red-600 text-sm font-metropolis font-normal text-center">
+                {error}
+              </div>
+            )}
+
             {/* Forgot Password Link */}
             <div className="text-left" style={{ marginTop: '5px' }}>
               <Link 
@@ -112,19 +152,31 @@ export default function LoginPage() {
             {/* Login Button */}
             <Button 
               type="submit" 
+              disabled={isLoading}
               className="w-full font-metropolis font-semibold transition-all duration-200"
               style={{
                 backgroundColor: '#5A6F80',
                 color: '#FFFDF6'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#4A5A6B'
+                if (!isLoading) {
+                  e.currentTarget.style.backgroundColor = '#4A5A6B'
+                }
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#5A6F80'
+                if (!isLoading) {
+                  e.currentTarget.style.backgroundColor = '#5A6F80'
+                }
               }}
             >
-              Iniciar Sesión
+              {isLoading ? (
+                <div className="flex items-center justify-center">
+                  <Spinner size="sm" />
+                  <span className="ml-2">Iniciando sesión...</span>
+                </div>
+              ) : (
+                'Iniciar Sesión'
+              )}
             </Button>
           </form>
         </CardContent>

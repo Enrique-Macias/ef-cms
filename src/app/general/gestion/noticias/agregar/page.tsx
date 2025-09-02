@@ -1,10 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
 
 export default function AgregarNoticiaPage() {
+  const router = useRouter()
   const [formData, setFormData] = useState({
     title: '',
     author: '',
@@ -13,7 +15,9 @@ export default function AgregarNoticiaPage() {
     description: '',
     images: [] as File[],
     categories: [] as string[],
-    tags: [] as string[]
+    tags: [] as string[],
+    location_city: '',
+    location_country: ''
   })
 
   const [formDataEnglish, setFormDataEnglish] = useState({
@@ -24,7 +28,9 @@ export default function AgregarNoticiaPage() {
     description: '',
     images: [] as File[],
     categories: [] as string[],
-    tags: [] as string[]
+    tags: [] as string[],
+    location_city: '',
+    location_country: ''
   })
 
   const [isEnglishMode, setIsEnglishMode] = useState(false)
@@ -51,11 +57,9 @@ export default function AgregarNoticiaPage() {
   const handleCoverImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      if (isEnglishMode) {
-        setFormDataEnglish(prev => ({ ...prev, coverImage: file }))
-      } else {
-        setFormData(prev => ({ ...prev, coverImage: file }))
-      }
+      // Always update both Spanish and English versions with the same image
+      setFormData(prev => ({ ...prev, coverImage: file }))
+      setFormDataEnglish(prev => ({ ...prev, coverImage: file }))
     }
   }
 
@@ -63,11 +67,9 @@ export default function AgregarNoticiaPage() {
   const handleImagesUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || [])
     if (files.length > 0) {
-      if (isEnglishMode) {
-        setFormDataEnglish(prev => ({ ...prev, images: [...prev.images, ...files] }))
-      } else {
-        setFormData(prev => ({ ...prev, images: [...prev.images, ...files] }))
-      }
+      // Always update both Spanish and English versions with the same images
+      setFormData(prev => ({ ...prev, images: [...prev.images, ...files] }))
+      setFormDataEnglish(prev => ({ ...prev, images: [...prev.images, ...files] }))
     }
   }
 
@@ -93,11 +95,9 @@ export default function AgregarNoticiaPage() {
     const imageFiles = files.filter(file => file.type.startsWith('image/'))
     
     if (imageFiles.length > 0) {
-      if (isEnglishMode) {
-        setFormDataEnglish(prev => ({ ...prev, images: [...prev.images, ...imageFiles] }))
-      } else {
-        setFormData(prev => ({ ...prev, images: [...prev.images, ...imageFiles] }))
-      }
+      // Always update both Spanish and English versions with the same images
+      setFormData(prev => ({ ...prev, images: [...prev.images, ...imageFiles] }))
+      setFormDataEnglish(prev => ({ ...prev, images: [...prev.images, ...imageFiles] }))
     }
   }
 
@@ -123,11 +123,9 @@ export default function AgregarNoticiaPage() {
     const imageFile = files.find(file => file.type.startsWith('image/'))
     
     if (imageFile) {
-      if (isEnglishMode) {
-        setFormDataEnglish(prev => ({ ...prev, coverImage: imageFile }))
-      } else {
-        setFormData(prev => ({ ...prev, coverImage: imageFile }))
-      }
+      // Always update both Spanish and English versions with the same image
+      setFormData(prev => ({ ...prev, coverImage: imageFile }))
+      setFormDataEnglish(prev => ({ ...prev, coverImage: imageFile }))
     }
   }
 
@@ -177,6 +175,16 @@ export default function AgregarNoticiaPage() {
     } else {
       setFormData(prev => ({ ...prev, tags: prev.tags.filter(t => t !== tag) }))
     }
+  }
+
+  // Convert File to base64
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.readAsDataURL(file)
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = error => reject(error)
+    })
   }
 
   // Handle form submission
@@ -256,14 +264,76 @@ export default function AgregarNoticiaPage() {
     }
     
     setIsPublishing(true)
-    // Simulate API call
-    setTimeout(() => {
-      setIsPublishing(false)
+    
+    try {
+      // Convert cover image to base64 if it's a File
+      let coverImageUrl = 'https://images.unsplash.com/photo-1495020689067-958852a6c2c8?w=400&h=250&fit=crop&crop=center'
+      if (formData.coverImage && typeof formData.coverImage === 'object') {
+        coverImageUrl = await fileToBase64(formData.coverImage)
+      } else if (typeof formData.coverImage === 'string') {
+        coverImageUrl = formData.coverImage
+      }
+
+      // Convert news images to base64
+      const newsImages = []
+      for (let i = 0; i < formData.images.length; i++) {
+        const image = formData.images[i]
+        let imageUrl = ''
+        
+        if (typeof image === 'object') {
+          imageUrl = await fileToBase64(image)
+        } else if (typeof image === 'string') {
+          imageUrl = image
+        }
+        
+        newsImages.push({
+          imageUrl,
+          order: i
+        })
+      }
+
+      // Prepare news data for API
+      const newsData = {
+        title_es: formData.title.trim(),
+        title_en: formDataEnglish.title.trim(),
+        body_es: formData.description.trim(),
+        body_en: formDataEnglish.description.trim(),
+        date: new Date(formData.publicationDate).toISOString(),
+        author: formData.author.trim(),
+        category: formData.categories[0] || 'General',
+        category_en: formDataEnglish.categories[0] || 'General',
+        tags: formData.tags,
+        tags_en: formDataEnglish.tags,
+        location_city: formData.location_city.trim(),
+        location_country: formData.location_country.trim(),
+        coverImageUrl,
+        newsImages
+      }
+
+      const response = await fetch('/api/news', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newsData)
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to create news')
+      }
+
       // Show success toast
       const successMessage = isEnglishMode ? 'News published successfully' : 'Noticia publicada exitosamente'
       toast.success(successMessage)
-      // Here you would typically redirect
-    }, 2000)
+      // Redirect to news listing page
+      router.push('/general/gestion/noticias')
+    } catch (error: any) {
+      console.error('Error creating news:', error)
+      toast.error(error.message || 'Error al crear noticia')
+    } finally {
+      setIsPublishing(false)
+    }
   }
 
   // Get current form data based on language mode
@@ -280,6 +350,8 @@ export default function AgregarNoticiaPage() {
     coverImage: isEnglishMode ? 'Cover Image' : 'Portada',
     publicationDate: isEnglishMode ? 'Publication Date' : 'Fecha de Publicación',
     description: isEnglishMode ? 'Description' : 'Descripción',
+    location_city: isEnglishMode ? 'City' : 'Ciudad',
+    location_country: isEnglishMode ? 'Country' : 'País',
     basicInfo: isEnglishMode ? 'Basic Information' : 'Información Básica',
     cover: isEnglishMode ? 'Cover' : 'Portada',
     images: isEnglishMode ? 'Images' : 'Imágenes',
@@ -334,12 +406,12 @@ export default function AgregarNoticiaPage() {
 
       {/* Header Section with Preview and Publish Button */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8">
-        <div className="flex items-center space-x-4 mb-4 lg:mb-0">
+        <div className="flex items-center space-x-4 mb-4 lg:mb-0 flex-1 min-w-0">
           {/* Preview Image */}
-          <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden">
+          <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
             {getCurrentFormData().coverImage ? (
               <img
-                src={URL.createObjectURL(getCurrentFormData().coverImage!)}
+                src={typeof getCurrentFormData().coverImage === 'string' ? getCurrentFormData().coverImage : URL.createObjectURL(getCurrentFormData().coverImage as File)}
                 alt="Preview"
                 className="w-full h-full object-cover"
               />
@@ -353,8 +425,8 @@ export default function AgregarNoticiaPage() {
           </div>
           
           {/* Preview Info */}
-          <div>
-            <h1 className="font-metropolis font-bold text-2xl mb-1" style={{ color: '#0D141C' }}>
+          <div className="min-w-0 flex-1">
+            <h1 className="font-metropolis font-bold text-2xl mb-1 break-words" style={{ color: '#0D141C' }}>
               {getCurrentFormData().title || translations.title}
             </h1>
             <p className="font-metropolis font-regular text-sm" style={{ color: '#4A739C' }}>
@@ -364,7 +436,7 @@ export default function AgregarNoticiaPage() {
         </div>
 
         {/* Language Toggle and Publish Buttons */}
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-3 flex-shrink-0">
           {/* Language Toggle Button */}
           <button
             onClick={() => setIsEnglishMode(!isEnglishMode)}
@@ -444,6 +516,34 @@ export default function AgregarNoticiaPage() {
                 />
               </div>
             </div>
+            
+            {/* Location Fields */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+              <div>
+                <label className="block text-sm font-metropolis font-medium text-[#0D141C] mb-2">
+                  {translations.location_city}
+                </label>
+                <input
+                  type="text"
+                  value={getCurrentFormData().location_city}
+                  onChange={(e) => handleInputChange('location_city', e.target.value)}
+                  placeholder={translations.location_city}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-metropolis font-medium text-[#0D141C] mb-2">
+                  {translations.location_country}
+                </label>
+                <input
+                  type="text"
+                  value={getCurrentFormData().location_country}
+                  onChange={(e) => handleInputChange('location_country', e.target.value)}
+                  placeholder={translations.location_country}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
+                />
+              </div>
+            </div>
           </div>
 
           {/* Cover Image Section */}
@@ -460,7 +560,7 @@ export default function AgregarNoticiaPage() {
                 <div className="w-32 h-24 bg-gray-200 rounded-lg overflow-hidden">
                   {getCurrentFormData().coverImage ? (
                     <img
-                      src={URL.createObjectURL(getCurrentFormData().coverImage!)}
+                      src={typeof getCurrentFormData().coverImage === 'string' ? getCurrentFormData().coverImage : URL.createObjectURL(getCurrentFormData().coverImage!)}
                       alt="Cover preview"
                       className="w-full h-full object-cover"
                     />
@@ -579,17 +679,15 @@ export default function AgregarNoticiaPage() {
                 {getCurrentFormData().images.map((image, index) => (
                   <div key={index} className="relative">
                     <img
-                      src={URL.createObjectURL(image)}
+                      src={typeof image === 'string' ? image : URL.createObjectURL(image)}
                       alt={`Uploaded ${index + 1}`}
                       className="w-full h-20 object-cover rounded-lg"
                     />
                     <button
                       onClick={() => {
-                        if (isEnglishMode) {
-                          setFormDataEnglish(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }))
-                        } else {
-                          setFormData(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }))
-                        }
+                        // Always remove from both Spanish and English versions
+                        setFormData(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }))
+                        setFormDataEnglish(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }))
                       }}
                       className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors"
                     >

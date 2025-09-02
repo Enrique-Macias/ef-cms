@@ -26,6 +26,7 @@ interface Event {
   createdAt: string
   updatedAt: string
   tags_en: string[]
+  eventImages: Array<{ id: number; imageUrl: string; order?: number }>
 }
 
 export default function VerEventoPage() {
@@ -41,82 +42,53 @@ export default function VerEventoPage() {
   
   const toast = useToast()
 
-  // Mock data for events (in a real app, this would come from an API)
-  const mockEvents: { [key: number]: Event } = {
-    1: {
-      id: 1,
-      title_es: 'Festival de Tecnología e Innovación 2024',
-      title_en: 'Technology and Innovation Festival 2024',
-      body_es: 'Un evento revolucionario que reúne a los mejores expertos en tecnología, innovación y emprendimiento. Tres días de conferencias, talleres y networking con líderes de la industria.\n\nDurante este festival, los participantes tendrán la oportunidad de:\n• Asistir a conferencias magistrales con expertos internacionales\n• Participar en talleres prácticos de las últimas tecnologías\n• Conectar con emprendedores y inversores del sector\n• Experimentar con demostraciones de productos innovadores\n• Formar parte de una comunidad global de innovadores',
-      body_en: 'A revolutionary event that brings together the best experts in technology, innovation and entrepreneurship. Three days of conferences, workshops and networking with industry leaders.\n\nDuring this festival, participants will have the opportunity to:\n• Attend master conferences with international experts\n• Participate in practical workshops on the latest technologies\n• Connect with entrepreneurs and investors in the sector\n• Experience innovative product demonstrations\n• Be part of a global community of innovators',
-      date: '2024-03-15',
-      tags: ['Tecnología', 'Innovación', 'Emprendimiento', 'Networking', 'Conferencias'],
-      tags_en: ['Technology', 'Innovation', 'Entrepreneurship', 'Networking', 'Conferences'],
-      category: 'Tecnología',
-      category_en: 'Technology',
-      author: 'Equipo EF',
-      location_city: 'Monterrey',
-      location_country: 'México',
-      coverImageUrl: '/images/events/tech-festival.jpg',
-      phrase: 'El futuro es ahora',
-      phrase_en: 'The future is now',
-      credits: 'Fotografía: Carlos Mendoza | Diseño: Ana García | Coordinación: María Elena Torres',
-      credits_en: 'Photography: Carlos Mendoza | Design: Ana García | Coordination: María Elena Torres',
-      createdAt: '2024-01-15T10:00:00Z',
-      updatedAt: '2024-01-15T10:00:00Z'
-    },
-    2: {
-      id: 2,
-      title_es: 'Conferencia de Sostenibilidad Ambiental',
-      title_en: 'Environmental Sustainability Conference',
-      body_es: 'Jornada dedicada a discutir soluciones innovadoras para los desafíos ambientales actuales. Expertos internacionales compartirán sus experiencias y propuestas para un futuro más sostenible.\n\nTemas principales:\n• Cambio climático y sus impactos globales\n• Energías renovables y transición energética\n• Economía circular y desarrollo sostenible\n• Conservación de biodiversidad\n• Políticas públicas ambientales',
-      body_en: 'A day dedicated to discussing innovative solutions for current environmental challenges. International experts will share their experiences and proposals for a more sustainable future.\n\nMain topics:\n• Climate change and its global impacts\n• Renewable energies and energy transition\n• Circular economy and sustainable development\n• Biodiversity conservation\n• Environmental public policies',
-      date: '2024-04-20',
-      tags: ['Sostenibilidad', 'Medio Ambiente', 'Innovación', 'Cambio Climático', 'Energías Renovables'],
-      tags_en: ['Sustainability', 'Environment', 'Innovation', 'Climate Change', 'Renewable Energy'],
-      category: 'Medio Ambiente',
-      category_en: 'Environment',
-      author: 'Equipo EF',
-      location_city: 'Guadalajara',
-      location_country: 'México',
-      coverImageUrl: '/images/events/sustainability.jpg',
-      phrase: 'Cuidando el planeta, construyendo el futuro',
-      phrase_en: 'Caring for the planet, building the future',
-      credits: 'Fotografía: María López | Diseño: Roberto Silva | Logística: Juan Carlos Méndez',
-      credits_en: 'Photography: María López | Design: Roberto Silva | Logistics: Juan Carlos Méndez',
-      createdAt: '2024-01-14T14:30:00Z',
-      updatedAt: '2024-01-14T14:30:00Z'
-    }
-  }
+
 
   // Load event data on component mount
   useEffect(() => {
     const loadEventData = async () => {
       setIsLoading(true)
-      // Simulate API call
-      setTimeout(() => {
-        const eventData = mockEvents[parseInt(eventId)]
-        if (eventData) {
-          setEvent(eventData)
+      try {
+        const response = await fetch(`/api/events/${eventId}`)
+        if (response.ok) {
+          const data = await response.json()
+          setEvent(data.event)
+        } else {
+          toast.error('Error loading event')
         }
+      } catch (error) {
+        console.error('Error loading event:', error)
+        toast.error('Error loading event')
+      } finally {
         setIsLoading(false)
-      }, 1000)
+      }
     }
 
     loadEventData()
-  }, [eventId])
+  }, [eventId]) // Remove toast dependency to prevent infinite loops
 
   // Handle delete
   const handleDelete = async () => {
     setIsDeleting(true)
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const response = await fetch(`/api/events/${eventId}`, {
+        method: 'DELETE'
+      })
+      
+      if (response.ok) {
+        toast.success('Evento eliminado exitosamente')
+        router.push('/general/gestion/eventos')
+      } else {
+        const errorData = await response.json()
+        toast.error(errorData.error || 'Error deleting event')
+      }
+    } catch (error) {
+      console.error('Error deleting event:', error)
+      toast.error('Error deleting event')
+    } finally {
       setIsDeleting(false)
       setIsDeleteModalOpen(false)
-      // Show success toast and redirect
-      toast.success('Evento eliminado exitosamente')
-      router.push('/general/gestion/eventos')
-    }, 2000)
+    }
   }
 
   // Format date
@@ -206,11 +178,19 @@ export default function VerEventoPage() {
         <div className="flex items-center space-x-4 mb-4 lg:mb-0">
           {/* Event Image */}
           <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden">
-            <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
-              <svg className="w-10 h-10 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
+            {event.coverImageUrl ? (
+              <img
+                src={event.coverImageUrl}
+                alt="Event cover"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
+                <svg className="w-10 h-10 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+            )}
           </div>
           
           {/* Event Info */}
@@ -288,11 +268,19 @@ export default function VerEventoPage() {
           {/* Cover Image */}
           <div className="bg-white border rounded-lg shadow-lg overflow-hidden" style={{ borderColor: '#CFDBE8' }}>
             <div className="relative h-80 bg-gray-200">
-              <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
-                <svg className="w-24 h-24 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              </div>
+              {event.coverImageUrl ? (
+                <img
+                  src={event.coverImageUrl}
+                  alt="Event cover"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
+                  <svg className="w-24 h-24 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+              )}
               
               {/* Status Badge */}
               <div className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-metropolis font-medium text-white ${status.color}`}>
@@ -314,6 +302,26 @@ export default function VerEventoPage() {
               ))}
             </div>
           </div>
+
+          {/* Event Images */}
+          {event.eventImages && event.eventImages.length > 0 && (
+            <div className="bg-white border rounded-lg shadow-lg p-6" style={{ borderColor: '#CFDBE8' }}>
+              <h2 className="font-metropolis font-bold text-2xl mb-4" style={{ color: '#0D141C' }}>
+                {isEnglishMode ? 'Event Images' : 'Imágenes del Evento'}
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {event.eventImages.map((image) => (
+                  <div key={image.id} className="relative group">
+                    <img
+                      src={image.imageUrl}
+                      alt={`Event image ${image.id}`}
+                      className="w-full h-48 object-cover rounded-lg shadow-md transition-transform duration-300 group-hover:scale-105"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Tags */}
           <div className="bg-white border rounded-lg shadow-lg p-6" style={{ borderColor: '#CFDBE8' }}>

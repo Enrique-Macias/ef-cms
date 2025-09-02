@@ -42,163 +42,7 @@ export default function EventosPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [eventsPerPage] = useState(6)
 
-  // Mock data for events (in a real app, this would come from an API)
-  const mockEvents: Event[] = [
-    {
-      id: 1,
-      title_es: 'Festival de Tecnología e Innovación 2024',
-      title_en: 'Technology and Innovation Festival 2024',
-      body_es: 'Un evento revolucionario que reúne a los mejores expertos en tecnología, innovación y emprendimiento. Tres días de conferencias, talleres y networking con líderes de la industria.',
-      body_en: 'A revolutionary event that brings together the best experts in technology, innovation and entrepreneurship. Three days of conferences, workshops and networking with industry leaders.',
-      date: '2024-03-15',
-      tags: ['Tecnología', 'Innovación', 'Emprendimiento'],
-      tags_en: ['Technology', 'Innovation', 'Entrepreneurship'],
-      category: 'Tecnología',
-      category_en: 'Technology',
-      author: 'Equipo EF',
-      location_city: 'Monterrey',
-      location_country: 'México',
-      coverImageUrl: '/images/events/tech-festival.jpg',
-      phrase: 'El futuro es ahora',
-      phrase_en: 'The future is now',
-      credits: 'Fotografía: Carlos Mendoza | Diseño: Ana García',
-      credits_en: 'Photography: Carlos Mendoza | Design: Ana García',
-      createdAt: '2024-01-15T10:00:00Z',
-      updatedAt: '2024-01-15T10:00:00Z'
-    },
-    {
-      id: 2,
-      title_es: 'Conferencia de Sostenibilidad Ambiental',
-      title_en: 'Environmental Sustainability Conference',
-      body_es: 'Jornada dedicada a discutir soluciones innovadoras para los desafíos ambientales actuales. Expertos internacionales compartirán sus experiencias y propuestas.',
-      body_en: 'A day dedicated to discussing innovative solutions for current environmental challenges. International experts will share their experiences and proposals.',
-      date: '2024-04-20',
-      tags: ['Sostenibilidad', 'Medio Ambiente', 'Innovación'],
-      tags_en: ['Sustainability', 'Environment', 'Innovation'],
-      category: 'Medio Ambiente',
-      category_en: 'Environment',
-      author: 'Equipo EF',
-      location_city: 'Guadalajara',
-      location_country: 'México',
-      coverImageUrl: '/images/events/sustainability.jpg',
-      phrase: 'Cuidando el planeta, construyendo el futuro',
-      phrase_en: 'Caring for the planet, building the future',
-      credits: 'Fotografía: María López | Diseño: Roberto Silva',
-      credits_en: 'Photography: María López | Design: Roberto Silva',
-      createdAt: '2024-01-14T14:30:00Z',
-      updatedAt: '2024-01-14T14:30:00Z'
-    },
-    {
-      id: 3,
-      title_es: 'Expo Arte Contemporáneo',
-      title_en: 'Contemporary Art Expo',
-      body_es: 'Exposición que celebra la creatividad y la expresión artística moderna. Artistas emergentes y consagrados presentan sus obras más recientes.',
-      body_en: 'An exhibition that celebrates creativity and modern artistic expression. Emerging and established artists present their most recent works.',
-      date: '2024-05-10',
-      tags: ['Arte', 'Cultura', 'Creatividad'],
-      tags_en: ['Art', 'Culture', 'Creativity'],
-      category: 'Arte',
-      category_en: 'Art',
-      author: 'Equipo EF',
-      location_city: 'Ciudad de México',
-      location_country: 'México',
-      coverImageUrl: '/images/events/art-expo.jpg',
-      phrase: 'El arte transforma realidades',
-      phrase_en: 'Art transforms realities',
-      credits: 'Fotografía: Diego Ramírez | Diseño: Carmen Vega',
-      credits_en: 'Photography: Diego Ramírez | Design: Carmen Vega',
-      createdAt: '2024-01-13T09:15:00Z',
-      updatedAt: '2024-01-13T09:15:00Z'
-    },
-    {
-      id: 4,
-      title_es: 'Cumbre de Liderazgo Empresarial',
-      title_en: 'Business Leadership Summit',
-      body_es: 'Encuentro de ejecutivos y empresarios para discutir las tendencias del liderazgo moderno y las estrategias de crecimiento empresarial.',
-      body_en: 'Meeting of executives and entrepreneurs to discuss modern leadership trends and business growth strategies.',
-      date: '2024-06-05',
-      tags: ['Liderazgo', 'Empresarial', 'Estrategia'],
-      tags_en: ['Leadership', 'Business', 'Strategy'],
-      category: 'Negocios',
-      category_en: 'Business',
-      author: 'Equipo EF',
-      location_city: 'Querétaro',
-      location_country: 'México',
-      coverImageUrl: '/images/events/leadership.jpg',
-      phrase: 'Líderes que inspiran, empresas que crecen',
-      phrase_en: 'Leaders who inspire, companies that grow',
-      credits: 'Fotografía: Laura Torres | Diseño: Miguel Ángel',
-      credits_en: 'Photography: Laura Torres | Design: Miguel Ángel',
-      createdAt: '2024-01-12T16:45:00Z',
-      updatedAt: '2024-01-12T16:45:00Z'
-    },
-    {
-      id: 5,
-      title_es: 'Festival Gastronómico Internacional',
-      title_en: 'International Gastronomic Festival',
-      body_es: 'Celebración de la diversidad culinaria mundial con chefs reconocidos, degustaciones y talleres de cocina para todos los niveles.',
-      body_en: 'Celebration of world culinary diversity with renowned chefs, tastings and cooking workshops for all levels.',
-      date: '2024-07-12',
-      tags: ['Gastronomía', 'Cultura', 'Internacional'],
-      tags_en: ['Gastronomy', 'Culture', 'International'],
-      category: 'Gastronomía',
-      category_en: 'Gastronomy',
-      author: 'Equipo EF',
-      location_city: 'Puebla',
-      location_country: 'México',
-      coverImageUrl: '/images/events/gastronomy.jpg',
-      phrase: 'Sabores que unen culturas',
-      phrase_en: 'Flavors that unite cultures',
-      credits: 'Fotografía: Sofía Morales | Diseño: Juan Carlos',
-      credits_en: 'Photography: Sofía Morales | Design: Juan Carlos',
-      createdAt: '2024-01-11T11:20:00Z',
-      updatedAt: '2024-01-11T11:20:00Z'
-    },
-    {
-      id: 6,
-      title_es: 'Conferencia de Salud Mental',
-      title_en: 'Mental Health Conference',
-      body_es: 'Evento dedicado a promover el bienestar mental y emocional, con expertos en psicología y bienestar compartiendo herramientas prácticas.',
-      body_en: 'Event dedicated to promoting mental and emotional well-being, with psychology and wellness experts sharing practical tools.',
-      date: '2024-08-25',
-      tags: ['Salud Mental', 'Bienestar', 'Psicología'],
-      tags_en: ['Mental Health', 'Wellness', 'Psychology'],
-      category: 'Salud',
-      category_en: 'Health',
-      author: 'Equipo EF',
-      location_city: 'Mérida',
-      location_country: 'México',
-      coverImageUrl: '/images/events/mental-health.jpg',
-      phrase: 'Mente sana, vida plena',
-      phrase_en: 'Healthy mind, full life',
-      credits: 'Fotografía: Patricia Ruiz | Diseño: Alejandro Luna',
-      credits_en: 'Photography: Patricia Ruiz | Design: Alejandro Luna',
-      createdAt: '2024-01-10T13:10:00Z',
-      updatedAt: '2024-01-10T13:10:00Z'
-    },
-    {
-      id: 7,
-      title_es: 'Workshop de Emprendimiento Digital',
-      title_en: 'Digital Entrepreneurship Workshop',
-      body_es: 'Taller intensivo de 2 días para emprendedores que quieren lanzar su negocio digital. Incluye mentorías, networking y acceso a recursos exclusivos.',
-      body_en: 'Intensive 2-day workshop for entrepreneurs who want to launch their digital business. Includes mentoring, networking and access to exclusive resources.',
-      date: '2024-09-15',
-      tags: ['Emprendimiento', 'Digital', 'Negocios', 'Mentoría'],
-      tags_en: ['Entrepreneurship', 'Digital', 'Business', 'Mentoring'],
-      category: 'Negocios',
-      category_en: 'Business',
-      author: 'Equipo EF',
-      location_city: 'Tijuana',
-      location_country: 'México',
-      coverImageUrl: '/images/events/digital-entrepreneurship.jpg',
-      phrase: 'Construye tu futuro digital',
-      phrase_en: 'Build your digital future',
-      credits: 'Fotografía: Roberto Méndez | Diseño: Carmen Vega | Coordinación: Luis Torres',
-      credits_en: 'Photography: Roberto Méndez | Design: Carmen Vega | Coordination: Luis Torres',
-      createdAt: '2024-01-09T15:30:00Z',
-      updatedAt: '2024-01-09T15:30:00Z'
-    }
-  ]
+
 
 
 
@@ -206,16 +50,25 @@ export default function EventosPage() {
   useEffect(() => {
     const loadEvents = async () => {
       setIsInitialLoading(true)
-      // Simulate API call
-      setTimeout(() => {
-        setEvents(mockEvents)
-        setFilteredEvents(mockEvents)
+      try {
+        const response = await fetch('/api/events')
+        if (response.ok) {
+          const data = await response.json()
+          setEvents(data.events || [])
+          setFilteredEvents(data.events || [])
+        } else {
+          toast.error('Error loading events')
+        }
+      } catch (error) {
+        console.error('Error loading events:', error)
+        toast.error('Error loading events')
+      } finally {
         setIsInitialLoading(false)
-      }, 1000)
+      }
     }
 
     loadEvents()
-  }, [])
+  }, []) // Remove toast dependency to prevent infinite loops
 
   // Filter events based on search term and date filter
   useEffect(() => {
@@ -476,12 +329,24 @@ export default function EventosPage() {
           </div>
         ) : filteredEvents.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-[#4A739C] font-metropolis font-regular">
+            <div className="mb-4">
+              <svg className="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-metropolis font-medium text-[#0D141C] mb-2">
+              {searchTerm || dateFilter 
+                ? 'No se encontraron eventos'
+                : 'No hay eventos disponibles'
+              }
+            </h3>
+            <p className="text-[#4A739C] font-metropolis font-regular mb-4">
               {searchTerm || dateFilter 
                 ? `No se encontraron eventos ${searchTerm ? `que coincidan con "${searchTerm}"` : ''} ${dateFilter ? `en el período seleccionado` : ''}`
-                : 'No se encontraron eventos'
+                : 'Comienza creando tu primer evento usando el botón "Agregar Evento"'
               }
             </p>
+
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -496,11 +361,19 @@ export default function EventosPage() {
                 >
                   {/* Event Image */}
                   <div className="relative h-48 bg-gray-200 overflow-hidden">
-                    <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
-                      <svg className="w-16 h-16 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                    </div>
+                    {event.coverImageUrl ? (
+                      <img
+                        src={event.coverImageUrl}
+                        alt="Event cover"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
+                        <svg className="w-16 h-16 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                    )}
                     
                     {/* Status Badge */}
                     <div className={`absolute top-3 right-3 px-2 py-1 rounded-full text-xs font-metropolis font-medium text-white ${status.color}`}>
