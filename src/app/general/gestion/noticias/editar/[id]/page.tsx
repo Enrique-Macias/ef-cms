@@ -477,9 +477,10 @@ export default function EditarNoticiaPage() {
       // Update original data to reflect changes
       setOriginalData(formData)
       setOriginalDataEnglish(formDataEnglish)
-      // Show success toast
+      // Show success toast and redirect
       const successMessage = isEnglishMode ? 'News updated successfully' : 'Noticia actualizada exitosamente'
       toast.success(successMessage)
+      router.push('/general/gestion/noticias')
     } catch (error: any) {
       console.error('Error updating news:', error)
       toast.error(error.message || 'Error al actualizar noticia')
