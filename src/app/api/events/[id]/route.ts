@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { uploadImageFromBase64, extractPublicId, deleteImage } from '@/lib/cloudinary'
+import { updateEvent } from '@/lib/eventService'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const eventId = parseInt(params.id)
+    const { id } = await params
+    const eventId = parseInt(id)
     
     if (isNaN(eventId)) {
       return NextResponse.json(
@@ -45,10 +47,11 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const eventId = parseInt(params.id)
+    const { id } = await params
+    const eventId = parseInt(id)
     const body = await request.json()
     
     if (isNaN(eventId)) {
@@ -72,13 +75,16 @@ export async function PUT(
     }
 
     // Handle cover image update
-    let coverImageUrl = body.coverImageUrl
+    let coverImageUrl = existingEvent.coverImageUrl // Start with existing image
+    
     if (body.coverImageUrl && body.coverImageUrl.startsWith('data:image')) {
       // Delete old cover image from Cloudinary if it exists
       if (existingEvent.coverImageUrl && existingEvent.coverImageUrl.includes('cloudinary')) {
         try {
           const publicId = extractPublicId(existingEvent.coverImageUrl)
-          await deleteImage(publicId)
+          if (publicId) {
+            await deleteImage(publicId)
+          }
         } catch (error) {
           console.error('Error deleting old cover image:', error)
         }
@@ -94,77 +100,80 @@ export async function PUT(
           { status: 500 }
         )
       }
+    } else if (body.coverImageUrl && !body.coverImageUrl.startsWith('data:image')) {
+      // If it's a URL (existing image), use it directly
+      coverImageUrl = body.coverImageUrl
     }
 
     // Handle event images update
-    let eventImages = []
-    if (body.images && Array.isArray(body.images)) {
-      // Delete all existing event images from Cloudinary
-      for (const existingImage of existingEvent.eventImages) {
-        if (existingImage.imageUrl.includes('cloudinary')) {
-          try {
-            const publicId = extractPublicId(existingImage.imageUrl)
-            await deleteImage(publicId)
-          } catch (error) {
-            console.error('Error deleting old event image:', error)
+    let processedEventImages = []
+    if (body.images !== undefined && Array.isArray(body.images)) {
+      try {
+        // Delete old event images from Cloudinary if they exist
+        if (existingEvent.eventImages && existingEvent.eventImages.length > 0) {
+          for (const oldImage of existingEvent.eventImages) {
+            if (oldImage.imageUrl && oldImage.imageUrl.includes('cloudinary.com')) {
+              const oldPublicId = extractPublicId(oldImage.imageUrl)
+              if (oldPublicId) {
+                try {
+                  await deleteImage(oldPublicId)
+                } catch (error) {
+                  console.error('Error deleting old event image:', error)
+                }
+              }
+            }
           }
         }
-      }
 
-      // Upload new event images
-      for (const image of body.images) {
-        if (image.startsWith('data:image')) {
-          try {
-            const imageUrl = await uploadImageFromBase64(image, 'ef-cms/events/images')
-            eventImages.push({ imageUrl })
-          } catch (error) {
-            console.error('Error uploading event image:', error)
-            return NextResponse.json(
-              { error: 'Failed to upload event image' },
-              { status: 500 }
-            )
+        for (const imageData of body.images) {
+          let imageUrl = imageData
+          
+          // If it's a base64 data URL, upload to Cloudinary
+          if (imageData && imageData.startsWith('data:image/')) {
+            imageUrl = await uploadImageFromBase64(imageData, 'ef-cms/events/images')
           }
-        } else {
-          eventImages.push({ imageUrl: image })
+          
+          processedEventImages.push({
+            imageUrl
+          })
         }
+      } catch (error) {
+        console.error('Error uploading event images:', error)
+        return NextResponse.json(
+          { error: 'Failed to upload event images' },
+          { status: 500 }
+        )
       }
     }
 
     // Prepare update data
-    const updateData = {
-      title_es: body.title_es,
-      title_en: body.title_en,
-      body_es: body.body_es,
-      body_en: body.body_en,
-      date: body.date,
-      author: body.author,
-      location_city: body.location_city,
-      location_country: body.location_country,
-      coverImageUrl,
-      phrase: body.phrase,
-      phrase_en: body.phrase_en,
-      credits: body.credits,
-      credits_en: body.credits_en,
-      category: body.category || '',
-      category_en: body.category_en || '',
-      tags: body.tags || [],
-      tags_en: body.tags_en || []
+    const updateData: any = {}
+    
+    if (body.title_es !== undefined) updateData.title_es = body.title_es
+    if (body.title_en !== undefined) updateData.title_en = body.title_en
+    if (body.body_es !== undefined) updateData.body_es = body.body_es
+    if (body.body_en !== undefined) updateData.body_en = body.body_en
+    if (body.date !== undefined) updateData.date = body.date
+    if (body.author !== undefined) updateData.author = body.author
+    if (body.location_city !== undefined) updateData.location_city = body.location_city
+    if (body.location_country !== undefined) updateData.location_country = body.location_country
+    if (coverImageUrl !== undefined) updateData.coverImageUrl = coverImageUrl
+    if (body.phrase !== undefined) updateData.phrase = body.phrase
+    if (body.phrase_en !== undefined) updateData.phrase_en = body.phrase_en
+    if (body.credits !== undefined) updateData.credits = body.credits
+    if (body.credits_en !== undefined) updateData.credits_en = body.credits_en
+    if (body.category !== undefined) updateData.category = body.category
+    if (body.category_en !== undefined) updateData.category_en = body.category_en
+    if (body.tags !== undefined) updateData.tags = body.tags
+    if (body.tags_en !== undefined) updateData.tags_en = body.tags_en
+
+    // Handle event images (same as news - only update if images field is present in request)
+    if (body.images !== undefined) {
+      updateData.eventImages = processedEventImages
     }
 
-    // Update event and replace all images
-    const updatedEvent = await prisma.event.update({
-      where: { id: eventId },
-      data: {
-        ...updateData,
-        eventImages: {
-          deleteMany: {},
-          create: eventImages
-        }
-      },
-      include: {
-        eventImages: true
-      }
-    })
+    // Update event using the service (same as news)
+    const updatedEvent = await updateEvent(eventId, updateData)
 
     return NextResponse.json({
       success: true,
@@ -182,10 +191,11 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const eventId = parseInt(params.id)
+    const { id } = await params
+    const eventId = parseInt(id)
     
     if (isNaN(eventId)) {
       return NextResponse.json(
@@ -211,7 +221,9 @@ export async function DELETE(
     if (event.coverImageUrl && event.coverImageUrl.includes('cloudinary')) {
       try {
         const publicId = extractPublicId(event.coverImageUrl)
-        await deleteImage(publicId)
+        if (publicId) {
+          await deleteImage(publicId)
+        }
       } catch (error) {
         console.error('Error deleting cover image:', error)
       }
@@ -222,7 +234,9 @@ export async function DELETE(
       if (image.imageUrl.includes('cloudinary')) {
         try {
           const publicId = extractPublicId(image.imageUrl)
-          await deleteImage(publicId)
+          if (publicId) {
+            await deleteImage(publicId)
+          }
         } catch (error) {
           console.error('Error deleting event image:', error)
         }

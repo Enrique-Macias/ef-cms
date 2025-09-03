@@ -92,7 +92,7 @@ export default function EditarNoticiaPage() {
         const spanishData = {
           title: data.news.title_es,
           author: data.news.author,
-          coverImage: null,
+          coverImage: data.news.coverImageUrl || null,
           publicationDate: data.news.date.split('T')[0],
           description: data.news.body_es,
           images: (data.news.newsImages || []).map((img: any) => img.imageUrl),
@@ -105,7 +105,7 @@ export default function EditarNoticiaPage() {
         const englishData = {
           title: data.news.title_en,
           author: data.news.author,
-          coverImage: null,
+          coverImage: data.news.coverImageUrl || null,
           publicationDate: data.news.date.split('T')[0],
           description: data.news.body_en,
           images: (data.news.newsImages || []).map((img: any) => img.imageUrl),
@@ -140,6 +140,13 @@ export default function EditarNoticiaPage() {
   const getCurrentNewTag = () => isEnglishMode ? newTagEnglish : newTag
   const setCurrentNewCategory = (value: string) => isEnglishMode ? setNewCategoryEnglish(value) : setNewCategory(value)
   const setCurrentNewTag = (value: string) => isEnglishMode ? setNewTagEnglish(value) : setNewTag(value)
+
+  // Helper function to get image source
+  const getImageSrc = (image: File | string | null): string => {
+    if (!image) return ''
+    if (image instanceof File) return URL.createObjectURL(image)
+    return image
+  }
 
   // English translations
   const translations = {
@@ -542,7 +549,7 @@ export default function EditarNoticiaPage() {
           <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
             {getCurrentFormData().coverImage ? (
               <img
-                src={typeof getCurrentFormData().coverImage === 'string' ? getCurrentFormData().coverImage : URL.createObjectURL(getCurrentFormData().coverImage!)}
+                src={getImageSrc(getCurrentFormData().coverImage)}
                 alt="Preview"
                 className="w-full h-full object-cover"
               />
@@ -712,7 +719,7 @@ export default function EditarNoticiaPage() {
                 >
                   {getCurrentFormData().coverImage ? (
                     <img
-                      src={typeof getCurrentFormData().coverImage === 'string' ? getCurrentFormData().coverImage : URL.createObjectURL(getCurrentFormData().coverImage!)}
+                      src={getImageSrc(getCurrentFormData().coverImage)}
                       alt="Cover preview"
                       className="w-full h-full object-cover"
                     />

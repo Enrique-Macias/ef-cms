@@ -92,13 +92,27 @@ export default function VerEventoPage() {
   }
 
   // Format date
+
+  
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
-    return date.toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
+    if (isEnglishMode) {
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
+    } else {
+      const formatted = date.toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
+      // Convert "2 de septiembre de 2025" to "Septiembre 2, 2025"
+      return formatted.replace(/^(\d+)\s+de\s+(\w+)\s+de\s+(\d+)$/, (match, day, month, year) => {
+        return month.charAt(0).toUpperCase() + month.slice(1) + ' ' + day + ', ' + year
+      })
+    }
   }
 
   // Get event status

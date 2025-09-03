@@ -246,11 +246,17 @@ export default function NoticiasPage() {
                     {/* News Meta */}
                     <div className="flex items-center justify-between text-xs" style={{ color: '#4A739C' }}>
                       <span className="font-metropolis font-regular">{item.category}</span>
-                      <span className="font-metropolis font-regular">{new Date(item.date).toLocaleDateString('es-ES', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}</span>
+                      <span className="font-metropolis font-regular">{(() => {
+                      const formatted = new Date(item.date).toLocaleDateString('es-ES', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })
+                      // Convert "2 de septiembre de 2025" to "Septiembre 2, 2025"
+                      return formatted.replace(/^(\d+)\s+de\s+(\w+)\s+de\s+(\d+)$/, (match, day, month, year) => {
+                        return month.charAt(0).toUpperCase() + month.slice(1) + ' ' + day + ', ' + year
+                      })
+                    })()}</span>
                     </div>
                   </div>
                 </div>

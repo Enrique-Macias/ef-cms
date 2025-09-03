@@ -343,6 +343,13 @@ export default function AgregarNoticiaPage() {
   const setCurrentNewCategory = (value: string) => isEnglishMode ? setNewCategoryEnglish(value) : setNewCategory(value)
   const setCurrentNewTag = (value: string) => isEnglishMode ? setNewTagEnglish(value) : setNewTag(value)
 
+  // Helper function to get image source
+  const getImageSrc = (image: File | string | null): string => {
+    if (!image) return ''
+    if (image instanceof File) return URL.createObjectURL(image)
+    return image
+  }
+
   // English translations
   const translations = {
     title: isEnglishMode ? 'News Title' : 'Titulo Noticia',
@@ -411,7 +418,7 @@ export default function AgregarNoticiaPage() {
           <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
             {getCurrentFormData().coverImage ? (
               <img
-                src={typeof getCurrentFormData().coverImage === 'string' ? getCurrentFormData().coverImage : URL.createObjectURL(getCurrentFormData().coverImage as File)}
+                src={getImageSrc(getCurrentFormData().coverImage)}
                 alt="Preview"
                 className="w-full h-full object-cover"
               />
@@ -560,7 +567,7 @@ export default function AgregarNoticiaPage() {
                 <div className="w-32 h-24 bg-gray-200 rounded-lg overflow-hidden">
                   {getCurrentFormData().coverImage ? (
                     <img
-                      src={typeof getCurrentFormData().coverImage === 'string' ? getCurrentFormData().coverImage : URL.createObjectURL(getCurrentFormData().coverImage!)}
+                      src={getImageSrc(getCurrentFormData().coverImage)}
                       alt="Cover preview"
                       className="w-full h-full object-cover"
                     />

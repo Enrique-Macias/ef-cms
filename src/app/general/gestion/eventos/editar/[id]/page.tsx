@@ -26,6 +26,7 @@ interface Event {
   createdAt: string
   updatedAt: string
   tags_en: string[]
+  eventImages?: Array<{ id: number; imageUrl: string; order?: number }>
 }
 
 export default function EditarEventoPage() {
@@ -94,10 +95,10 @@ export default function EditarEventoPage() {
           setFormData({
             title: eventData.title_es,
             author: eventData.author,
-            coverImage: null,
+            coverImage: eventData.coverImageUrl || null,
             eventDate: eventData.date.split('T')[0], // Convert to YYYY-MM-DD format
             description: eventData.body_es,
-            images: [],
+            images: eventData.eventImages ? eventData.eventImages.map((img: any) => img.imageUrl) : [],
             categories: [eventData.category],
             tags: eventData.tags,
             phrase: eventData.phrase || '',
@@ -110,10 +111,10 @@ export default function EditarEventoPage() {
           setFormDataEnglish({
             title: eventData.title_en,
             author: eventData.author,
-            coverImage: null,
+            coverImage: eventData.coverImageUrl || null,
             eventDate: eventData.date.split('T')[0], // Convert to YYYY-MM-DD format
             description: eventData.body_en,
-            images: [],
+            images: eventData.eventImages ? eventData.eventImages.map((img: any) => img.imageUrl) : [],
             categories: [eventData.category_en || ''],
             tags: eventData.tags_en,
             phrase: eventData.phrase_en || '',
@@ -150,7 +151,9 @@ export default function EditarEventoPage() {
       formData.locationCity !== originalData.location_city ||
       formData.locationCountry !== originalData.location_country ||
       JSON.stringify(formData.categories) !== JSON.stringify([originalData.category]) ||
-      JSON.stringify(formData.tags) !== JSON.stringify(originalData.tags)
+      JSON.stringify(formData.tags) !== JSON.stringify(originalData.tags) ||
+      (formData.coverImage instanceof File ? true : formData.coverImage !== originalData.coverImageUrl) ||
+      JSON.stringify(formData.images) !== JSON.stringify(originalData.eventImages ? originalData.eventImages.map((img: any) => img.imageUrl) : [])
     
     // Check changes in English form
     const englishChanges = 
@@ -163,7 +166,9 @@ export default function EditarEventoPage() {
       formDataEnglish.locationCity !== originalData.location_city ||
       formDataEnglish.locationCountry !== originalData.location_country ||
       JSON.stringify(formDataEnglish.categories) !== JSON.stringify([originalData.category_en]) ||
-      JSON.stringify(formDataEnglish.tags) !== JSON.stringify(originalData.tags_en)
+      JSON.stringify(formDataEnglish.tags) !== JSON.stringify(originalData.tags_en) ||
+      (formDataEnglish.coverImage instanceof File ? true : formDataEnglish.coverImage !== originalData.coverImageUrl) ||
+      JSON.stringify(formDataEnglish.images) !== JSON.stringify(originalData.eventImages ? originalData.eventImages.map((img: any) => img.imageUrl) : [])
     
     return spanishChanges || englishChanges
   }
@@ -363,12 +368,15 @@ export default function EditarEventoPage() {
         coverImageUrl = await fileToBase64(formData.coverImage)
       }
       
-      // Convert images to base64 if they are Files
+      // Convert images to base64 if they are Files, keep existing URLs
       const images = []
       for (const image of formData.images) {
         if (image instanceof File) {
           const base64Image = await fileToBase64(image)
           images.push(base64Image)
+        } else if (typeof image === 'string') {
+          // Keep existing image URLs
+          images.push(image)
         }
       }
       
@@ -427,6 +435,13 @@ export default function EditarEventoPage() {
   const getCurrentNewTag = () => isEnglishMode ? newTagEnglish : newTag
   const setCurrentNewCategory = (value: string) => isEnglishMode ? setNewCategoryEnglish(value) : setNewCategory(value)
   const setCurrentNewTag = (value: string) => isEnglishMode ? setNewTagEnglish(value) : setNewTag(value)
+
+  // Helper function to get image source
+  const getImageSrc = (image: File | string | null): string => {
+    if (!image) return ''
+    if (image instanceof File) return URL.createObjectURL(image)
+    return image
+  }
 
   // Translations
   const translations = {
@@ -515,7 +530,7 @@ export default function EditarEventoPage() {
           <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden">
             {getCurrentFormData().coverImage ? (
               <img
-                src={URL.createObjectURL(getCurrentFormData().coverImage!)}
+                src={getImageSrc(getCurrentFormData().coverImage)}
                 alt="Event cover preview"
                 className="w-full h-full object-cover"
               />
@@ -632,7 +647,7 @@ export default function EditarEventoPage() {
                 <div className="w-32 h-24 bg-gray-200 rounded-lg overflow-hidden">
                   {getCurrentFormData().coverImage ? (
                     <img
-                      src={URL.createObjectURL(getCurrentFormData().coverImage!)}
+                      src={getImageSrc(getCurrentFormData().coverImage)}
                       alt="Cover preview"
                       className="w-full h-full object-cover"
                     />
@@ -765,7 +780,7 @@ export default function EditarEventoPage() {
                 {getCurrentFormData().images.map((image, index) => (
                   <div key={index} className="relative">
                     <img
-                      src={URL.createObjectURL(image)}
+                      src={getImageSrc(image)}
                       alt={`Uploaded ${index + 1}`}
                       className="w-full h-20 object-cover rounded-lg"
                     />

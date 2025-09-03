@@ -141,10 +141,14 @@ export default function EventosPage() {
   // Format date
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
-    return date.toLocaleDateString('es-ES', {
+    const formatted = date.toLocaleDateString('es-ES', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
+    })
+    // Convert "2 de septiembre de 2025" to "Septiembre 2, 2025"
+    return formatted.replace(/^(\d+)\s+de\s+(\w+)\s+de\s+(\d+)$/, (match, day, month, year) => {
+      return month.charAt(0).toUpperCase() + month.slice(1) + ' ' + day + ', ' + year
     })
   }
 

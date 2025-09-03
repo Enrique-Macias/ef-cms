@@ -4,7 +4,7 @@ import { verifyAccessToken, extractTokenFromHeader } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
   try {
-    const token = extractTokenFromHeader(request.headers.get('authorization'))
+    const token = extractTokenFromHeader(request.headers.get('authorization') || undefined)
     
     if (!token) {
       return NextResponse.json(
