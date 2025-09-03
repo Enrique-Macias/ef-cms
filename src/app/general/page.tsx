@@ -2,9 +2,11 @@
 'use client'
 
 import { useAuth } from '@/contexts/AuthContext'
+import { useStats } from '@/hooks/useStats'
 
 export default function GeneralPage() {
   const { user } = useAuth()
+  const { news, events, users, loading, error } = useStats()
 
   // Function to get role-specific permissions description
   const getRolePermissions = (role: string) => {
@@ -124,15 +126,21 @@ export default function GeneralPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white border rounded-lg p-6" style={{ borderColor: '#CFDBE8' }}>
             <h3 className="font-metropolis font-regular text-text text-base mb-2">Noticias Totales</h3>
-            <p className="font-metropolis font-bold text-title text-3xl">12</p>
+            <p className="font-metropolis font-bold text-title text-3xl">
+              {loading ? '...' : error ? 'Error' : news?.total || 0}
+            </p>
           </div>
           <div className="bg-white border rounded-lg p-6" style={{ borderColor: '#CFDBE8' }}>
             <h3 className="font-metropolis font-regular text-text text-base mb-2">Eventos Totales</h3>
-            <p className="font-metropolis font-bold text-title text-3xl">35</p>
+            <p className="font-metropolis font-bold text-title text-3xl">
+              {loading ? '...' : error ? 'Error' : events?.total || 0}
+            </p>
           </div>
           <div className="bg-white border rounded-lg p-6" style={{ borderColor: '#CFDBE8' }}>
             <h3 className="font-metropolis font-regular text-text text-base mb-2">Miembros Totales</h3>
-            <p className="font-bold text-title text-3xl">8</p>
+            <p className="font-metropolis font-bold text-title text-3xl">
+              {loading ? '...' : error ? 'Error' : users?.total || 0}
+            </p>
           </div>
         </div>
       </div>
