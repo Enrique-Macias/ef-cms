@@ -51,9 +51,20 @@ export default function AgregarEventoPage() {
   // Handle form input changes
   const handleInputChange = (field: string, value: string) => {
     if (isEnglishMode) {
+      // For common fields, don't allow editing in English mode
+      const commonFields = ['author', 'eventDate', 'locationCity', 'locationCountry']
+      if (commonFields.includes(field)) {
+        return // Don't update these fields in English mode
+      }
       setFormDataEnglish(prev => ({ ...prev, [field]: value }))
     } else {
       setFormData(prev => ({ ...prev, [field]: value }))
+      
+      // Auto-sync common fields to English version
+      const commonFields = ['author', 'eventDate', 'locationCity', 'locationCountry']
+      if (commonFields.includes(field)) {
+        setFormDataEnglish(prev => ({ ...prev, [field]: value }))
+      }
     }
   }
 
@@ -568,10 +579,13 @@ export default function AgregarEventoPage() {
                 </label>
                 <input
                   type="text"
-                  value={getCurrentFormData().author}
+                  value={isEnglishMode ? formData.author : getCurrentFormData().author}
                   onChange={(e) => handleInputChange('author', e.target.value)}
                   placeholder={translations.author}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
+                  disabled={isEnglishMode}
+                  className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
+                    isEnglishMode ? 'bg-gray-100 cursor-not-allowed' : ''
+                  }`}
                 />
               </div>
             </div>
@@ -635,9 +649,12 @@ export default function AgregarEventoPage() {
               </div>
               <input
                 type="date"
-                value={getCurrentFormData().eventDate}
+                value={isEnglishMode ? formData.eventDate : getCurrentFormData().eventDate}
                 onChange={(e) => handleInputChange('eventDate', e.target.value)}
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
+                disabled={isEnglishMode}
+                className={`block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
+                  isEnglishMode ? 'bg-gray-100 cursor-not-allowed' : ''
+                }`}
               />
             </div>
           </div>
@@ -654,10 +671,13 @@ export default function AgregarEventoPage() {
                 </label>
                 <input
                   type="text"
-                  value={getCurrentFormData().locationCity}
+                  value={isEnglishMode ? formData.locationCity : getCurrentFormData().locationCity}
                   onChange={(e) => handleInputChange('locationCity', e.target.value)}
                   placeholder={translations.locationCity}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
+                  disabled={isEnglishMode}
+                  className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
+                    isEnglishMode ? 'bg-gray-100 cursor-not-allowed' : ''
+                  }`}
                 />
               </div>
               <div>
@@ -666,10 +686,13 @@ export default function AgregarEventoPage() {
                 </label>
                 <input
                   type="text"
-                  value={getCurrentFormData().locationCountry}
+                  value={isEnglishMode ? formData.locationCountry : getCurrentFormData().locationCountry}
                   onChange={(e) => handleInputChange('locationCountry', e.target.value)}
                   placeholder={translations.locationCountry}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
+                  disabled={isEnglishMode}
+                  className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
+                    isEnglishMode ? 'bg-gray-100 cursor-not-allowed' : ''
+                  }`}
                 />
               </div>
             </div>

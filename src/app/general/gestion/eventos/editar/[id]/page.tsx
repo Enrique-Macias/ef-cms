@@ -99,7 +99,7 @@ export default function EditarEventoPage() {
             eventDate: eventData.date.split('T')[0], // Convert to YYYY-MM-DD format
             description: eventData.body_es,
             images: eventData.eventImages ? eventData.eventImages.map((img: any) => img.imageUrl) : [],
-            categories: eventData.category ? eventData.category.split(', ').filter(cat => cat.trim()) : [],
+            categories: eventData.category ? eventData.category.split(', ').filter((cat: string) => cat.trim()) : [],
             tags: eventData.tags,
             phrase: eventData.phrase || '',
             credits: eventData.credits,
@@ -115,7 +115,7 @@ export default function EditarEventoPage() {
             eventDate: eventData.date.split('T')[0], // Convert to YYYY-MM-DD format
             description: eventData.body_en,
             images: eventData.eventImages ? eventData.eventImages.map((img: any) => img.imageUrl) : [],
-            categories: (eventData.category_en || eventData.category) ? (eventData.category_en || eventData.category).split(', ').filter(cat => cat.trim()) : [],
+            categories: (eventData.category_en || eventData.category) ? (eventData.category_en || eventData.category).split(', ').filter((cat: string) => cat.trim()) : [],
             tags: eventData.tags_en,
             phrase: eventData.phrase_en || '',
             credits: eventData.credits_en || '',
@@ -176,9 +176,20 @@ export default function EditarEventoPage() {
   // Handle form input changes
   const handleInputChange = (field: string, value: string) => {
     if (isEnglishMode) {
+      // For common fields, don't allow editing in English mode
+      const commonFields = ['author', 'eventDate', 'locationCity', 'locationCountry']
+      if (commonFields.includes(field)) {
+        return // Don't update these fields in English mode
+      }
       setFormDataEnglish(prev => ({ ...prev, [field]: value }))
     } else {
       setFormData(prev => ({ ...prev, [field]: value }))
+      
+      // Auto-sync common fields to English version
+      const commonFields = ['author', 'eventDate', 'locationCity', 'locationCountry']
+      if (commonFields.includes(field)) {
+        setFormDataEnglish(prev => ({ ...prev, [field]: value }))
+      }
     }
   }
 
@@ -625,9 +636,12 @@ export default function EditarEventoPage() {
                 </label>
                 <input
                   type="text"
-                  value={getCurrentFormData().author}
+                  value={isEnglishMode ? formData.author : getCurrentFormData().author}
                   onChange={(e) => handleInputChange('author', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
+                  disabled={isEnglishMode}
+                  className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
+                    isEnglishMode ? 'bg-gray-100 cursor-not-allowed' : ''
+                  }`}
                 />
               </div>
             </div>
@@ -685,9 +699,12 @@ export default function EditarEventoPage() {
             </h2>
             <input
               type="date"
-              value={getCurrentFormData().eventDate}
+              value={isEnglishMode ? formData.eventDate : getCurrentFormData().eventDate}
               onChange={(e) => handleInputChange('eventDate', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
+              disabled={isEnglishMode}
+              className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
+                isEnglishMode ? 'bg-gray-100 cursor-not-allowed' : ''
+              }`}
             />
           </div>
 
@@ -703,9 +720,12 @@ export default function EditarEventoPage() {
                 </label>
                 <input
                   type="text"
-                  value={getCurrentFormData().locationCity}
+                  value={isEnglishMode ? formData.locationCity : getCurrentFormData().locationCity}
                   onChange={(e) => handleInputChange('locationCity', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
+                  disabled={isEnglishMode}
+                  className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
+                    isEnglishMode ? 'bg-gray-100 cursor-not-allowed' : ''
+                  }`}
                 />
               </div>
               <div>
@@ -714,9 +734,12 @@ export default function EditarEventoPage() {
                 </label>
                 <input
                   type="text"
-                  value={getCurrentFormData().locationCountry}
+                  value={isEnglishMode ? formData.locationCountry : getCurrentFormData().locationCountry}
                   onChange={(e) => handleInputChange('locationCountry', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
+                  disabled={isEnglishMode}
+                  className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
+                    isEnglishMode ? 'bg-gray-100 cursor-not-allowed' : ''
+                  }`}
                 />
               </div>
             </div>

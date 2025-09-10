@@ -47,9 +47,20 @@ export default function AgregarNoticiaPage() {
   // Handle form input changes
   const handleInputChange = (field: string, value: string) => {
     if (isEnglishMode) {
+      // For common fields, don't allow editing in English mode
+      const commonFields = ['author', 'publicationDate', 'location_city', 'location_country']
+      if (commonFields.includes(field)) {
+        return // Don't update these fields in English mode
+      }
       setFormDataEnglish(prev => ({ ...prev, [field]: value }))
     } else {
       setFormData(prev => ({ ...prev, [field]: value }))
+      
+      // Auto-sync common fields to English version
+      const commonFields = ['author', 'publicationDate', 'location_city', 'location_country']
+      if (commonFields.includes(field)) {
+        setFormDataEnglish(prev => ({ ...prev, [field]: value }))
+      }
     }
   }
 
@@ -516,10 +527,13 @@ export default function AgregarNoticiaPage() {
                 </label>
                 <input
                   type="text"
-                  value={getCurrentFormData().author}
+                  value={isEnglishMode ? formData.author : getCurrentFormData().author}
                   onChange={(e) => handleInputChange('author', e.target.value)}
                   placeholder={translations.author}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
+                  disabled={isEnglishMode}
+                  className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
+                    isEnglishMode ? 'bg-gray-100 cursor-not-allowed' : ''
+                  }`}
                 />
               </div>
             </div>
@@ -532,10 +546,13 @@ export default function AgregarNoticiaPage() {
                 </label>
                 <input
                   type="text"
-                  value={getCurrentFormData().location_city}
+                  value={isEnglishMode ? formData.location_city : getCurrentFormData().location_city}
                   onChange={(e) => handleInputChange('location_city', e.target.value)}
                   placeholder={translations.location_city}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
+                  disabled={isEnglishMode}
+                  className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
+                    isEnglishMode ? 'bg-gray-100 cursor-not-allowed' : ''
+                  }`}
                 />
               </div>
               <div>
@@ -544,10 +561,13 @@ export default function AgregarNoticiaPage() {
                 </label>
                 <input
                   type="text"
-                  value={getCurrentFormData().location_country}
+                  value={isEnglishMode ? formData.location_country : getCurrentFormData().location_country}
                   onChange={(e) => handleInputChange('location_country', e.target.value)}
                   placeholder={translations.location_country}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
+                  disabled={isEnglishMode}
+                  className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
+                    isEnglishMode ? 'bg-gray-100 cursor-not-allowed' : ''
+                  }`}
                 />
               </div>
             </div>
@@ -611,9 +631,12 @@ export default function AgregarNoticiaPage() {
               </div>
               <input
                 type="date"
-                value={getCurrentFormData().publicationDate}
+                value={isEnglishMode ? formData.publicationDate : getCurrentFormData().publicationDate}
                 onChange={(e) => handleInputChange('publicationDate', e.target.value)}
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
+                disabled={isEnglishMode}
+                className={`block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
+                  isEnglishMode ? 'bg-gray-100 cursor-not-allowed' : ''
+                }`}
               />
             </div>
           </div>
