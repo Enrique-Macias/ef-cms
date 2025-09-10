@@ -245,7 +245,14 @@ export default function NoticiasPage() {
                     
                     {/* News Meta */}
                     <div className="flex items-center justify-between text-xs" style={{ color: '#4A739C' }}>
-                      <span className="font-metropolis font-regular">{item.category}</span>
+                      <span className="font-metropolis font-regular">{(() => {
+                        const categories = item.category ? item.category.split(', ') : []
+                        if (categories.length <= 2) {
+                          return item.category
+                        } else {
+                          return categories.slice(0, 2).join(', ') + '...'
+                        }
+                      })()}</span>
                       <span className="font-metropolis font-regular">{(() => {
                       const formatted = new Date(item.date).toLocaleDateString('es-ES', {
                         year: 'numeric',

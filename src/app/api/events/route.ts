@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
       title_en: body.title_en,
       body_es: body.body_es,
       body_en: body.body_en,
-      date: body.date,
+      date: new Date(body.date),
       author: body.author,
       location_city: body.location_city,
       location_country: body.location_country,

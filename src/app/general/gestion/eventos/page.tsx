@@ -435,7 +435,14 @@ export default function EventosPage() {
                     <div className="flex items-center justify-between text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
                       <span>Por {event.author}</span>
                       <span className="px-2 py-1 bg-[#F0F4F8] rounded-full">
-                        {event.category}
+                        {(() => {
+                          const categories = event.category ? event.category.split(', ') : []
+                          if (categories.length <= 2) {
+                            return event.category
+                          } else {
+                            return categories.slice(0, 2).join(', ') + '...'
+                          }
+                        })()}
                       </span>
                     </div>
                   </div>

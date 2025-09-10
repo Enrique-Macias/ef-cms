@@ -99,7 +99,7 @@ export default function EditarEventoPage() {
             eventDate: eventData.date.split('T')[0], // Convert to YYYY-MM-DD format
             description: eventData.body_es,
             images: eventData.eventImages ? eventData.eventImages.map((img: any) => img.imageUrl) : [],
-            categories: [eventData.category],
+            categories: eventData.category ? eventData.category.split(', ').filter(cat => cat.trim()) : [],
             tags: eventData.tags,
             phrase: eventData.phrase || '',
             credits: eventData.credits,
@@ -115,7 +115,7 @@ export default function EditarEventoPage() {
             eventDate: eventData.date.split('T')[0], // Convert to YYYY-MM-DD format
             description: eventData.body_en,
             images: eventData.eventImages ? eventData.eventImages.map((img: any) => img.imageUrl) : [],
-            categories: [eventData.category_en || ''],
+            categories: (eventData.category_en || eventData.category) ? (eventData.category_en || eventData.category).split(', ').filter(cat => cat.trim()) : [],
             tags: eventData.tags_en,
             phrase: eventData.phrase_en || '',
             credits: eventData.credits_en || '',
@@ -386,7 +386,7 @@ export default function EditarEventoPage() {
         title_en: formDataEnglish.title,
         body_es: formData.description,
         body_en: formDataEnglish.description,
-        date: new Date(formData.eventDate + 'T00:00:00.000Z').toISOString(),
+        date: new Date(formData.eventDate + 'T12:00:00').toISOString(),
         author: formData.author,
         location_city: formData.locationCity,
         location_country: formData.locationCountry,
@@ -395,8 +395,8 @@ export default function EditarEventoPage() {
         phrase_en: formDataEnglish.phrase,
         credits: formData.credits,
         credits_en: formDataEnglish.credits,
-        category: formData.categories[0] || '',
-        category_en: formDataEnglish.categories[0] || '',
+        category: formData.categories.length > 0 ? formData.categories.join(', ') : '',
+        category_en: formDataEnglish.categories.length > 0 ? formDataEnglish.categories.join(', ') : '',
         tags: formData.tags,
         tags_en: formDataEnglish.tags,
         images

@@ -57,7 +57,7 @@ export default function VerNoticiaPage() {
             publicationDate: data.news.date,
             description: data.news.body_es,
             images: data.news.newsImages || [],
-            categories: [data.news.category],
+            categories: data.news.category ? data.news.category.split(', ').filter((cat: string) => cat.trim()) : [],
             tags: data.news.tags || [],
             location_city: data.news.location_city || '',
             location_country: data.news.location_country || ''
@@ -69,7 +69,7 @@ export default function VerNoticiaPage() {
             publicationDate: data.news.date,
             description: data.news.body_en,
             images: data.news.newsImages || [],
-            categories: [data.news.category_en || data.news.category],
+            categories: (data.news.category_en || data.news.category) ? (data.news.category_en || data.news.category).split(', ').filter((cat: string) => cat.trim()) : [],
             tags: data.news.tags_en || [],
             location_city: data.news.location_city || '',
             location_country: data.news.location_country || ''

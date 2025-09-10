@@ -153,7 +153,7 @@ export async function PUT(
     if (body.title_en !== undefined) updateData.title_en = body.title_en
     if (body.body_es !== undefined) updateData.body_es = body.body_es
     if (body.body_en !== undefined) updateData.body_en = body.body_en
-    if (body.date !== undefined) updateData.date = body.date
+    if (body.date !== undefined) updateData.date = new Date(body.date)
     if (body.author !== undefined) updateData.author = body.author
     if (body.location_city !== undefined) updateData.location_city = body.location_city
     if (body.location_country !== undefined) updateData.location_country = body.location_country
