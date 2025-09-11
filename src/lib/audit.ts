@@ -1,11 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { prisma } from './prisma';
-import { Prisma } from '@prisma/client';
 
 export interface AuditLogData {
   userId?: number;
   resource: string;
   action: string;
-  changes: Prisma.InputJsonValue;
+  changes: any;
 }
 
 export const createAuditLog = async (data: AuditLogData) => {
@@ -51,7 +51,7 @@ export const logUserAction = async (
   userId: number,
   action: string,
   resource: string,
-  changes: Prisma.InputJsonValue
+  changes: any
 ) => {
   await createAuditLog({
     userId,
