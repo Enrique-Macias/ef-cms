@@ -5,97 +5,13 @@ import { useRouter } from 'next/navigation'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
 
-// Mock data for testimonials
-const mockTestimonials = [
-  {
-    id: 1,
-    author: 'María González',
-    role: 'CEO, TechCorp',
-    body_es: 'Esta plataforma ha transformado completamente la forma en que gestionamos nuestros proyectos. La facilidad de uso y las funcionalidades avanzadas nos han permitido aumentar nuestra productividad en un 40%.',
-    body_en: 'This platform has completely transformed the way we manage our projects. The ease of use and advanced features have allowed us to increase our productivity by 40%.',
-    imageUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face',
-    createdAt: '2024-01-15T10:00:00Z',
-    updatedAt: '2024-01-15T10:00:00Z'
-  },
-  {
-    id: 2,
-    author: 'Carlos Rodríguez',
-    role: 'Director de Marketing, InnovateLab',
-    body_es: 'La implementación de esta solución fue increíblemente suave. El equipo de soporte fue excepcional y los resultados superaron nuestras expectativas.',
-    body_en: 'The implementation of this solution was incredibly smooth. The support team was exceptional and the results exceeded our expectations.',
-    imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face',
-    createdAt: '2024-01-14T14:30:00Z',
-    updatedAt: '2024-01-14T14:30:00Z'
-  },
-  {
-    id: 3,
-    author: 'Ana Martínez',
-    role: 'Fundadora, StartupHub',
-    body_es: 'Como startup, necesitábamos una herramienta que creciera con nosotros. Esta plataforma no solo cumple esa expectativa, sino que también nos ayuda a escalar de manera eficiente.',
-    body_en: 'As a startup, we needed a tool that would grow with us. This platform not only meets that expectation but also helps us scale efficiently.',
-    imageUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face',
-    createdAt: '2024-01-13T09:15:00Z',
-    updatedAt: '2024-01-13T09:15:00Z'
-  },
-  {
-    id: 4,
-    author: 'Luis Fernández',
-    role: 'CTO, DigitalFlow',
-    body_es: 'La arquitectura técnica de esta plataforma es impresionante. La integración con nuestras herramientas existentes fue perfecta y el rendimiento es excepcional.',
-    body_en: 'The technical architecture of this platform is impressive. The integration with our existing tools was perfect and the performance is exceptional.',
-    imageUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face',
-    createdAt: '2024-01-12T16:45:00Z',
-    updatedAt: '2024-01-12T16:45:00Z'
-  },
-  {
-    id: 5,
-    author: 'Sofia Herrera',
-    role: 'Gerente de Producto, CloudTech',
-    body_es: 'La experiencia del usuario es simplemente increíble. Nuestros clientes han notado la diferencia inmediatamente y las métricas de satisfacción han mejorado significativamente.',
-    body_en: 'The user experience is simply incredible. Our customers have noticed the difference immediately and satisfaction metrics have improved significantly.',
-    imageUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop&crop=face',
-    createdAt: '2024-01-11T11:20:00Z',
-    updatedAt: '2024-01-11T11:20:00Z'
-  },
-  {
-    id: 6,
-    author: 'Roberto Silva',
-    role: 'Director Ejecutivo, FutureVision',
-    body_es: 'Esta plataforma nos ha dado la flexibilidad que necesitábamos para adaptarnos a un mercado en constante cambio. Es una herramienta verdaderamente transformadora.',
-    body_en: 'This platform has given us the flexibility we needed to adapt to a constantly changing market. It is a truly transformative tool.',
-    imageUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=face',
-    createdAt: '2024-01-10T13:10:00Z',
-    updatedAt: '2024-01-10T13:10:00Z'
-  },
-  {
-    id: 7,
-    author: 'Carmen Vega',
-    role: 'VP de Operaciones, GlobalTech',
-    body_es: 'La implementación fue rápida y sin problemas. El ROI que hemos visto en los primeros 6 meses ha sido extraordinario.',
-    body_en: 'The implementation was quick and trouble-free. The ROI we have seen in the first 6 months has been extraordinary.',
-    imageUrl: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&h=400&fit=crop&crop=face',
-    createdAt: '2024-01-09T15:30:00Z',
-    updatedAt: '2024-01-09T15:30:00Z'
-  },
-  {
-    id: 8,
-    author: 'Diego Morales',
-    role: 'Fundador, EcoStartup',
-    body_es: 'Como empresa enfocada en sostenibilidad, apreciamos que esta plataforma también comparte nuestros valores. Es eficiente y responsable con el medio ambiente.',
-    body_en: 'As a sustainability-focused company, we appreciate that this platform also shares our values. It is efficient and environmentally responsible.',
-    imageUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop&crop=face',
-    createdAt: '2024-01-08T10:45:00Z',
-    updatedAt: '2024-01-08T10:45:00Z'
-  }
-]
-
 export default function TestimoniosPage() {
   const router = useRouter()
   const toast = useToast()
   
   // State
-  const [testimonials, setTestimonials] = useState(mockTestimonials)
-  const [filteredTestimonials, setFilteredTestimonials] = useState(mockTestimonials)
+  const [testimonials, setTestimonials] = useState<any[]>([])
+  const [filteredTestimonials, setFilteredTestimonials] = useState<any[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [dateFilter, setDateFilter] = useState<string | null>(null)
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false)
@@ -108,30 +24,42 @@ export default function TestimoniosPage() {
   useEffect(() => {
     const loadTestimonials = async () => {
       setIsInitialLoading(true)
-      // Simulate API call
-      setTimeout(() => {
-        setTestimonials(mockTestimonials)
-        setFilteredTestimonials(mockTestimonials)
+      try {
+        const response = await fetch('/api/testimonials')
+        if (!response.ok) {
+          throw new Error('Failed to fetch testimonials')
+        }
+        const data = await response.json()
+        setTestimonials(data)
+        setFilteredTestimonials(data)
+      } catch (error) {
+        console.error('Error loading testimonials:', error)
+        // Use toast directly without dependency
+        toast.error('Error al cargar los testimonios')
+        setTestimonials([])
+        setFilteredTestimonials([])
+      } finally {
         setIsInitialLoading(false)
-      }, 1000)
+      }
     }
     
     loadTestimonials()
-  }, [])
+  }, []) // Empty dependency array - only run once on mount
 
   // Filter testimonials based on search and date
   useEffect(() => {
     setIsLoading(true)
     
-    let filtered = testimonials
+    // Ensure testimonials is an array
+    let filtered = Array.isArray(testimonials) ? testimonials : []
 
     // Search filter
     if (searchTerm) {
       filtered = filtered.filter(testimonial =>
         testimonial.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
         testimonial.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        testimonial.body_es.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        testimonial.body_en.toLowerCase().includes(searchTerm.toLowerCase())
+        (testimonial.body_es && testimonial.body_es.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (testimonial.body_en && testimonial.body_en.toLowerCase().includes(searchTerm.toLowerCase()))
       )
     }
 
@@ -192,8 +120,12 @@ export default function TestimoniosPage() {
   // Pagination calculations
   const indexOfLastTestimonial = currentPage * testimonialsPerPage
   const indexOfFirstTestimonial = indexOfLastTestimonial - testimonialsPerPage
-  const currentTestimonials = filteredTestimonials.slice(indexOfFirstTestimonial, indexOfLastTestimonial)
-  const totalPages = Math.ceil(filteredTestimonials.length / testimonialsPerPage)
+  const currentTestimonials = Array.isArray(filteredTestimonials) 
+    ? filteredTestimonials.slice(indexOfFirstTestimonial, indexOfLastTestimonial)
+    : []
+  const totalPages = Array.isArray(filteredTestimonials) 
+    ? Math.ceil(filteredTestimonials.length / testimonialsPerPage)
+    : 0
 
   if (isInitialLoading) {
     return (
@@ -347,7 +279,7 @@ export default function TestimoniosPage() {
               <p className="mt-4 text-[#4A739C] font-metropolis font-regular">Buscando testimonios...</p>
             </div>
           </div>
-        ) : filteredTestimonials.length === 0 ? (
+        ) : Array.isArray(filteredTestimonials) && filteredTestimonials.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-[#4A739C] font-metropolis font-regular">
               {searchTerm || dateFilter 
@@ -378,9 +310,9 @@ export default function TestimoniosPage() {
                     {testimonial.role}
                   </p>
                   <p className="font-metropolis font-regular text-sm mb-3" style={{ color: '#4A739C' }}>
-                    {testimonial.body_es.length > 120 
+                    {testimonial.body_es && testimonial.body_es.length > 120 
                       ? `${testimonial.body_es.substring(0, 120)}...` 
-                      : testimonial.body_es
+                      : testimonial.body_es || 'Sin contenido'
                     }
                   </p>
                   

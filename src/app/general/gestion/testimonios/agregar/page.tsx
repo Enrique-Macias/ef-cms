@@ -4,124 +4,146 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
-
-interface FormData {
-  author: string
-  role: string
-  body: string
-  image: File | null
-}
-
-interface FormDataEnglish {
-  author: string
-  role: string
-  body: string
-  image: File | null
-}
+import { useTestimonialForm } from '@/hooks/useTestimonialForm'
+import { useTestimonialTranslation } from '@/hooks/useTestimonialTranslation'
+import { fileToBase64, getImageSrc } from '@/utils/testimonialFileUtils'
+import { validateTestimonialForm } from '@/utils/testimonialValidationUtils'
+import { 
+  createTestimonialInputHandler, 
+  createTestimonialImageHandlers, 
+  createTestimonialDragHandlers, 
+  createTestimonialLanguageToggleHandler 
+} from '@/utils/testimonialFormHandlers'
 
 export default function AgregarTestimonioPage() {
   const router = useRouter()
   const toast = useToast()
   
-  // State
-  const [formData, setFormData] = useState<FormData>({
-    author: '',
-    role: '',
-    body: '',
-    image: null
-  })
-  
-  const [formDataEnglish, setFormDataEnglish] = useState<FormDataEnglish>({
-    author: '',
-    role: '',
-    body: '',
-    image: null
-  })
-  
-  const [isEnglishMode, setIsEnglishMode] = useState(false)
+  // Custom hooks
+  const {
+    formData,
+    setFormData,
+    formDataEnglish,
+    setFormDataEnglish,
+    isEnglishMode,
+    setIsEnglishMode,
+    getCurrentFormData
+  } = useTestimonialForm()
+
+  const {
+    isTranslating,
+    translationCompleted,
+    setTranslationCompleted,
+    translateToEnglish
+  } = useTestimonialTranslation()
+
+  // State for UI
   const [isPublishing, setIsPublishing] = useState(false)
   const [isDragOver, setIsDragOver] = useState(false)
 
-  // Handle input changes
-  const handleInputChange = (field: keyof FormData, value: string) => {
-    if (isEnglishMode) {
-      setFormDataEnglish(prev => ({ ...prev, [field]: value }))
-    } else {
-      setFormData(prev => ({ ...prev, [field]: value }))
-    }
-  }
-
-  // Handle image upload
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      if (isEnglishMode) {
-        setFormDataEnglish(prev => ({ ...prev, image: file }))
-      } else {
-        setFormData(prev => ({ ...prev, image: file }))
-      }
-    }
-  }
-
-  // Handle drag and drop
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragOver(false)
-    const files = Array.from(e.dataTransfer.files)
-    if (files.length > 0) {
-      const imageFile = files[0]
-      if (imageFile.type.startsWith('image/')) {
-        if (isEnglishMode) {
-          setFormDataEnglish(prev => ({ ...prev, image: imageFile }))
-        } else {
-          setFormData(prev => ({ ...prev, image: imageFile }))
-        }
-      }
-    }
-  }
-
-  // Get current form data based on language mode
-  const getCurrentFormData = () => isEnglishMode ? formDataEnglish : formData
+  // Event handlers using utility functions
+  const handleInputChange = createTestimonialInputHandler(isEnglishMode, setFormData, setFormDataEnglish)
+  
+  const { handleImageUpload } = createTestimonialImageHandlers(setFormData, setFormDataEnglish)
+  
+  const {
+    handleDragOver,
+    handleDragLeave,
+    handleDrop
+  } = createTestimonialDragHandlers(setIsDragOver, setFormData, setFormDataEnglish)
+  
+  const handleLanguageToggle = createTestimonialLanguageToggleHandler(
+    isEnglishMode,
+    setIsEnglishMode,
+    formData,
+    formDataEnglish,
+    setFormData,
+    setFormDataEnglish
+  )
 
   // Handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async () => {
+    // Validate form using utility function
+    const validation = validateTestimonialForm(formData, formDataEnglish, isEnglishMode)
     
-    // Validate required fields in both languages
-    const spanishRequired = !formData.author || !formData.role || !formData.body || !formData.image
-    const englishRequired = !formDataEnglish.author || !formDataEnglish.role || !formDataEnglish.body || !formDataEnglish.image
-    
-    if (spanishRequired || englishRequired) {
-      toast.warning('Debes llenar todos los campos obligatorios tanto en español como en inglés')
+    if (!validation.isValid) {
+      toast.warning(validation.errorMessage!)
       return
     }
-
+    
     setIsPublishing(true)
     
-    // Simulate API call
-    setTimeout(() => {
-      setIsPublishing(false)
-      toast.success('Testimonio publicado exitosamente')
+    try {
+      // Convert image to base64 if it's a File
+      let imageUrl = null
+      if (formData.image instanceof File) {
+        imageUrl = await fileToBase64(formData.image)
+      }
+      
+      // Prepare testimonial data
+      const testimonialData = {
+        author: formData.author,
+        role: formData.role,
+        role_en: formDataEnglish.role_en,
+        body_es: formData.body,
+        body_en: formDataEnglish.body,
+        imageUrl
+      }
+      
+      // Make API call
+      const response = await fetch('/api/testimonials', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(testimonialData),
+      })
+      
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to create testimonial')
+      }
+      
+      const result = await response.json()
+      
+      // Show success toast
+      const successMessage = isEnglishMode ? 'Testimonial created successfully' : 'Testimonio creado exitosamente'
+      toast.success(successMessage)
+      
+      // Redirect to testimonials listing page
       router.push('/general/gestion/testimonios')
-    }, 2000)
+    } catch (error) {
+      console.error('Error creating testimonial:', error)
+      toast.error(error instanceof Error ? error.message : 'Error creating testimonial')
+    } finally {
+      setIsPublishing(false)
+    }
   }
 
-  // Translations
+  // English translations
   const translations = {
-    addTestimonial: isEnglishMode ? 'Add Testimonial' : 'Agregar Testimonio',
-    publishTestimonial: isEnglishMode ? 'Publish Testimonial' : 'Publicar Testimonio',
-    publishing: isEnglishMode ? 'Publishing...' : 'Publicando...',
+    title: isEnglishMode ? 'Testimonial Title' : 'Título del Testimonio',
     author: isEnglishMode ? 'Author Name' : 'Nombre del autor',
     role: isEnglishMode ? 'Role/Position' : 'Cargo/Puesto',
     testimonial: isEnglishMode ? 'Testimonial' : 'Testimonio',
     image: isEnglishMode ? 'Profile Image' : 'Imagen de Perfil',
+    basicInfo: isEnglishMode ? 'Basic Information' : 'Información Básica',
+    addTestimonial: isEnglishMode ? 'Add Testimonial' : 'Agregar Testimonio',
+    publishTestimonial: isEnglishMode ? 'Publish Testimonial' : 'Publicar Testimonio',
+    publishing: isEnglishMode ? 'Publishing...' : 'Publicando...',
     imageDescription: isEnglishMode 
       ? 'JPG or PNG, Maximum 300 KB. Drag and drop an image here.'
       : 'JPG o PNG, Máximo 300 KB. Arrastra y suelta una imagen aquí.',
     uploadImage: isEnglishMode ? 'Upload Image' : 'Subir Imagen',
     dragDropImage: isEnglishMode ? 'Drag and drop an image here, or click to select' : 'Arrastra y suelta una imagen aquí, o haz clic para seleccionar',
-    englishVersion: 'English Version',
-    spanishVersion: 'Spanish Version'
+    englishVersion: 'English',
+    spanishVersion: 'Spanish',
+    testimonialPlaceholder: isEnglishMode 
+      ? 'Enter the testimonial content...'
+      : 'Ingresa el contenido del testimonio...',
+    testimonialHelp: isEnglishMode 
+      ? 'Share your experience and thoughts about our organization.'
+      : 'Comparte tu experiencia y opiniones sobre nuestra organización.'
   }
 
   return (
@@ -139,30 +161,71 @@ export default function AgregarTestimonioPage() {
         </nav>
       </div>
 
-      {/* Header Section */}
+      {/* Header Section with Preview and Publish Button */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8">
-        <div>
-          <h1 className="font-metropolis font-bold text-3xl mb-2" style={{ color: '#0D141C' }}>
-            {translations.addTestimonial}
-          </h1>
-          <p className="font-metropolis font-regular text-lg" style={{ color: '#4A739C' }}>
-            Crea un nuevo testimonio para la plataforma
-          </p>
+        <div className="flex items-center space-x-4 mb-4 lg:mb-0">
+          {/* Preview Image */}
+          <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden">
+            {getCurrentFormData().image ? (
+              <img
+                src={getImageSrc(getCurrentFormData().image)!}
+                alt="Preview"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
+                <svg className="w-8 h-8 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+            )}
+          </div>
+          
+          {/* Preview Info */}
+          <div>
+            <h1 className="font-metropolis font-bold text-2xl mb-1" style={{ color: '#0D141C' }}>
+              {getCurrentFormData().author || translations.author}
+            </h1>
+            <p className="font-metropolis font-regular text-sm" style={{ color: '#4A739C' }}>
+              {getCurrentFormData().role || translations.role}
+            </p>
+          </div>
         </div>
 
         {/* Language Toggle and Publish Buttons */}
         <div className="flex items-center space-x-3">
+          {/* Language Toggle Button */}
           <button
-            onClick={() => setIsEnglishMode(!isEnglishMode)}
-            className={`inline-flex items-center px-4 py-3 border rounded-md shadow-sm text-sm font-medium transition-all duration-200 ${
+            onClick={async () => {
+              if (!isEnglishMode) {
+                // Switch to English mode and trigger translation
+                setIsEnglishMode(true)
+                setTranslationCompleted(false)
+                await translateToEnglish(formData, setFormDataEnglish)
+              } else {
+                // Switching back to Spanish mode
+                setIsEnglishMode(false)
+                setTranslationCompleted(false)
+              }
+            }}
+            disabled={isTranslating}
+            className={`inline-flex items-center px-4 py-3 border rounded-md shadow-sm text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${
               isEnglishMode 
                 ? 'border-[#5A6F80] text-[#5A6F80] bg-white hover:bg-gray-50' 
                 : 'border-[#5A6F80] text-white bg-[#5A6F80] hover:bg-[#4A739C]'
             }`}
           >
-            {isEnglishMode ? translations.spanishVersion : translations.englishVersion}
+            {isTranslating ? (
+              <div className="flex items-center space-x-2">
+                <Spinner size="sm" />
+                <span>Traduciendo...</span>
+              </div>
+            ) : (
+              isEnglishMode ? translations.spanishVersion : translations.englishVersion
+            )}
           </button>
 
+          {/* Publish Button */}
           <button
             onClick={handleSubmit}
             disabled={isPublishing}
@@ -189,19 +252,31 @@ export default function AgregarTestimonioPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
             </svg>
             <span className="text-blue-800 font-medium">
-              English Mode - Filling English version of the testimonial
+              English Mode - Content has been automatically translated from Spanish using DeepL. You can edit the translations as needed.
             </span>
           </div>
         </div>
       )}
 
+
       {/* Form */}
-      <div className="bg-white border rounded-lg p-6 shadow-lg" style={{ borderColor: '#CFDBE8' }}>
-        <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Basic Information */}
+      <div className="bg-white border rounded-lg p-6 shadow-lg relative" style={{ borderColor: '#CFDBE8' }}>
+        {/* Translation Loading Overlay */}
+        {isTranslating && (
+          <div className="absolute inset-0 bg-white bg-opacity-90 flex items-start justify-center z-10 rounded-lg pt-8">
+            <div className="text-center">
+              <Spinner size="lg" />
+              <p className="mt-4 text-lg font-medium text-gray-700">Traduciendo contenido...</p>
+              <p className="mt-2 text-sm text-gray-500">Por favor espera mientras se traduce el contenido al inglés</p>
+            </div>
+          </div>
+        )}
+
+        <div className="space-y-8">
+          {/* Basic Information Section */}
           <div>
             <h2 className="font-metropolis font-bold text-xl mb-4" style={{ color: '#0D141C' }}>
-              Información Básica
+              {translations.basicInfo}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
@@ -210,10 +285,13 @@ export default function AgregarTestimonioPage() {
                 </label>
                 <input
                   type="text"
-                  value={getCurrentFormData().author}
+                  value={isEnglishMode ? formData.author : getCurrentFormData().author || ''}
                   onChange={(e) => handleInputChange('author', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
-                  placeholder={isEnglishMode ? 'Enter author name' : 'Ingresa el nombre del autor'}
+                  placeholder={translations.author}
+                  disabled={isEnglishMode}
+                  className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
+                    isEnglishMode ? 'bg-gray-100 cursor-not-allowed' : ''
+                  }`}
                 />
               </div>
               
@@ -223,35 +301,33 @@ export default function AgregarTestimonioPage() {
                 </label>
                 <input
                   type="text"
-                  value={getCurrentFormData().role}
-                  onChange={(e) => handleInputChange('role', e.target.value)}
+                  value={isEnglishMode ? (getCurrentFormData().role_en || '') : (getCurrentFormData().role || '')}
+                  onChange={(e) => handleInputChange(isEnglishMode ? 'role_en' : 'role', e.target.value)}
+                  placeholder={translations.role}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
-                  placeholder={isEnglishMode ? 'Enter role/position' : 'Ingresa el cargo o puesto'}
                 />
               </div>
             </div>
           </div>
 
-          {/* Testimonial Content */}
+          {/* Testimonial Content Section */}
           <div>
             <h2 className="font-metropolis font-bold text-xl mb-4" style={{ color: '#0D141C' }}>
-              {translations.testimonial}
+              {translations.testimonial} <span className="text-red-500">*</span>
             </h2>
-            <div>
-              <label className="block text-sm font-metropolis font-medium text-[#0D141C] mb-2">
-                {translations.testimonial} <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                value={getCurrentFormData().body}
-                onChange={(e) => handleInputChange('body', e.target.value)}
-                rows={6}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
-                placeholder={isEnglishMode ? 'Enter the testimonial content' : 'Ingresa el contenido del testimonio'}
-              />
-            </div>
+            <p className="text-sm font-metropolis font-regular mb-3" style={{ color: '#4A739C' }}>
+              {translations.testimonialHelp}
+            </p>
+            <textarea
+              value={getCurrentFormData().body || ''}
+              onChange={(e) => handleInputChange('body', e.target.value)}
+              rows={6}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent resize-none"
+              placeholder={translations.testimonialPlaceholder}
+            />
           </div>
 
-          {/* Profile Image */}
+          {/* Profile Image Section */}
           <div>
             <h2 className="font-metropolis font-bold text-xl mb-4" style={{ color: '#0D141C' }}>
               {translations.image} <span className="text-red-500">*</span>
@@ -263,21 +339,22 @@ export default function AgregarTestimonioPage() {
               
               {/* Drag and Drop Area */}
               <div
-                className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-                  getCurrentFormData().image 
-                    ? 'border-[#5A6F80] bg-[#F0F4F8]' 
-                    : 'border-gray-300 hover:border-[#5A6F80] hover:bg-gray-50'
+                className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${
+                  isDragOver 
+                    ? 'border-[#5A6F80] bg-[#E8EDF5]' 
+                    : getCurrentFormData().image 
+                      ? 'border-[#5A6F80] bg-[#F0F4F8]' 
+                      : 'border-gray-300 hover:border-[#5A6F80] hover:bg-gray-50'
                 }`}
-                onDragOver={(e) => e.preventDefault()}
-                onDragEnter={() => setIsDragOver(true)}
-                onDragLeave={() => setIsDragOver(false)}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
               >
                 {getCurrentFormData().image ? (
                   <div className="space-y-3">
                     <div className="w-24 h-24 mx-auto bg-gray-200 rounded-full overflow-hidden">
                       <img
-                        src={URL.createObjectURL(getCurrentFormData().image!)}
+                        src={getImageSrc(getCurrentFormData().image)!}
                         alt="Profile preview"
                         className="w-full h-full object-cover"
                       />
@@ -307,6 +384,11 @@ export default function AgregarTestimonioPage() {
                     <p className="text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
                       {translations.dragDropImage}
                     </p>
+                    {isDragOver && (
+                      <p className="text-sm font-metropolis font-medium text-[#5A6F80] animate-pulse">
+                        {isEnglishMode ? 'Drop here to upload!' : '¡Suelta aquí para subir!'}
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
@@ -330,7 +412,7 @@ export default function AgregarTestimonioPage() {
               </label>
             </div>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   )

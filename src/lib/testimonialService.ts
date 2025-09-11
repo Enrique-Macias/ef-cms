@@ -1,0 +1,61 @@
+import { prisma } from '@/lib/prisma'
+
+export interface Testimonial {
+  id: number
+  author: string
+  role: string
+  body_es: string
+  body_en: string
+  imageUrl: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface CreateTestimonialData {
+  author: string
+  role: string
+  body_es: string
+  body_en: string
+  imageUrl: string
+}
+
+export interface UpdateTestimonialData {
+  author?: string
+  role?: string
+  body_es?: string
+  body_en?: string
+  imageUrl?: string
+}
+
+export async function getAllTestimonials(): Promise<Testimonial[]> {
+  return await prisma.testimonial.findMany({
+    orderBy: {
+      createdAt: 'desc'
+    }
+  })
+}
+
+export async function getTestimonialById(id: number): Promise<Testimonial | null> {
+  return await prisma.testimonial.findUnique({
+    where: { id }
+  })
+}
+
+export async function createTestimonial(data: CreateTestimonialData): Promise<Testimonial> {
+  return await prisma.testimonial.create({
+    data
+  })
+}
+
+export async function updateTestimonial(id: number, data: UpdateTestimonialData): Promise<Testimonial> {
+  return await prisma.testimonial.update({
+    where: { id },
+    data
+  })
+}
+
+export async function deleteTestimonial(id: number): Promise<void> {
+  await prisma.testimonial.delete({
+    where: { id }
+  })
+}

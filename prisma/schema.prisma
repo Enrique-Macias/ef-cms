@@ -99,6 +99,7 @@ model Testimonial {
   id        Int      @id @default(autoincrement())
   author    String
   role      String
+  role_en   String
   body_es   String
   body_en   String
   imageUrl  String

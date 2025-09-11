@@ -5,58 +5,6 @@ import { useParams, useRouter } from 'next/navigation'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
 
-// Mock data for testimonials
-const mockTestimonialsData = {
-  1: {
-    spanish: {
-      author: 'María González',
-      role: 'CEO, TechCorp',
-      body: 'Esta plataforma ha transformado completamente la forma en que gestionamos nuestros proyectos. La facilidad de uso y las funcionalidades avanzadas nos han permitido aumentar nuestra productividad en un 40%. La implementación fue suave y el equipo de soporte fue excepcional. Los resultados superaron todas nuestras expectativas y ahora somos más eficientes que nunca.',
-      imageUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face'
-    },
-    english: {
-      author: 'María González',
-      role: 'CEO, TechCorp',
-      body: 'This platform has completely transformed the way we manage our projects. The ease of use and advanced features have allowed us to increase our productivity by 40%. The implementation was smooth and the support team was exceptional. The results exceeded all our expectations and now we are more efficient than ever.',
-      imageUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face'
-    },
-    createdAt: '2024-01-15T10:00:00Z',
-    updatedAt: '2024-01-15T10:00:00Z'
-  },
-  2: {
-    spanish: {
-      author: 'Carlos Rodríguez',
-      role: 'Director de Marketing, InnovateLab',
-      body: 'La implementación de esta solución fue increíblemente suave. El equipo de soporte fue excepcional y los resultados superaron nuestras expectativas. Como empresa de marketing, necesitábamos una herramienta que nos permitiera gestionar múltiples campañas de manera eficiente. Esta plataforma no solo cumple esa expectativa, sino que también nos proporciona insights valiosos sobre el rendimiento de nuestras estrategias.',
-      imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face'
-    },
-    english: {
-      author: 'Carlos Rodríguez',
-      role: 'Marketing Director, InnovateLab',
-      body: 'The implementation of this solution was incredibly smooth. The support team was exceptional and the results exceeded our expectations. As a marketing company, we needed a tool that would allow us to manage multiple campaigns efficiently. This platform not only meets that expectation but also provides us with valuable insights into the performance of our strategies.',
-      imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face'
-    },
-    createdAt: '2024-01-14T14:30:00Z',
-    updatedAt: '2024-01-14T14:30:00Z'
-  },
-  3: {
-    spanish: {
-      author: 'Ana Martínez',
-      role: 'Fundadora, StartupHub',
-      body: 'Como startup, necesitábamos una herramienta que creciera con nosotros. Esta plataforma no solo cumple esa expectativa, sino que también nos ayuda a escalar de manera eficiente. La flexibilidad y la facilidad de uso nos han permitido enfocarnos en lo que realmente importa: hacer crecer nuestro negocio. Es una inversión que ha valido cada centavo.',
-      imageUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face'
-    },
-    english: {
-      author: 'Ana Martínez',
-      role: 'Founder, StartupHub',
-      body: 'As a startup, we needed a tool that would grow with us. This platform not only meets that expectation but also helps us scale efficiently. The flexibility and ease of use have allowed us to focus on what really matters: growing our business. It is an investment that has been worth every penny.',
-      imageUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face'
-    },
-    createdAt: '2024-01-13T09:15:00Z',
-    updatedAt: '2024-01-13T09:15:00Z'
-  }
-}
-
 export default function VerTestimonioPage() {
   const params = useParams()
   const router = useRouter()
@@ -65,7 +13,7 @@ export default function VerTestimonioPage() {
   const testimonialId = params.id as string
   
   // State
-  const [testimonial, setTestimonial] = useState<typeof mockTestimonialsData[keyof typeof mockTestimonialsData] | null>(null)
+  const [testimonial, setTestimonial] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -75,18 +23,25 @@ export default function VerTestimonioPage() {
   useEffect(() => {
     const loadTestimonial = async () => {
       setIsLoading(true)
-      // Simulate API call
-      setTimeout(() => {
-        const data = mockTestimonialsData[testimonialId as '1' | '2' | '3']
-        if (data) {
-          setTestimonial(data)
+      try {
+        const response = await fetch(`/api/testimonials/${testimonialId}`)
+        if (!response.ok) {
+          throw new Error('Failed to fetch testimonial')
         }
+        const data = await response.json()
+        setTestimonial(data)
+      } catch (error) {
+        console.error('Error loading testimonial:', error)
+        // Use toast directly without dependency
+        toast.error('Error al cargar el testimonio')
+        setTestimonial(null)
+      } finally {
         setIsLoading(false)
-      }, 1000)
+      }
     }
     
     loadTestimonial()
-  }, [testimonialId])
+  }, [testimonialId]) // Remove toast dependency to prevent infinite loop
 
   // Format date function
   const formatDate = (dateString: string) => {
@@ -101,17 +56,36 @@ export default function VerTestimonioPage() {
   // Handle delete testimonial
   const handleDelete = async () => {
     setIsDeleting(true)
-    // Simulate API call
-    setTimeout(() => {
-      setIsDeleting(false)
-      setIsDeleteModalOpen(false)
+    try {
+      const response = await fetch(`/api/testimonials/${testimonialId}`, {
+        method: 'DELETE',
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete testimonial')
+      }
+      
       toast.success('Testimonio eliminado exitosamente')
       router.push('/general/gestion/testimonios')
-    }, 2000)
+    } catch (error) {
+      console.error('Error deleting testimonial:', error)
+      toast.error('Error al eliminar el testimonio')
+    } finally {
+      setIsDeleting(false)
+      setIsDeleteModalOpen(false)
+    }
   }
 
   // Get current testimonial data based on language mode
-  const getCurrentTestimonialData = () => isEnglishMode ? testimonial?.english : testimonial?.spanish
+  const getCurrentTestimonialData = () => {
+    if (!testimonial) return null
+    return {
+      author: testimonial.author,
+      role: isEnglishMode ? testimonial.role_en : testimonial.role,
+      body: isEnglishMode ? testimonial.body_en : testimonial.body_es,
+      imageUrl: testimonial.imageUrl
+    }
+  }
 
   if (isLoading) {
     return (
@@ -247,11 +221,15 @@ export default function VerTestimonioPage() {
               {isEnglishMode ? 'Testimonial' : 'Testimonio'}
             </h2>
             <div className="prose max-w-none">
-              {currentTestimonial.body.split('\n').map((paragraph, index) => (
+              {currentTestimonial.body ? currentTestimonial.body.split('\n').map((paragraph: string, index: number) => (
                 <p key={index} className="text-base font-metropolis font-regular mb-4" style={{ color: '#4A739C' }}>
                   {paragraph}
                 </p>
-              ))}
+              )) : (
+                <p className="text-base font-metropolis font-regular mb-4" style={{ color: '#4A739C' }}>
+                  Sin contenido disponible
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -290,7 +268,7 @@ export default function VerTestimonioPage() {
               
               <div className="flex items-center space-x-3">
                 <svg className="w-5 h-5 text-[#4A739C]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M9 16h.01" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
                 <div>
                   <p className="text-sm font-metropolis font-medium text-[#0D141C]">{isEnglishMode ? 'Role' : 'Cargo'}</p>

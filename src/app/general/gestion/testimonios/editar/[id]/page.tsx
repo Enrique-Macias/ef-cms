@@ -4,72 +4,10 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
-
-// Mock data for testimonials
-const mockTestimonialsData = {
-  1: {
-    spanish: {
-      author: 'María González',
-      role: 'CEO, TechCorp',
-      body: 'Esta plataforma ha transformado completamente la forma en que gestionamos nuestros proyectos. La facilidad de uso y las funcionalidades avanzadas nos han permitido aumentar nuestra productividad en un 40%. La implementación fue suave y el equipo de soporte fue excepcional. Los resultados superaron todas nuestras expectativas y ahora somos más eficientes que nunca.',
-      imageUrl: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face'
-    },
-    english: {
-      author: 'María González',
-      role: 'CEO, TechCorp',
-      body: 'This platform has completely transformed the way we manage our projects. The ease of use and advanced features have allowed us to increase our productivity by 40%. The implementation was smooth and the support team was exceptional. The results exceeded all our expectations and now we are more efficient than ever.',
-      imageUrl: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face'
-    },
-    createdAt: '2024-01-15T10:00:00Z',
-    updatedAt: '2024-01-15T10:00:00Z'
-  },
-  2: {
-    spanish: {
-      author: 'Carlos Rodríguez',
-      role: 'Director de Marketing, InnovateLab',
-      body: 'La implementación de esta solución fue increíblemente suave. El equipo de soporte fue excepcional y los resultados superaron nuestras expectativas. Como empresa de marketing, necesitábamos una herramienta que nos permitiera gestionar múltiples campañas de manera eficiente. Esta plataforma no solo cumple esa expectativa, sino que también nos proporciona insights valiosos sobre el rendimiento de nuestras estrategias.',
-      imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face'
-    },
-    english: {
-      author: 'Carlos Rodríguez',
-      role: 'Marketing Director, InnovateLab',
-      body: 'The implementation of this solution was incredibly smooth. The support team was exceptional and the results exceeded our expectations. As a marketing company, we needed a tool that would allow us to manage multiple campaigns efficiently. This platform not only meets that expectation but also provides us with valuable insights into the performance of our strategies.',
-      imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face'
-    },
-    createdAt: '2024-01-14T14:30:00Z',
-    updatedAt: '2024-01-14T14:30:00Z'
-  },
-  3: {
-    spanish: {
-      author: 'Ana Martínez',
-      role: 'Fundadora, StartupHub',
-      body: 'Como startup, necesitábamos una herramienta que creciera con nosotros. Esta plataforma no solo cumple esa expectativa, sino que también nos ayuda a escalar de manera eficiente. La flexibilidad y la facilidad de uso nos han permitido enfocarnos en lo que realmente importa: hacer crecer nuestro negocio. Es una inversión que ha valido cada centavo.',
-      imageUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face'
-    },
-    english: {
-      author: 'Ana Martínez',
-      role: 'Founder, StartupHub',
-      body: 'As a startup, we needed a tool that would grow with us. This platform not only meets that expectation but also helps us scale efficiently. The flexibility and ease of use have allowed us to focus on what really matters: growing our business. It is an investment that has been worth every penny.',
-      imageUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face'
-    },
-    createdAt: '2024-01-13T09:15:00Z',
-    updatedAt: '2024-01-13T09:15:00Z'
-  }
-}
-
-interface FormData {
-  author: string
-  role: string
-  body: string
-  image: File | null
-}
-
-interface FormDataEnglish {
-  author: string
-  role: string
-  body: string
-  image: File | null
-}
+import { useTestimonialForm } from '@/hooks/useTestimonialForm'
+import { fileToBase64 } from '@/utils/testimonialFileUtils'
+import { validateTestimonialForm } from '@/utils/testimonialValidationUtils'
+import { createTestimonialInputHandler, createTestimonialImageHandlers, createTestimonialDragHandlers } from '@/utils/testimonialFormHandlers'
 
 export default function EditarTestimonioPage() {
   const params = useParams()
@@ -78,25 +16,20 @@ export default function EditarTestimonioPage() {
   
   const testimonialId = params.id as string
   
+  // Use testimonial form hook
+  const {
+    formData,
+    setFormData,
+    formDataEnglish,
+    setFormDataEnglish,
+    isEnglishMode,
+    setIsEnglishMode,
+    getCurrentFormData
+  } = useTestimonialForm()
+  
   // State
-  const [formData, setFormData] = useState<FormData>({
-    author: '',
-    role: '',
-    body: '',
-    image: null
-  })
-  
-  const [formDataEnglish, setFormDataEnglish] = useState<FormDataEnglish>({
-    author: '',
-    role: '',
-    body: '',
-    image: null
-  })
-  
-  const [originalData, setOriginalData] = useState<typeof mockTestimonialsData[keyof typeof mockTestimonialsData] | null>(null)
-  const [originalDataEnglish, setOriginalDataEnglish] = useState<typeof mockTestimonialsData[keyof typeof mockTestimonialsData]['english'] | null>(null)
-  
-  const [isEnglishMode, setIsEnglishMode] = useState(false)
+  const [testimonial, setTestimonial] = useState<any>(null)
+  const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null)
   const [isUpdating, setIsUpdating] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [isDragOver, setIsDragOver] = useState(false)
@@ -105,92 +38,79 @@ export default function EditarTestimonioPage() {
   useEffect(() => {
     const loadTestimonial = async () => {
       setIsLoading(true)
-      // Simulate API call
-      setTimeout(() => {
-        const data = mockTestimonialsData[parseInt(testimonialId) as keyof typeof mockTestimonialsData]
-        if (data) {
-          setOriginalData(data)
-          setOriginalDataEnglish(data.english)
-          
-          // Set form data
-          setFormData({
-            author: data.spanish.author,
-            role: data.spanish.role,
-            body: data.spanish.body,
-            image: null
-          })
-          
-          setFormDataEnglish({
-            author: data.english.author,
-            role: data.english.role,
-            body: data.english.body,
-            image: null
-          })
+      try {
+        const response = await fetch(`/api/testimonials/${testimonialId}`)
+        if (!response.ok) {
+          throw new Error('Failed to fetch testimonial')
         }
+        const data = await response.json()
+        setTestimonial(data)
+        setCurrentImageUrl(data.imageUrl) // Store the current image URL
+        
+        // Set form data
+        setFormData({
+          author: data.author,
+          role: data.role,
+          role_en: data.role_en || '',
+          body: data.body_es,
+          image: null
+        })
+        
+        setFormDataEnglish({
+          author: data.author,
+          role: data.role,
+          role_en: data.role_en || '',
+          body: data.body_en,
+          image: null
+        })
+      } catch (error) {
+        console.error('Error loading testimonial:', error)
+        // Use toast directly without dependency
+        toast.error('Error al cargar el testimonio')
+        setTestimonial(null)
+      } finally {
         setIsLoading(false)
-      }, 1000)
+      }
     }
     
     loadTestimonial()
-  }, [testimonialId])
+  }, [testimonialId]) // Remove toast dependency to prevent infinite loop
 
-  // Handle input changes
-  const handleInputChange = (field: keyof FormData, value: string) => {
-    if (isEnglishMode) {
-      setFormDataEnglish(prev => ({ ...prev, [field]: value }))
-    } else {
-      setFormData(prev => ({ ...prev, [field]: value }))
-    }
-  }
+  // Form handlers using utility functions
+  const handleInputChange = createTestimonialInputHandler(
+    isEnglishMode,
+    setFormData,
+    setFormDataEnglish
+  )
 
-  // Handle image upload
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      if (isEnglishMode) {
-        setFormDataEnglish(prev => ({ ...prev, image: file }))
-      } else {
-        setFormData(prev => ({ ...prev, image: file }))
-      }
-    }
-  }
+  const { handleImageUpload } = createTestimonialImageHandlers(
+    setFormData,
+    setFormDataEnglish
+  )
 
-  // Handle drag and drop
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragOver(false)
-    const files = Array.from(e.dataTransfer.files)
-    if (files.length > 0) {
-      const imageFile = files[0]
-      if (imageFile.type.startsWith('image/')) {
-        if (isEnglishMode) {
-          setFormDataEnglish(prev => ({ ...prev, image: imageFile }))
-        } else {
-          setFormData(prev => ({ ...prev, image: imageFile }))
-        }
-      }
-    }
-  }
-
-  // Get current form data based on language mode
-  const getCurrentFormData = () => isEnglishMode ? formDataEnglish : formData
+  const { handleDragOver, handleDragLeave, handleDrop } = createTestimonialDragHandlers(
+    setIsDragOver,
+    setFormData,
+    setFormDataEnglish
+  )
 
   // Check if there are changes
   const hasChanges = () => {
-    if (!originalData) return false
+    if (!testimonial) return false
     
     // Check changes in Spanish form
     const spanishChanges = 
-      formData.author !== originalData.spanish.author ||
-      formData.role !== originalData.spanish.role ||
-      formData.body !== originalData.spanish.body ||
+      formData.author !== testimonial.author ||
+      formData.role !== testimonial.role ||
+      formData.body !== testimonial.body_es ||
       formData.image !== null
     
     // Check changes in English form
     const englishChanges = 
-      formDataEnglish.author !== originalData.english.author ||
-      formDataEnglish.role !== originalData.english.role ||
-      formDataEnglish.body !== originalData.english.body ||
+      formDataEnglish.author !== testimonial.author ||
+      formDataEnglish.role !== testimonial.role ||
+      formDataEnglish.role_en !== testimonial.role_en ||
+      formDataEnglish.body !== testimonial.body_en ||
       formDataEnglish.image !== null
     
     return spanishChanges || englishChanges
@@ -198,24 +118,58 @@ export default function EditarTestimonioPage() {
 
   // Handle form submission
   const handleUpdate = async () => {
-    // Validate required fields in both languages
-    const spanishRequired = !formData.author || !formData.role || !formData.body
-    const englishRequired = !formDataEnglish.author || !formDataEnglish.role || !formDataEnglish.body
+    // Validate form using utility function
+    const validation = validateTestimonialForm(formData, formDataEnglish, isEnglishMode)
     
-    if (spanishRequired || englishRequired) {
-      toast.warning('Debes llenar todos los campos obligatorios tanto en español como en inglés')
+    if (!validation.isValid) {
+      toast.warning(validation.errorMessage!)
       return
     }
 
     setIsUpdating(true)
     
-    // Simulate API call
-    setTimeout(() => {
-      setIsUpdating(false)
+    try {
+      // Convert image to base64 if it's a File
+      let imageUrl = testimonial.imageUrl // Keep existing image by default
+      if (formData.image instanceof File) {
+        imageUrl = await fileToBase64(formData.image)
+      }
+      
+      // Prepare testimonial data
+      const testimonialData = {
+        author: formData.author,
+        role: formData.role,
+        role_en: formDataEnglish.role_en,
+        body_es: formData.body,
+        body_en: formDataEnglish.body,
+        imageUrl
+      }
+      
+      // Make API call
+      const response = await fetch(`/api/testimonials/${testimonialId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(testimonialData),
+      })
+      
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to update testimonial')
+      }
+      
+      // Show success toast
       const successMessage = isEnglishMode ? 'Testimonial updated successfully' : 'Testimonio actualizado exitosamente'
       toast.success(successMessage)
       router.push('/general/gestion/testimonios')
-    }, 2000)
+    } catch (error) {
+      console.error('Error updating testimonial:', error)
+      const errorMessage = isEnglishMode ? 'Failed to update testimonial' : 'Error al actualizar el testimonio'
+      toast.error(errorMessage)
+    } finally {
+      setIsUpdating(false)
+    }
   }
 
   // Translations
@@ -249,7 +203,7 @@ export default function EditarTestimonioPage() {
     )
   }
 
-  if (!originalData) {
+  if (!testimonial) {
     return (
       <div className="p-6">
         <div className="text-center py-12">
@@ -295,7 +249,7 @@ export default function EditarTestimonioPage() {
               />
             ) : (
               <img
-                src={isEnglishMode ? originalData.english.imageUrl : originalData.spanish.imageUrl}
+                src={currentImageUrl || ''}
                 alt="Current testimonial image"
                 className="w-full h-full object-cover"
               />
@@ -308,7 +262,7 @@ export default function EditarTestimonioPage() {
               {translations.editTestimonial}
             </h1>
             <p className="font-metropolis font-regular text-lg" style={{ color: '#4A739C' }}>
-              {isEnglishMode ? originalData.english.author : originalData.spanish.author}
+              {testimonial.author}
             </p>
           </div>
         </div>
@@ -385,8 +339,8 @@ export default function EditarTestimonioPage() {
                 </label>
                 <input
                   type="text"
-                  value={getCurrentFormData().role}
-                  onChange={(e) => handleInputChange('role', e.target.value)}
+                  value={isEnglishMode ? (getCurrentFormData().role_en || '') : (getCurrentFormData().role || '')}
+                  onChange={(e) => handleInputChange(isEnglishMode ? 'role_en' : 'role', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
                 />
               </div>
@@ -458,6 +412,22 @@ export default function EditarTestimonioPage() {
                     >
                       {isEnglishMode ? 'Remove' : 'Eliminar'}
                     </button>
+                  </div>
+                ) : currentImageUrl ? (
+                  <div className="space-y-3">
+                    <div className="w-24 h-24 mx-auto bg-gray-200 rounded-full overflow-hidden">
+                      <img
+                        src={currentImageUrl}
+                        alt="Current profile image"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <p className="text-sm font-metropolis font-medium text-[#0D141C]">
+                      Imagen actual
+                    </p>
+                    <p className="text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
+                      {translations.dragDropImage}
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-3">
