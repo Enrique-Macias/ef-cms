@@ -14,7 +14,7 @@ export default function VerTestimonioPage() {
   const testimonialId = params.id as string
   
   // State
-  const [testimonial, setTestimonial] = useState<any>(null)
+  const [testimonial, setTestimonial] = useState<Record<string, unknown> | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -144,8 +144,8 @@ export default function VerTestimonioPage() {
           {/* Testimonial Image */}
           <div className="w-20 h-20 bg-gray-200 rounded-full overflow-hidden">
             <Image
-              src={currentTestimonial.imageUrl}
-              alt={currentTestimonial.author}
+              src={String(currentTestimonial.imageUrl)}
+              alt={String(currentTestimonial.author)}
               width={80}
               height={80}
               className="w-full h-full object-cover"
@@ -155,12 +155,12 @@ export default function VerTestimonioPage() {
           {/* Testimonial Info */}
           <div>
             <h1 className="font-metropolis font-bold text-3xl mb-2" style={{ color: '#0D141C' }}>
-              {currentTestimonial.author}
+              {String(currentTestimonial.author)}
             </h1>
             <div className="flex items-center space-x-4 text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
-              <span>{currentTestimonial.role}</span>
+              <span>{String(currentTestimonial.role)}</span>
               <span>•</span>
-              <span>{formatDate(testimonial.createdAt)}</span>
+              <span>{formatDate(String(testimonial.createdAt))}</span>
             </div>
           </div>
         </div>
@@ -224,7 +224,7 @@ export default function VerTestimonioPage() {
               {isEnglishMode ? 'Testimonial' : 'Testimonio'}
             </h2>
             <div className="prose max-w-none">
-              {currentTestimonial.body ? currentTestimonial.body.split('\n').map((paragraph: string, index: number) => (
+              {currentTestimonial.body ? String(currentTestimonial.body).split('\n').map((paragraph: string, index: number) => (
                 <p key={index} className="text-base font-metropolis font-regular mb-4" style={{ color: '#4A739C' }}>
                   {paragraph}
                 </p>
@@ -252,7 +252,7 @@ export default function VerTestimonioPage() {
                 <div>
                   <p className="text-sm font-metropolis font-medium text-[#0D141C]">{isEnglishMode ? 'Date' : 'Fecha'}</p>
                   <p className="text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
-                    {formatDate(testimonial.createdAt)}
+                    {formatDate(String(testimonial.createdAt))}
                   </p>
                 </div>
               </div>
@@ -264,7 +264,7 @@ export default function VerTestimonioPage() {
                 <div>
                   <p className="text-sm font-metropolis font-medium text-[#0D141C]">{isEnglishMode ? 'Author' : 'Autor'}</p>
                   <p className="text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
-                    {currentTestimonial.author}
+                    {String(currentTestimonial.author)}
                   </p>
                 </div>
               </div>
@@ -276,7 +276,7 @@ export default function VerTestimonioPage() {
                 <div>
                   <p className="text-sm font-metropolis font-medium text-[#0D141C]">{isEnglishMode ? 'Role' : 'Cargo'}</p>
                   <p className="text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
-                    {currentTestimonial.role}
+                    {String(currentTestimonial.role)}
                   </p>
                 </div>
               </div>
@@ -290,10 +290,10 @@ export default function VerTestimonioPage() {
             </h3>
             <div className="space-y-3 text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
               <div>
-                <span className="font-medium">{isEnglishMode ? 'Created:' : 'Creado:'}</span> {formatDate(testimonial.createdAt)}
+                <span className="font-medium">{isEnglishMode ? 'Created:' : 'Creado:'}</span> {formatDate(String(testimonial.createdAt))}
               </div>
               <div>
-                <span className="font-medium">{isEnglishMode ? 'Updated:' : 'Actualizado:'}</span> {formatDate(testimonial.updatedAt)}
+                <span className="font-medium">{isEnglishMode ? 'Updated:' : 'Actualizado:'}</span> {formatDate(String(testimonial.updatedAt))}
               </div>
             </div>
           </div>
@@ -330,10 +330,10 @@ export default function VerTestimonioPage() {
               {/* Testimonial info */}
               <div className="bg-gray-50 rounded-lg p-4 mb-6">
                 <p className="text-sm font-metropolis font-medium text-[#0D141C]">
-                  {currentTestimonial.author}
+                  {String(currentTestimonial.author)}
                 </p>
                 <p className="text-sm font-metropolis font-regular text-[#4A739C]">
-                  {currentTestimonial.role}
+                  {String(currentTestimonial.role)}
                 </p>
               </div>
             </div>

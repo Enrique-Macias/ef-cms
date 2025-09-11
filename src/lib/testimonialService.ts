@@ -4,6 +4,7 @@ export interface Testimonial {
   id: number
   author: string
   role: string
+  role_en: string
   body_es: string
   body_en: string
   imageUrl: string
@@ -14,6 +15,7 @@ export interface Testimonial {
 export interface CreateTestimonialData {
   author: string
   role: string
+  role_en: string
   body_es: string
   body_en: string
   imageUrl: string
@@ -22,6 +24,7 @@ export interface CreateTestimonialData {
 export interface UpdateTestimonialData {
   author?: string
   role?: string
+  role_en?: string
   body_es?: string
   body_en?: string
   imageUrl?: string

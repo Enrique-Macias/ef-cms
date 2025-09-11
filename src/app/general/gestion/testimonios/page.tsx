@@ -11,8 +11,8 @@ export default function TestimoniosPage() {
   const toast = useToast()
   
   // State
-  const [testimonials, setTestimonials] = useState<any[]>([])
-  const [filteredTestimonials, setFilteredTestimonials] = useState<any[]>([])
+  const [testimonials, setTestimonials] = useState<Record<string, unknown>[]>([])
+  const [filteredTestimonials, setFilteredTestimonials] = useState<Record<string, unknown>[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [dateFilter, setDateFilter] = useState<string | null>(null)
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false)
@@ -57,10 +57,10 @@ export default function TestimoniosPage() {
     // Search filter
     if (searchTerm) {
       filtered = filtered.filter(testimonial =>
-        testimonial.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        testimonial.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (testimonial.body_es && testimonial.body_es.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (testimonial.body_en && testimonial.body_en.toLowerCase().includes(searchTerm.toLowerCase()))
+        String(testimonial.author).toLowerCase().includes(searchTerm.toLowerCase()) ||
+        String(testimonial.role).toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (testimonial.body_es && String(testimonial.body_es).toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (testimonial.body_en && String(testimonial.body_en).toLowerCase().includes(searchTerm.toLowerCase()))
       )
     }
 
@@ -70,7 +70,7 @@ export default function TestimoniosPage() {
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
       
       filtered = filtered.filter(testimonial => {
-        const testimonialDate = new Date(testimonial.createdAt)
+        const testimonialDate = new Date(String(testimonial.createdAt))
         const testimonialDay = new Date(testimonialDate.getFullYear(), testimonialDate.getMonth(), testimonialDate.getDate())
         
         switch (dateFilter) {
@@ -292,12 +292,12 @@ export default function TestimoniosPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {currentTestimonials.map((testimonial) => (
-              <div key={testimonial.id} className="bg-white border rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow cursor-pointer" style={{ borderColor: '#CFDBE8' }} onClick={() => router.push(`/general/gestion/testimonios/ver/${testimonial.id}`)}>
+              <div key={String(testimonial.id)} className="bg-white border rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow cursor-pointer" style={{ borderColor: '#CFDBE8' }} onClick={() => router.push(`/general/gestion/testimonios/ver/${testimonial.id}`)}>
                 {/* Testimonial Image */}
                 <div className="relative">
                   <Image
-                    src={testimonial.imageUrl}
-                    alt={testimonial.author}
+                    src={String(testimonial.imageUrl)}
+                    alt={String(testimonial.author)}
                     width={400}
                     height={192}
                     className="w-full h-48 object-cover"
@@ -307,21 +307,21 @@ export default function TestimoniosPage() {
                 {/* Testimonial Content */}
                 <div className="p-4">
                   <h3 className="font-metropolis font-bold text-lg mb-2" style={{ color: '#0D141C' }}>
-                    {testimonial.author}
+                    {String(testimonial.author)}
                   </h3>
                   <p className="font-metropolis font-regular text-sm mb-3" style={{ color: '#4A739C' }}>
-                    {testimonial.role}
+                    {String(testimonial.role)}
                   </p>
                   <p className="font-metropolis font-regular text-sm mb-3" style={{ color: '#4A739C' }}>
-                    {testimonial.body_es && testimonial.body_es.length > 120 
-                      ? `${testimonial.body_es.substring(0, 120)}...` 
-                      : testimonial.body_es || 'Sin contenido'
+                    {testimonial.body_es && String(testimonial.body_es).length > 120 
+                      ? `${String(testimonial.body_es).substring(0, 120)}...` 
+                      : String(testimonial.body_es) || 'Sin contenido'
                     }
                   </p>
                   
                   {/* Testimonial Meta */}
                   <div className="flex items-center justify-between text-xs" style={{ color: '#4A739C' }}>
-                    <span className="font-metropolis font-regular">{formatDate(testimonial.createdAt)}</span>
+                    <span className="font-metropolis font-regular">{formatDate(String(testimonial.createdAt))}</span>
                   </div>
                 </div>
               </div>

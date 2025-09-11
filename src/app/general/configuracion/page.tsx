@@ -168,7 +168,7 @@ export default function ConfiguracionPage() {
     
     try {
       // Prepare update data
-      const updateData: any = {}
+      const updateData: Record<string, unknown> = {}
       if (formData.name !== user?.fullName) {
         updateData.fullName = formData.name
       }

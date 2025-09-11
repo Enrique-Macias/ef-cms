@@ -29,7 +29,7 @@ export default function EditarTestimonioPage() {
   } = useTestimonialForm()
   
   // State
-  const [testimonial, setTestimonial] = useState<any>(null)
+  const [testimonial, setTestimonial] = useState<Record<string, unknown> | null>(null)
   const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null)
   const [isUpdating, setIsUpdating] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -131,7 +131,7 @@ export default function EditarTestimonioPage() {
     
     try {
       // Convert image to base64 if it's a File
-      let imageUrl = testimonial.imageUrl // Keep existing image by default
+      let imageUrl = testimonial?.imageUrl // Keep existing image by default
       if (formData.image instanceof File) {
         imageUrl = await fileToBase64(formData.image)
       }
@@ -267,7 +267,7 @@ export default function EditarTestimonioPage() {
               {translations.editTestimonial}
             </h1>
             <p className="font-metropolis font-regular text-lg" style={{ color: '#4A739C' }}>
-              {testimonial.author}
+              {String(testimonial?.author)}
             </p>
           </div>
         </div>

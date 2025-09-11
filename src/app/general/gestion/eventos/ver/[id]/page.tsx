@@ -432,7 +432,7 @@ export default function VerEventoPage() {
             </h3>
             <div className="text-center">
               <p className="text-lg font-metropolis font-medium italic" style={{ color: '#5A6F80' }}>
-                "{isEnglishMode ? event.phrase_en : event.phrase}"
+                &ldquo;{isEnglishMode ? event.phrase_en : event.phrase}&rdquo;
               </p>
             </div>
           </div>

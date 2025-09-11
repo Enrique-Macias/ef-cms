@@ -127,9 +127,10 @@ export default function VerNoticiaPage() {
       setIsDeleteModalOpen(false)
       toast.success('Noticia eliminada exitosamente')
       router.push('/general/gestion/noticias')
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting news:', error)
-      toast.error(error.message || 'Error al eliminar noticia')
+      const errorMessage = error instanceof Error ? error.message : 'Error al eliminar noticia'
+      toast.error(errorMessage)
     } finally {
       setIsDeleting(false)
     }

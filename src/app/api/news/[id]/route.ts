@@ -148,7 +148,7 @@ export async function PUT(
     if (body.tags_en !== undefined) updateData.tags_en = body.tags_en
     if (processedNewsImages.length > 0) updateData.newsImages = processedNewsImages
 
-    const news = await updateNews(newsId, updateData)
+    const news = await updateNews(newsId, { ...updateData, id: newsId })
 
     return NextResponse.json({
       message: 'News updated successfully',

@@ -12,7 +12,7 @@ export default function NoticiasPage() {
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
-  const [news, setNews] = useState<any[]>([])
+  const [news, setNews] = useState<Record<string, unknown>[]>([])
   const [totalPages, setTotalPages] = useState(1)
   const [totalNews, setTotalNews] = useState(0)
   const itemsPerPage = 8
@@ -223,14 +223,14 @@ export default function NoticiasPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {news.map((item: any) => (
-              <Link key={item.id} href={`/general/gestion/noticias/ver/${item.id}`}>
+            {news.map((item: Record<string, unknown>) => (
+              <Link key={String(item.id)} href={`/general/gestion/noticias/ver/${item.id}`}>
                 <div className="bg-white border rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow cursor-pointer" style={{ borderColor: '#CFDBE8' }}>
                   {/* News Image */}
                   <div className="relative">
                     <Image
-                      src={item.coverImageUrl || 'https://images.unsplash.com/photo-1495020689067-958852a6c2c8?w=400&h=250&fit=crop&crop=center'}
-                      alt={item.title_es}
+                      src={String(item.coverImageUrl) || 'https://images.unsplash.com/photo-1495020689067-958852a6c2c8?w=400&h=250&fit=crop&crop=center'}
+                      alt={String(item.title_es)}
                       width={400}
                       height={192}
                       className="w-full h-48 object-cover"
@@ -240,24 +240,24 @@ export default function NoticiasPage() {
                   {/* News Content */}
                   <div className="p-4">
                     <h3 className="font-metropolis font-bold text-lg mb-2" style={{ color: '#0D141C' }}>
-                      {item.title_es}
+                      {String(item.title_es)}
                     </h3>
                     <p className="font-metropolis font-regular text-sm mb-3" style={{ color: '#4A739C' }}>
-                      {item.body_es.length > 150 ? `${item.body_es.substring(0, 150)}...` : item.body_es}
+                      {String(item.body_es).length > 150 ? `${String(item.body_es).substring(0, 150)}...` : String(item.body_es)}
                     </p>
                     
                     {/* News Meta */}
                     <div className="flex items-center justify-between text-xs" style={{ color: '#4A739C' }}>
                       <span className="font-metropolis font-regular">{(() => {
-                        const categories = item.category ? item.category.split(', ') : []
+                        const categories = item.category ? String(item.category).split(', ') : []
                         if (categories.length <= 2) {
-                          return item.category
+                          return String(item.category)
                         } else {
                           return categories.slice(0, 2).join(', ') + '...'
                         }
                       })()}</span>
                       <span className="font-metropolis font-regular">{(() => {
-                      const formatted = new Date(item.date).toLocaleDateString('es-ES', {
+                      const formatted = new Date(String(item.date)).toLocaleDateString('es-ES', {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric'

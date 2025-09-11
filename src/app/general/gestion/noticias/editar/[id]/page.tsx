@@ -96,7 +96,7 @@ export default function EditarNoticiaPage() {
           coverImage: data.news.coverImageUrl || null,
           publicationDate: data.news.date.split('T')[0],
           description: data.news.body_es,
-          images: (data.news.newsImages || []).map((img: any) => img.imageUrl),
+          images: (data.news.newsImages || []).map((img: Record<string, unknown>) => img.imageUrl),
           categories: data.news.category ? data.news.category.split(', ').filter((cat: string) => cat.trim()) : [],
           tags: data.news.tags || [],
           location_city: data.news.location_city || '',
@@ -109,7 +109,7 @@ export default function EditarNoticiaPage() {
           coverImage: data.news.coverImageUrl || null,
           publicationDate: data.news.date.split('T')[0],
           description: data.news.body_en,
-          images: (data.news.newsImages || []).map((img: any) => img.imageUrl),
+          images: (data.news.newsImages || []).map((img: Record<string, unknown>) => img.imageUrl),
           categories: (data.news.category_en || data.news.category) ? (data.news.category_en || data.news.category).split(', ').filter((cat: string) => cat.trim()) : [],
           tags: data.news.tags_en || [],
           location_city: data.news.location_city || '',
@@ -494,9 +494,10 @@ export default function EditarNoticiaPage() {
       const successMessage = isEnglishMode ? 'News updated successfully' : 'Noticia actualizada exitosamente'
       toast.success(successMessage)
       router.push('/general/gestion/noticias')
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating news:', error)
-      toast.error(error.message || 'Error al actualizar noticia')
+      const errorMessage = error instanceof Error ? error.message : 'Error al actualizar noticia'
+      toast.error(errorMessage)
     } finally {
       setIsUpdating(false)
     }
@@ -520,9 +521,10 @@ export default function EditarNoticiaPage() {
       const successMessage = isEnglishMode ? 'News deleted successfully' : 'Noticia eliminada exitosamente'
       toast.success(successMessage)
       router.push('/general/gestion/noticias')
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting news:', error)
-      toast.error(error.message || 'Error al eliminar noticia')
+      const errorMessage = error instanceof Error ? error.message : 'Error al eliminar noticia'
+      toast.error(errorMessage)
     } finally {
       setIsDeleting(false)
     }

@@ -99,7 +99,7 @@ export default function EditarEventoPage() {
             coverImage: eventData.coverImageUrl || null,
             eventDate: eventData.date.split('T')[0], // Convert to YYYY-MM-DD format
             description: eventData.body_es,
-            images: eventData.eventImages ? eventData.eventImages.map((img: any) => img.imageUrl) : [],
+            images: eventData.eventImages ? eventData.eventImages.map((img: Record<string, unknown>) => img.imageUrl) : [],
             categories: eventData.category ? eventData.category.split(', ').filter((cat: string) => cat.trim()) : [],
             tags: eventData.tags,
             phrase: eventData.phrase || '',
@@ -115,7 +115,7 @@ export default function EditarEventoPage() {
             coverImage: eventData.coverImageUrl || null,
             eventDate: eventData.date.split('T')[0], // Convert to YYYY-MM-DD format
             description: eventData.body_en,
-            images: eventData.eventImages ? eventData.eventImages.map((img: any) => img.imageUrl) : [],
+            images: eventData.eventImages ? eventData.eventImages.map((img: Record<string, unknown>) => img.imageUrl) : [],
             categories: (eventData.category_en || eventData.category) ? (eventData.category_en || eventData.category).split(', ').filter((cat: string) => cat.trim()) : [],
             tags: eventData.tags_en,
             phrase: eventData.phrase_en || '',
@@ -154,7 +154,7 @@ export default function EditarEventoPage() {
       JSON.stringify(formData.categories) !== JSON.stringify([originalData.category]) ||
       JSON.stringify(formData.tags) !== JSON.stringify(originalData.tags) ||
       (formData.coverImage instanceof File ? true : formData.coverImage !== originalData.coverImageUrl) ||
-      JSON.stringify(formData.images) !== JSON.stringify(originalData.eventImages ? originalData.eventImages.map((img: any) => img.imageUrl) : [])
+      JSON.stringify(formData.images) !== JSON.stringify(originalData.eventImages ? originalData.eventImages.map((img: Record<string, unknown>) => img.imageUrl) : [])
     
     // Check changes in English form
     const englishChanges = 
@@ -169,7 +169,7 @@ export default function EditarEventoPage() {
       JSON.stringify(formDataEnglish.categories) !== JSON.stringify([originalData.category_en]) ||
       JSON.stringify(formDataEnglish.tags) !== JSON.stringify(originalData.tags_en) ||
       (formDataEnglish.coverImage instanceof File ? true : formDataEnglish.coverImage !== originalData.coverImageUrl) ||
-      JSON.stringify(formDataEnglish.images) !== JSON.stringify(originalData.eventImages ? originalData.eventImages.map((img: any) => img.imageUrl) : [])
+      JSON.stringify(formDataEnglish.images) !== JSON.stringify(originalData.eventImages ? originalData.eventImages.map((img: Record<string, unknown>) => img.imageUrl) : [])
     
     return spanishChanges || englishChanges
   }

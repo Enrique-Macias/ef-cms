@@ -150,9 +150,10 @@ export default function AgregarNoticiaPage() {
       toast.success(successMessage)
       // Redirect to news listing page
       router.push('/general/gestion/noticias')
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating news:', error)
-      toast.error(error.message || 'Error al crear noticia')
+      const errorMessage = error instanceof Error ? error.message : 'Error al crear noticia'
+      toast.error(errorMessage)
     } finally {
       setIsPublishing(false)
     }

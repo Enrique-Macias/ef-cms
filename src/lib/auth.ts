@@ -4,8 +4,8 @@ import { User } from '../generated/prisma';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'default-secret';
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'default-refresh-secret';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '15m';
-const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
+const JWT_EXPIRES_IN: string = process.env.JWT_EXPIRES_IN || '15m';
+const JWT_REFRESH_EXPIRES_IN: string = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
 const BCRYPT_ROUNDS = parseInt(process.env.BCRYPT_ROUNDS || '12');
 
 export interface JWTPayload {
@@ -36,7 +36,7 @@ export const generateAccessToken = (user: User): string => {
     role: user.role,
   };
   
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN } as Record<string, unknown>);
 };
 
 export const generateRefreshToken = (userId: number, tokenId: number): string => {
@@ -45,7 +45,7 @@ export const generateRefreshToken = (userId: number, tokenId: number): string =>
     tokenId,
   };
   
-  return jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn: JWT_REFRESH_EXPIRES_IN });
+  return jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn: JWT_REFRESH_EXPIRES_IN } as Record<string, unknown>);
 };
 
 // JWT token verification
