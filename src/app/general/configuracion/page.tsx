@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
+import Image from 'next/image'
 
 export default function ConfiguracionPage() {
   const { user, updateUser } = useAuth()
@@ -281,9 +282,11 @@ export default function ConfiguracionPage() {
             {/* Profile Overview */}
             <div className="text-left mb-8 pl-6">
               <div className="relative inline-block">
-                <img
+                <Image
                   src={formData.avatar || userData.avatar}
                   alt={userData.name}
+                  width={128}
+                  height={128}
                   className="h-32 w-32 rounded-full mb-4 border-4 border-white shadow-lg"
                 />
                 {/* Edit icon - Click to open avatar selection modal */}
@@ -413,9 +416,11 @@ export default function ConfiguracionPage() {
                     Cambiar Avatar
                   </label>
                   <div className="flex items-center space-x-4">
-                    <img
+                    <Image
                       src={formData.avatar || userData.avatar}
                       alt="Avatar preview"
+                      width={64}
+                      height={64}
                       className="h-16 w-16 rounded-full border-2 border-gray-200"
                     />
                     <div className="flex space-x-2">
@@ -520,9 +525,11 @@ export default function ConfiguracionPage() {
                     className="flex flex-col items-center cursor-pointer hover:scale-105 transition-transform"
                     onClick={() => handleAvatarSelect(avatar.url)}
                   >
-                    <img
+                    <Image
                       src={avatar.url}
                       alt={`Avatar ${avatar.id}`}
+                      width={64}
+                      height={64}
                       className="w-16 h-16 rounded-full border-2 border-gray-200"
                     />
                   </div>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
 
@@ -227,9 +228,11 @@ export default function NoticiasPage() {
                 <div className="bg-white border rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow cursor-pointer" style={{ borderColor: '#CFDBE8' }}>
                   {/* News Image */}
                   <div className="relative">
-                    <img
+                    <Image
                       src={item.coverImageUrl || 'https://images.unsplash.com/photo-1495020689067-958852a6c2c8?w=400&h=250&fit=crop&crop=center'}
                       alt={item.title_es}
+                      width={400}
+                      height={192}
                       className="w-full h-48 object-cover"
                     />
                   </div>

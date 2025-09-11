@@ -79,10 +79,10 @@ export const emailTemplates = {
 export const sendEmail = async (
   to: string,
   template: keyof typeof emailTemplates,
-  ...args: any[]
+  ...args: unknown[]
 ): Promise<boolean> => {
   try {
-    const emailContent = (emailTemplates[template] as any)(...args);
+    const emailContent = (emailTemplates[template] as (...args: unknown[]) => { subject: string; html: string })(...args);
     
     const mailOptions = {
       from: process.env.SMTP_FROM,

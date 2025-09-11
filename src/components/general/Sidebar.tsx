@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { 
@@ -126,9 +127,11 @@ export function Sidebar() {
               <div className="px-4 mb-6">
                 <div className="flex items-center space-x-3">
                   <div className="flex-shrink-0">
-                    <img
+                    <Image
                       src={user.avatarUrl || `https://avatar.iran.liara.run/username?username=${encodeURIComponent(user.fullName)}`}
                       alt={`Avatar de ${user.fullName}`}
+                      width={40}
+                      height={40}
                       className="h-10 w-10 rounded-full object-cover"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
 
@@ -156,9 +157,11 @@ export default function VerArticuloPage() {
         <div className="flex items-center space-x-4 mb-4 lg:mb-0">
           {/* Article Image */}
           <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden">
-            <img
+            <Image
               src={article.imageUrl}
               alt={article.title}
+              width={80}
+              height={80}
               className="w-full h-full object-cover"
             />
           </div>
@@ -236,9 +239,11 @@ export default function VerArticuloPage() {
           {/* Cover Image */}
           <div className="bg-white border rounded-lg shadow-lg overflow-hidden" style={{ borderColor: '#CFDBE8' }}>
             <div className="relative h-80 bg-gray-200">
-              <img
+              <Image
                 src={article.imageUrl}
                 alt={article.title}
+                width={800}
+                height={320}
                 className="w-full h-full object-cover"
               />
             </div>

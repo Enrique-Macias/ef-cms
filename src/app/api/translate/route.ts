@@ -21,10 +21,11 @@ export async function POST(request: NextRequest) {
       const translation = await deeplService.translateText(text, targetLang, sourceLang)
       return NextResponse.json({ translation })
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Translation API error:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Translation failed'
     return NextResponse.json(
-      { error: error.message || 'Translation failed' },
+      { error: errorMessage },
       { status: 500 }
     )
   }

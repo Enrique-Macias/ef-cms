@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
 import { useTestimonialForm } from '@/hooks/useTestimonialForm'
@@ -119,7 +120,7 @@ export default function EditarTestimonioPage() {
   // Handle form submission
   const handleUpdate = async () => {
     // Validate form using utility function
-    const validation = validateTestimonialForm(formData, formDataEnglish, isEnglishMode)
+    const validation = validateTestimonialForm(formData, formDataEnglish)
     
     if (!validation.isValid) {
       toast.warning(validation.errorMessage!)
@@ -242,15 +243,19 @@ export default function EditarTestimonioPage() {
           {/* Testimonial Image */}
           <div className="w-20 h-20 bg-gray-200 rounded-full overflow-hidden">
             {getCurrentFormData().image ? (
-              <img
+              <Image
                 src={URL.createObjectURL(getCurrentFormData().image!)}
                 alt="Testimonial cover preview"
+                width={80}
+                height={80}
                 className="w-full h-full object-cover"
               />
             ) : (
-              <img
+              <Image
                 src={currentImageUrl || ''}
                 alt="Current testimonial image"
+                width={80}
+                height={80}
                 className="w-full h-full object-cover"
               />
             )}
@@ -390,9 +395,11 @@ export default function EditarTestimonioPage() {
                 {getCurrentFormData().image ? (
                   <div className="space-y-3">
                     <div className="w-24 h-24 mx-auto bg-gray-200 rounded-full overflow-hidden">
-                      <img
+                      <Image
                         src={URL.createObjectURL(getCurrentFormData().image!)}
                         alt="Profile preview"
+                        width={96}
+                        height={96}
                         className="w-full h-full object-cover"
                       />
                     </div>
@@ -416,9 +423,11 @@ export default function EditarTestimonioPage() {
                 ) : currentImageUrl ? (
                   <div className="space-y-3">
                     <div className="w-24 h-24 mx-auto bg-gray-200 rounded-full overflow-hidden">
-                      <img
+                      <Image
                         src={currentImageUrl}
                         alt="Current profile image"
+                        width={96}
+                        height={96}
                         className="w-full h-full object-cover"
                       />
                     </div>

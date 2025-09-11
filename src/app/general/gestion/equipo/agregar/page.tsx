@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
 
@@ -317,9 +318,11 @@ export default function AgregarEquipoPage() {
                 {getCurrentFormData().image ? (
                   <div className="space-y-3">
                     <div className="w-24 h-24 mx-auto bg-gray-200 rounded-full overflow-hidden">
-                      <img
+                      <Image
                         src={URL.createObjectURL(getCurrentFormData().image!)}
                         alt="Profile preview"
+                        width={96}
+                        height={96}
                         className="w-full h-full object-cover"
                       />
                     </div>

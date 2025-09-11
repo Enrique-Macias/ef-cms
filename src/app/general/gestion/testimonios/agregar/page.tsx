@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
 import { useTestimonialForm } from '@/hooks/useTestimonialForm'
@@ -64,7 +65,7 @@ export default function AgregarTestimonioPage() {
   // Handle form submission
   const handleSubmit = async () => {
     // Validate form using utility function
-    const validation = validateTestimonialForm(formData, formDataEnglish, isEnglishMode)
+    const validation = validateTestimonialForm(formData, formDataEnglish)
     
     if (!validation.isValid) {
       toast.warning(validation.errorMessage!)
@@ -167,9 +168,11 @@ export default function AgregarTestimonioPage() {
           {/* Preview Image */}
           <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden">
             {getCurrentFormData().image ? (
-              <img
+              <Image
                 src={getImageSrc(getCurrentFormData().image)!}
                 alt="Preview"
+                width={64}
+                height={64}
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -353,9 +356,11 @@ export default function AgregarTestimonioPage() {
                 {getCurrentFormData().image ? (
                   <div className="space-y-3">
                     <div className="w-24 h-24 mx-auto bg-gray-200 rounded-full overflow-hidden">
-                      <img
+                      <Image
                         src={getImageSrc(getCurrentFormData().image)!}
                         alt="Profile preview"
+                        width={96}
+                        height={96}
                         className="w-full h-full object-cover"
                       />
                     </div>

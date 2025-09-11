@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { uploadImageFromBase64, extractPublicId } from '@/lib/cloudinary'
+import { uploadImageFromBase64 } from '@/lib/cloudinary'
 
 export async function POST(request: NextRequest) {
   try {
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Handle event images upload to Cloudinary
-    let eventImages = []
+    const eventImages = []
     if (body.images && Array.isArray(body.images)) {
       for (const image of body.images) {
         if (image.startsWith('data:image')) {
@@ -115,7 +115,7 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit
 
     // Build where clause
-    const where: any = {}
+    const where: Record<string, unknown> = {}
     
     if (search) {
       where.OR = [

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
 import { useEventForm } from '@/hooks/useEventForm'
@@ -268,9 +269,11 @@ export default function AgregarEventoPage() {
           {/* Preview Image */}
           <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden">
             {getCurrentFormData.coverImage ? (
-              <img
+              <Image
                 src={getImageSrc(getCurrentFormData.coverImage)!}
                 alt="Preview"
+                width={64}
+                height={64}
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -427,9 +430,11 @@ export default function AgregarEventoPage() {
                 {/* Image Preview */}
                 <div className="w-32 h-24 bg-gray-200 rounded-lg overflow-hidden">
                   {getCurrentFormData.coverImage ? (
-                    <img
+                    <Image
                       src={getImageSrc(getCurrentFormData.coverImage)!}
                       alt="Cover preview"
+                      width={128}
+                      height={96}
                       className="w-full h-full object-cover"
                     />
                   ) : (
@@ -622,9 +627,11 @@ export default function AgregarEventoPage() {
               <div className="mt-4 grid grid-cols-2 md:grid-cols-5 gap-3">
                 {getCurrentFormData.images.map((image: File, index: number) => (
                   <div key={index} className="relative">
-                    <img
+                    <Image
                       src={getImageSrc(image)!}
                       alt={`Uploaded ${index + 1}`}
+                      width={120}
+                      height={80}
                       className="w-full h-20 object-cover rounded-lg"
                     />
                     <button

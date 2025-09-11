@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { useAuth } from '@/contexts/AuthContext'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
@@ -11,21 +12,29 @@ export default function UsuariosPage() {
   const [searchText, setSearchText] = useState('')
   const [isRoleMenuOpen, setIsRoleMenuOpen] = useState(false)
   const [isEditUserModalOpen, setIsEditUserModalOpen] = useState(false)
-  const [editingUser, setEditingUser] = useState<any>(null)
+  const [editingUser, setEditingUser] = useState<Record<string, unknown> | null>(null)
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
-  const [deletingUser, setDeletingUser] = useState<any>(null)
+  const [deletingUser, setDeletingUser] = useState<Record<string, unknown> | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
-  const [users, setUsers] = useState<any[]>([])
+  const [users, setUsers] = useState<Record<string, unknown>[]>([])
   const [userStats, setUserStats] = useState({ total: 0, admins: 0, editors: 0 })
   const [totalPages, setTotalPages] = useState(1)
   const [totalUsers, setTotalUsers] = useState(0)
   const itemsPerPage = 5
   
   const toast = useToast()
+
+  // Load data on component mount and when filters change
+  useEffect(() => {
+    if (user) {
+      fetchUsers()
+      fetchUserStats()
+    }
+  }, [currentPage, searchText, roleFilter, user])
 
   // Show loading state if user is not loaded
   if (!user) {
@@ -103,12 +112,6 @@ export default function UsuariosPage() {
       console.error('Error fetching user stats:', error)
     }
   }
-
-  // Load data on component mount and when filters change
-  useEffect(() => {
-    fetchUsers()
-    fetchUserStats()
-  }, [currentPage, searchText, roleFilter])
 
   // Reset to first page when filters change
   const handleSearch = (text: string) => {
@@ -308,13 +311,15 @@ export default function UsuariosPage() {
                   </td>
                 </tr>
               ) : (
-                users.map((user: any) => (
-                  <tr key={user.id}>
+                users.map((user: Record<string, unknown>) => (
+                  <tr key={String(user.id)}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <img 
-                          src={user.avatarUrl || `https://avatar.iran.liara.run/username?username=${encodeURIComponent(user.fullName)}`}
-                          alt={`Avatar de ${user.fullName}`}
+                        <Image 
+                          src={user.avatarUrl && user.avatarUrl !== 'null' ? String(user.avatarUrl) : `https://avatar.iran.liara.run/username?username=${encodeURIComponent(String(user.fullName))}`}
+                          alt={`Avatar de ${String(user.fullName)}`}
+                          width={32}
+                          height={32}
                           className="h-8 w-8 rounded-full object-cover"
                           onError={(e) => {
                             // Fallback to initials if image fails to load
@@ -328,15 +333,15 @@ export default function UsuariosPage() {
                           className="h-8 w-8 rounded-full bg-[#5A6F80] flex items-center justify-center text-white text-sm font-medium hidden"
                           style={{ display: 'none' }}
                         >
-                          {user.fullName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)}
+                          {String(user.fullName).split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)}
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-base font-metropolis font-regular" style={{ color: '#0D141C' }}>
-                      {user.fullName}
+                      {String(user.fullName)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-base font-metropolis font-regular" style={{ color: '#4A739C' }}>
-                      {user.email}
+                      {String(user.email)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-sm font-metropolis font-regular rounded-full ${
@@ -555,8 +560,8 @@ export default function UsuariosPage() {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="text-lg font-metropolis font-bold text-[#0D141C]">{editingUser.fullName}</h3>
-                  <p className="text-sm font-metropolis font-regular text-[#4A739C]">{editingUser.email}</p>
+                  <h3 className="text-lg font-metropolis font-bold text-[#0D141C]">{String(editingUser.fullName)}</h3>
+                  <p className="text-sm font-metropolis font-regular text-[#4A739C]">{String(editingUser.email)}</p>
                 </div>
               </div>
               <button
@@ -578,7 +583,7 @@ export default function UsuariosPage() {
                 <input
                   name="fullName"
                   type="text"
-                  defaultValue={editingUser.fullName}
+                  defaultValue={String(editingUser.fullName)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
                 />
               </div>
@@ -590,7 +595,7 @@ export default function UsuariosPage() {
                 <input
                   name="email"
                   type="email"
-                  defaultValue={editingUser.email}
+                  defaultValue={String(editingUser.email)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
                 />
               </div>
@@ -601,7 +606,7 @@ export default function UsuariosPage() {
                 </label>
                 <select 
                   name="role"
-                  defaultValue={editingUser.role}
+                  defaultValue={String(editingUser.role)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent">
                   <option value="ADMIN">Admin</option>
                   <option value="EDITOR">Editor</option>
@@ -642,9 +647,10 @@ export default function UsuariosPage() {
                     toast.success('Usuario actualizado exitosamente')
                     setIsEditUserModalOpen(false)
                     fetchUsers() // Refresh the list
-                  } catch (error: any) {
+                  } catch (error: unknown) {
                     console.error('Error updating user:', error)
-                    toast.error(error.message || 'Error al actualizar usuario')
+                    const errorMessage = error instanceof Error ? error.message : 'Error al actualizar usuario'
+                    toast.error(errorMessage)
                   } finally {
                     setIsSaving(false)
                   }
@@ -785,9 +791,10 @@ export default function UsuariosPage() {
                     setIsAddUserModalOpen(false)
                     fetchUsers() // Refresh the list
                     fetchUserStats() // Refresh stats
-                  } catch (error: any) {
+                  } catch (error: unknown) {
                     console.error('Error creating user:', error)
-                    toast.error(error.message || 'Error al agregar usuario')
+                    const errorMessage = error instanceof Error ? error.message : 'Error al agregar usuario'
+                    toast.error(errorMessage)
                   } finally {
                     setIsSaving(false)
                   }
@@ -839,10 +846,10 @@ export default function UsuariosPage() {
               {/* User info */}
               <div className="bg-gray-50 rounded-lg p-4 mb-6">
                 <p className="text-sm font-metropolis font-medium text-[#0D141C]">
-                  {deletingUser.fullName}
+                  {String(deletingUser.fullName)}
                 </p>
                 <p className="text-sm font-metropolis font-regular text-[#4A739C]">
-                  {deletingUser.email}
+                  {String(deletingUser.email)}
                 </p>
                 <span className={`inline-flex px-2 py-1 text-xs font-metropolis font-regular rounded-full mt-2 ${
                   deletingUser.role === 'ADMIN' 
@@ -881,9 +888,10 @@ export default function UsuariosPage() {
                     setDeletingUser(null)
                     fetchUsers() // Refresh the list
                     fetchUserStats() // Refresh stats
-                  } catch (error: any) {
+                  } catch (error: unknown) {
                     console.error('Error deleting user:', error)
-                    toast.error(error.message || 'Error al eliminar usuario')
+                    const errorMessage = error instanceof Error ? error.message : 'Error al eliminar usuario'
+                    toast.error(errorMessage)
                   } finally {
                     setIsDeleting(false)
                   }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
 
@@ -321,15 +322,19 @@ export default function EditarEquipoPage() {
           {/* Team Member Image */}
           <div className="w-20 h-20 bg-gray-200 rounded-full overflow-hidden">
             {getCurrentFormData().image ? (
-              <img
+              <Image
                 src={URL.createObjectURL(getCurrentFormData().image!)}
                 alt="Team member cover preview"
+                width={80}
+                height={80}
                 className="w-full h-full object-cover"
               />
             ) : (
-              <img
+              <Image
                 src={isEnglishMode ? originalData.english.imageUrl : originalData.spanish.imageUrl}
                 alt="Current team member image"
+                width={80}
+                height={80}
                 className="w-full h-full object-cover"
               />
             )}
@@ -498,9 +503,11 @@ export default function EditarEquipoPage() {
                 {getCurrentFormData().image ? (
                   <div className="space-y-3">
                     <div className="w-24 h-24 mx-auto bg-gray-200 rounded-full overflow-hidden">
-                      <img
+                      <Image
                         src={URL.createObjectURL(getCurrentFormData().image!)}
                         alt="Profile preview"
+                        width={96}
+                        height={96}
                         className="w-full h-full object-cover"
                       />
                     </div>

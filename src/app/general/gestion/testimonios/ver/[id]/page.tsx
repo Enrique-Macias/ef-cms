@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
 
@@ -142,9 +143,11 @@ export default function VerTestimonioPage() {
         <div className="flex items-center space-x-4 mb-4 lg:mb-0">
           {/* Testimonial Image */}
           <div className="w-20 h-20 bg-gray-200 rounded-full overflow-hidden">
-            <img
+            <Image
               src={currentTestimonial.imageUrl}
               alt={currentTestimonial.author}
+              width={80}
+              height={80}
               className="w-full h-full object-cover"
             />
           </div>

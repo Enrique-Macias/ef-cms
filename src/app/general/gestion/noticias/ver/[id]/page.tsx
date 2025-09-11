@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
 
@@ -193,9 +194,11 @@ export default function VerNoticiaPage() {
           {/* News Image */}
           <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden">
             {currentNews.coverImage ? (
-              <img
+              <Image
                 src={currentNews.coverImage}
                 alt={currentNews.title}
+                width={80}
+                height={80}
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -281,9 +284,11 @@ export default function VerNoticiaPage() {
           <div className="bg-white border rounded-lg shadow-lg overflow-hidden" style={{ borderColor: '#CFDBE8' }}>
             <div className="relative h-80 bg-gray-200">
               {currentNews.coverImage ? (
-                <img
+                <Image
                   src={currentNews.coverImage}
                   alt={currentNews.title}
+                  width={800}
+                  height={320}
                   className="w-full h-full object-cover"
                 />
               ) : (
@@ -336,9 +341,11 @@ export default function VerNoticiaPage() {
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {currentNews.images.map((image, index) => (
                   <div key={index} className="relative">
-                    <img
+                    <Image
                       src={image.imageUrl}
                       alt={`${currentNews.title} - Image ${index + 1}`}
+                      width={300}
+                      height={200}
                       className="w-full h-48 object-cover rounded-lg"
                     />
                   </div>

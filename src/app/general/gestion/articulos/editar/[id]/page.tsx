@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
 
@@ -367,15 +368,19 @@ export default function EditarArticuloPage() {
           {/* Preview Image */}
           <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden">
             {getCurrentFormData().coverImage ? (
-              <img
+              <Image
                 src={URL.createObjectURL(getCurrentFormData().coverImage!)}
                 alt="Preview"
+                width={64}
+                height={64}
                 className="w-full h-full object-cover"
               />
             ) : (
-              <img
+              <Image
                 src={originalData.imageUrl}
                 alt="Current article image"
+                width={64}
+                height={64}
                 className="w-full h-full object-cover"
               />
             )}
@@ -498,15 +503,19 @@ export default function EditarArticuloPage() {
                   onClick={() => document.getElementById('coverImageInput')?.click()}
                 >
                   {getCurrentFormData().coverImage ? (
-                    <img
+                    <Image
                       src={URL.createObjectURL(getCurrentFormData().coverImage!)}
                       alt="Cover preview"
+                      width={128}
+                      height={96}
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <img
+                    <Image
                       src={originalData.imageUrl}
                       alt="Current article image"
+                      width={128}
+                      height={96}
                       className="w-full h-full object-cover"
                     />
                   )}

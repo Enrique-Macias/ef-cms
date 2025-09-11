@@ -69,7 +69,7 @@ export async function PUT(
     }
 
     // Prepare update data
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       author: body.author,
       role: body.role,
       role_en: body.role_en,

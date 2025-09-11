@@ -1,10 +1,11 @@
 import { prisma } from './prisma';
+import { Prisma } from '@prisma/client';
 
 export interface AuditLogData {
   userId?: number;
   resource: string;
   action: string;
-  changes: any;
+  changes: Prisma.InputJsonValue;
 }
 
 export const createAuditLog = async (data: AuditLogData) => {
@@ -50,8 +51,7 @@ export const logUserAction = async (
   userId: number,
   action: string,
   resource: string,
-  changes: any,
-  req?: any
+  changes: Prisma.InputJsonValue
 ) => {
   await createAuditLog({
     userId,
@@ -61,7 +61,7 @@ export const logUserAction = async (
   });
 };
 
-export const logUserLogin = async (userId: number, req?: any) => {
+export const logUserLogin = async (userId: number) => {
   await createAuditLog({
     userId,
     action: auditActions.LOGIN,
@@ -70,7 +70,7 @@ export const logUserLogin = async (userId: number, req?: any) => {
   });
 };
 
-export const logUserLogout = async (userId: number, req?: any) => {
+export const logUserLogout = async (userId: number) => {
   await createAuditLog({
     userId,
     action: auditActions.LOGOUT,

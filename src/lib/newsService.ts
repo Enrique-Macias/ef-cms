@@ -1,5 +1,4 @@
 import { prisma } from './prisma'
-import { News, NewsImage } from '@prisma/client'
 
 export interface CreateNewsData {
   title_es: string
@@ -94,7 +93,18 @@ export async function getNewsList(params: NewsListParams) {
   const skip = (page - 1) * limit
 
   // Build where clause
-  const where: any = {}
+  const where: {
+    OR?: Array<{
+      title_es?: { contains: string; mode: 'insensitive' }
+      title_en?: { contains: string; mode: 'insensitive' }
+      body_es?: { contains: string; mode: 'insensitive' }
+      body_en?: { contains: string; mode: 'insensitive' }
+      author?: { contains: string; mode: 'insensitive' }
+      category?: { contains: string; mode: 'insensitive' }
+      category_en?: { contains: string; mode: 'insensitive' }
+    }>
+    date?: { gte?: Date; lte?: Date }
+  } = {}
   
   if (search) {
     where.OR = [
@@ -122,7 +132,7 @@ export async function getNewsList(params: NewsListParams) {
         startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate())
         where.date = {
           gte: startDate,
-          lt: new Date(startDate.getTime() + 24 * 60 * 60 * 1000)
+          lte: new Date(startDate.getTime() + 24 * 60 * 60 * 1000)
         }
         break
       case 'ultima-semana':
@@ -215,7 +225,7 @@ export async function getNewsStats() {
       where: {
         date: {
           gte: startOfToday,
-          lt: new Date(startOfToday.getTime() + 24 * 60 * 60 * 1000)
+          lte: new Date(startOfToday.getTime() + 24 * 60 * 60 * 1000)
         }
       }
     }),

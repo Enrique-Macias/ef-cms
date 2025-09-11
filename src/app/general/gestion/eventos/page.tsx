@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
 
@@ -353,9 +354,11 @@ export default function EventosPage() {
                   {/* Event Image */}
                   <div className="relative h-48 bg-gray-200 overflow-hidden">
                     {event.coverImageUrl ? (
-                      <img
+                      <Image
                         src={event.coverImageUrl}
                         alt="Event cover"
+                        width={400}
+                        height={192}
                         className="w-full h-full object-cover"
                       />
                     ) : (

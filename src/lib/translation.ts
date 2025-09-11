@@ -146,7 +146,7 @@ export async function translateContent<T extends Record<string, string>>(
   
   for (const [key, value] of Object.entries(content)) {
     if (typeof value === 'string' && value.trim()) {
-      (translatedContent as any)[key] = await translateText({
+      (translatedContent as Record<string, unknown>)[key] = await translateText({
         text: value,
         sourceLang,
         targetLang

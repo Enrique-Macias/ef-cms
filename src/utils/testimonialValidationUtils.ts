@@ -2,8 +2,7 @@ import { TestimonialFormData, TestimonialFormDataEnglish } from '@/hooks/useTest
 
 export function validateTestimonialForm(
   formData: TestimonialFormData,
-  formDataEnglish: TestimonialFormDataEnglish,
-  isEnglishMode: boolean
+  formDataEnglish: TestimonialFormDataEnglish
 ): { isValid: boolean; errorMessage?: string } {
   // Validate Spanish version
   if (!formData.author.trim()) {

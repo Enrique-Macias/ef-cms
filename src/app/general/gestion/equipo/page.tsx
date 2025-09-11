@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
 
@@ -368,9 +369,11 @@ export default function EquipoPage() {
               <div key={member.id} className="bg-white border rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow cursor-pointer" style={{ borderColor: '#CFDBE8' }} onClick={() => router.push(`/general/gestion/equipo/ver/${member.id}`)}>
                 {/* Member Image */}
                 <div className="relative">
-                  <img
+                  <Image
                     src={member.imageUrl}
                     alt={member.name}
+                    width={400}
+                    height={192}
                     className="w-full h-48 object-cover"
                   />
                 </div>

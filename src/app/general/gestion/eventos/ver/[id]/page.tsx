@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
 
@@ -193,9 +194,11 @@ export default function VerEventoPage() {
           {/* Event Image */}
           <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden">
             {event.coverImageUrl ? (
-              <img
+              <Image
                 src={event.coverImageUrl}
                 alt="Event cover"
+                width={80}
+                height={80}
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -283,9 +286,11 @@ export default function VerEventoPage() {
           <div className="bg-white border rounded-lg shadow-lg overflow-hidden" style={{ borderColor: '#CFDBE8' }}>
             <div className="relative h-80 bg-gray-200">
               {event.coverImageUrl ? (
-                <img
+                <Image
                   src={event.coverImageUrl}
                   alt="Event cover"
+                  width={800}
+                  height={320}
                   className="w-full h-full object-cover"
                 />
               ) : (
@@ -326,9 +331,11 @@ export default function VerEventoPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {event.eventImages.map((image) => (
                   <div key={image.id} className="relative group">
-                    <img
+                    <Image
                       src={image.imageUrl}
                       alt={`Event image ${image.id}`}
+                      width={300}
+                      height={200}
                       className="w-full h-48 object-cover rounded-lg shadow-md transition-transform duration-300 group-hover:scale-105"
                     />
                   </div>

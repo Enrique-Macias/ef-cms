@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Handle news images upload to Cloudinary
-    let processedNewsImages = []
+    const processedNewsImages = []
     if (body.newsImages && body.newsImages.length > 0) {
       try {
         for (const imageData of body.newsImages) {

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { generateStyledAvatar } from '@/lib/avatar'
 import { translateToEnglish, translateToSpanish } from '@/lib/translation'
 
@@ -39,9 +40,11 @@ export function UserCard({ user }: UserCardProps) {
   return (
     <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
       <div className="flex items-center space-x-4">
-        <img
+        <Image
           src={avatarUrl}
           alt={user.fullName}
+          width={64}
+          height={64}
           className="h-16 w-16 rounded-full"
         />
         <div className="flex-1">

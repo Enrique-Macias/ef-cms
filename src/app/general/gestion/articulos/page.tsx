@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
 
@@ -401,9 +402,11 @@ export default function ArticulosPage() {
               >
                 {/* Article Image */}
                 <div className="relative h-48 bg-gray-200 overflow-hidden">
-                  <img
+                  <Image
                     src={article.imageUrl}
                     alt={article.title}
+                    width={400}
+                    height={192}
                     className="w-full h-full object-cover"
                   />
                 </div>

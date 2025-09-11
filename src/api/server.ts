@@ -51,7 +51,7 @@ app.use('/api/auth', authRoutes);
 // app.use('/api/testimonials', testimonialRoutes);
 
 // Error handling middleware
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((err: Error, req: express.Request, res: express.Response) => {
   console.error(err.stack);
   res.status(500).json({ error: 'Something went wrong!' });
 });

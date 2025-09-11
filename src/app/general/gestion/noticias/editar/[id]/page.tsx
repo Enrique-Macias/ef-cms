@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
 
@@ -561,9 +562,11 @@ export default function EditarNoticiaPage() {
           {/* Preview Image */}
           <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
             {getCurrentFormData().coverImage ? (
-              <img
+              <Image
                 src={getImageSrc(getCurrentFormData().coverImage)}
                 alt="Preview"
+                width={64}
+                height={64}
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -745,9 +748,11 @@ export default function EditarNoticiaPage() {
                   onClick={() => document.getElementById('coverImageInput')?.click()}
                 >
                   {getCurrentFormData().coverImage ? (
-                    <img
+                    <Image
                       src={getImageSrc(getCurrentFormData().coverImage)}
                       alt="Cover preview"
+                      width={128}
+                      height={96}
                       className="w-full h-full object-cover"
                     />
                   ) : (
@@ -867,9 +872,11 @@ export default function EditarNoticiaPage() {
               <div className="mt-4 grid grid-cols-2 md:grid-cols-5 gap-3">
                 {getCurrentFormData().images.map((image, index) => (
                   <div key={index} className="relative">
-                    <img
+                    <Image
                       src={typeof image === 'string' ? image : URL.createObjectURL(image)}
                       alt={`Uploaded ${index + 1}`}
+                      width={120}
+                      height={80}
                       className="w-full h-20 object-cover rounded-lg"
                     />
                     <button

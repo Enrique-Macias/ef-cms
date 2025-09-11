@@ -41,7 +41,13 @@ export async function getUsers(params: {
   const skip = (page - 1) * limit
 
   // Build where clause
-  const where: any = {}
+  const where: {
+    OR?: Array<{
+      fullName?: { contains: string; mode: 'insensitive' }
+      email?: { contains: string; mode: 'insensitive' }
+    }>
+    role?: Role
+  } = {}
   
   if (search) {
     where.OR = [
@@ -181,7 +187,10 @@ export async function getUserStats() {
 
 // Check if email exists
 export async function emailExists(email: string, excludeId?: number) {
-  const where: any = { email }
+  const where: {
+    email: string
+    NOT?: { id: number }
+  } = { email }
   if (excludeId) {
     where.NOT = { id: excludeId }
   }

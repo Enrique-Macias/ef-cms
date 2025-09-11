@@ -89,7 +89,7 @@ export async function PUT(
     }
 
     // Handle news images upload to Cloudinary
-    let processedNewsImages = []
+    const processedNewsImages = []
     if (body.newsImages && body.newsImages.length > 0) {
       try {
         // Delete old news images from Cloudinary if they exist
@@ -131,7 +131,7 @@ export async function PUT(
     }
 
     // Prepare update data
-    const updateData: any = {}
+    const updateData: Record<string, unknown> = {}
     
     if (body.title_es !== undefined) updateData.title_es = body.title_es
     if (body.title_en !== undefined) updateData.title_en = body.title_en

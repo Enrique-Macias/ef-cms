@@ -106,7 +106,7 @@ export async function PUT(
     }
 
     // Handle event images update
-    let processedEventImages = []
+    const processedEventImages = []
     if (body.images !== undefined && Array.isArray(body.images)) {
       try {
         // Delete old event images from Cloudinary if they exist
@@ -147,7 +147,7 @@ export async function PUT(
     }
 
     // Prepare update data
-    const updateData: any = {}
+    const updateData: Record<string, unknown> = {}
     
     if (body.title_es !== undefined) updateData.title_es = body.title_es
     if (body.title_en !== undefined) updateData.title_en = body.title_en
@@ -173,7 +173,7 @@ export async function PUT(
     }
 
     // Update event using the service (same as news)
-    const updatedEvent = await updateEvent(eventId, updateData)
+    const updatedEvent = await updateEvent(eventId, { ...updateData, id: eventId })
 
     return NextResponse.json({
       success: true,

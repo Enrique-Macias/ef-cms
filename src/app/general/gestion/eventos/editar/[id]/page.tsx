@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
 
@@ -541,9 +542,11 @@ export default function EditarEventoPage() {
           {/* Event Image */}
           <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden">
             {getCurrentFormData().coverImage ? (
-              <img
+              <Image
                 src={getImageSrc(getCurrentFormData().coverImage)}
                 alt="Event cover preview"
+                width={80}
+                height={80}
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -661,9 +664,11 @@ export default function EditarEventoPage() {
                 {/* Image Preview */}
                 <div className="w-32 h-24 bg-gray-200 rounded-lg overflow-hidden">
                   {getCurrentFormData().coverImage ? (
-                    <img
+                    <Image
                       src={getImageSrc(getCurrentFormData().coverImage)}
                       alt="Cover preview"
+                      width={128}
+                      height={96}
                       className="w-full h-full object-cover"
                     />
                   ) : (
@@ -803,9 +808,11 @@ export default function EditarEventoPage() {
               <div className="mt-4 grid grid-cols-2 md:grid-cols-5 gap-3">
                 {getCurrentFormData().images.map((image, index) => (
                   <div key={index} className="relative">
-                    <img
+                    <Image
                       src={getImageSrc(image)}
                       alt={`Uploaded ${index + 1}`}
+                      width={120}
+                      height={80}
                       className="w-full h-20 object-cover rounded-lg"
                     />
                     <button

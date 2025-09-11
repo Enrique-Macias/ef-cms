@@ -1,6 +1,7 @@
 
 'use client'
 
+import Image from 'next/image'
 import { useAuth } from '@/contexts/AuthContext'
 import { useStats } from '@/hooks/useStats'
 
@@ -85,9 +86,11 @@ export default function GeneralPage() {
         <div className="bg-white border rounded-lg p-6 mb-8" style={{ borderColor: '#CFDBE8' }}>
           <div className="flex items-start space-x-6">
             <div className="flex-shrink-0">
-              <img
+              <Image
                 src={user.avatarUrl || `https://avatar.iran.liara.run/username?username=${encodeURIComponent(user.fullName)}`}
                 alt={`Avatar de ${user.fullName}`}
+                width={100}
+                height={100}
                 className="h-25 w-25 rounded-full object-cover"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement

@@ -36,7 +36,7 @@ export const generateAccessToken = (user: User): string => {
     role: user.role,
   };
   
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN } as any);
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 };
 
 export const generateRefreshToken = (userId: number, tokenId: number): string => {
@@ -45,14 +45,14 @@ export const generateRefreshToken = (userId: number, tokenId: number): string =>
     tokenId,
   };
   
-  return jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn: JWT_REFRESH_EXPIRES_IN } as any);
+  return jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn: JWT_REFRESH_EXPIRES_IN });
 };
 
 // JWT token verification
 export const verifyAccessToken = (token: string): JWTPayload => {
   try {
     return jwt.verify(token, JWT_SECRET) as JWTPayload;
-  } catch (error) {
+  } catch {
     throw new Error('Invalid access token');
   }
 };
@@ -60,7 +60,7 @@ export const verifyAccessToken = (token: string): JWTPayload => {
 export const verifyRefreshToken = (token: string): RefreshTokenPayload => {
   try {
     return jwt.verify(token, JWT_REFRESH_SECRET) as RefreshTokenPayload;
-  } catch (error) {
+  } catch {
     throw new Error('Invalid refresh token');
   }
 };

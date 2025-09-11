@@ -1,5 +1,4 @@
 import { prisma } from './prisma'
-import { Event, EventImage } from '@prisma/client'
 
 export interface CreateEventData {
   title_es: string
@@ -102,7 +101,20 @@ export async function getEventsList(params: EventListParams) {
   const skip = (page - 1) * limit
 
   // Build where clause
-  const where: any = {}
+  const where: {
+    OR?: Array<{
+      title_es?: { contains: string; mode: 'insensitive' }
+      title_en?: { contains: string; mode: 'insensitive' }
+      body_es?: { contains: string; mode: 'insensitive' }
+      body_en?: { contains: string; mode: 'insensitive' }
+      author?: { contains: string; mode: 'insensitive' }
+      location_city?: { contains: string; mode: 'insensitive' }
+      location_country?: { contains: string; mode: 'insensitive' }
+      category?: { contains: string; mode: 'insensitive' }
+      category_en?: { contains: string; mode: 'insensitive' }
+    }>
+    date?: { gte?: Date; lte?: Date }
+  } = {}
   
   if (search) {
     where.OR = [
@@ -132,7 +144,7 @@ export async function getEventsList(params: EventListParams) {
         startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate())
         where.date = {
           gte: startDate,
-          lt: new Date(startDate.getTime() + 24 * 60 * 60 * 1000)
+          lte: new Date(startDate.getTime() + 24 * 60 * 60 * 1000)
         }
         break
       case 'ultima-semana':
