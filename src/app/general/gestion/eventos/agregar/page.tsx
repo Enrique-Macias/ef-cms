@@ -404,7 +404,7 @@ export default function AgregarEventoPage() {
     phrase: isEnglishMode ? 'Event Phrase' : 'Frase del Evento',
     credits: isEnglishMode ? 'Credits' : 'Créditos',
     locationCity: isEnglishMode ? 'City' : 'Ciudad',
-    locationCountry: isEnglishMode ? 'Country' : 'País',
+    locationCountry: isEnglishMode ? 'State' : 'Estado',
     basicInfo: isEnglishMode ? 'Basic Information' : 'Información Básica',
     cover: isEnglishMode ? 'Cover' : 'Portada',
     images: isEnglishMode ? 'Images' : 'Imágenes',
@@ -451,7 +451,8 @@ export default function AgregarEventoPage() {
       ? 'Credit the people who contributed to the event.'
       : 'Acredita a las personas que contribuyeron al evento.',
     englishVersion: 'English',
-    spanishVersion: 'Spanish'
+    spanishVersion: 'Spanish',
+    location: isEnglishMode ? 'Location' : 'Ubicación'
   }
 
   return (
@@ -662,7 +663,7 @@ export default function AgregarEventoPage() {
           {/* Location Section */}
           <div>
             <h2 className="font-metropolis font-bold text-xl mb-4" style={{ color: '#0D141C' }}>
-              Ubicación <span className="text-red-500">*</span>
+              {translations.location} <span className="text-red-500">*</span>
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>

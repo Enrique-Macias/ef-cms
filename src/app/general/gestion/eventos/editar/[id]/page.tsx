@@ -466,7 +466,7 @@ export default function EditarEventoPage() {
     phrase: isEnglishMode ? 'Event Phrase' : 'Frase del Evento',
     credits: isEnglishMode ? 'Credits' : 'Créditos',
     locationCity: isEnglishMode ? 'City' : 'Ciudad',
-    locationCountry: isEnglishMode ? 'Country' : 'País',
+    locationCountry: isEnglishMode ? 'State' : 'Estado',
     categories: isEnglishMode ? 'Categories' : 'Categorías',
     tags: isEnglishMode ? 'Tags' : 'Etiquetas',
     newCategory: isEnglishMode ? 'New category' : 'Nueva categoría',
@@ -485,7 +485,8 @@ export default function EditarEventoPage() {
     dragAndDrop: isEnglishMode ? 'Drag and drop images here' : 'Arrastra y suelta imágenes aquí',
     dropHere: isEnglishMode ? 'Drop here' : 'Suelta aquí',
     englishVersion: 'English',
-    spanishVersion: 'Spanish'
+    spanishVersion: 'Spanish',
+    location: isEnglishMode ? 'Location' : 'Ubicación'
   }
 
   if (isLoading) {
@@ -711,7 +712,7 @@ export default function EditarEventoPage() {
           {/* Location */}
           <div>
             <h2 className="font-metropolis font-bold text-xl mb-4" style={{ color: '#0D141C' }}>
-              Ubicación <span className="text-red-500">*</span>
+              {translations.location} <span className="text-red-500">*</span>
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>

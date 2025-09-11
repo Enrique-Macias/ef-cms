@@ -170,19 +170,6 @@ export default function EventosPage() {
     }
   }
 
-  if (isLoading) {
-    return (
-      <div className="p-6">
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <Spinner size="lg" />
-            <p className="mt-4 text-[#4A739C] font-metropolis font-regular">Cargando eventos...</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="p-6">
       {/* Breadcrumbs */}

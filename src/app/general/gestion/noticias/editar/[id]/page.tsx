@@ -156,7 +156,7 @@ export default function EditarNoticiaPage() {
     publicationDate: isEnglishMode ? 'Publication Date' : 'Fecha de Publicación',
     description: isEnglishMode ? 'Description' : 'Descripción',
     location_city: isEnglishMode ? 'City' : 'Ciudad',
-    location_country: isEnglishMode ? 'Country' : 'País',
+    location_country: isEnglishMode ? 'State' : 'Estado',
     basicInfo: isEnglishMode ? 'Basic Information' : 'Información Básica',
     cover: isEnglishMode ? 'Cover' : 'Portada',
     images: isEnglishMode ? 'Images' : 'Imágenes',
@@ -192,7 +192,8 @@ export default function EditarNoticiaPage() {
       ? 'General and detailed description about the news.'
       : 'Descripción general y detallada sobre la noticia.',
     englishVersion: 'English',
-    spanishVersion: 'Spanish'
+    spanishVersion: 'Spanish',
+    location: isEnglishMode ? 'Location' : 'Ubicación'
   }
 
   // Handle form input changes
@@ -680,9 +681,14 @@ export default function EditarNoticiaPage() {
                 />
               </div>
             </div>
-            
-            {/* Location Fields */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+          </div>
+
+          {/* Location Section */}
+          <div>
+            <h2 className="font-metropolis font-bold text-xl mb-4" style={{ color: '#0D141C' }}>
+              {translations.location}
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-metropolis font-medium text-[#0D141C] mb-2">
                   {translations.location_city}
