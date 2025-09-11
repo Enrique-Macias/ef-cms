@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { uploadImageFromBase64, extractPublicId, deleteImage } from '@/lib/cloudinary'
-import { updateEvent } from '@/lib/eventService'
+import { updateEvent, deleteEvent } from '@/lib/eventService'
 
 export async function GET(
   request: NextRequest,
@@ -243,10 +243,8 @@ export async function DELETE(
       }
     }
 
-    // Delete event from database
-    await prisma.event.delete({
-      where: { id: eventId }
-    })
+    // Delete event from database (this will also delete related event images)
+    await deleteEvent(eventId)
 
     return NextResponse.json({
       success: true,
