@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
@@ -41,8 +41,109 @@ export default function AgregarNoticiaPage() {
   const [isPublishing, setIsPublishing] = useState(false)
   const [isDragOver, setIsDragOver] = useState(false)
   const [isCoverDragOver, setIsCoverDragOver] = useState(false)
+  const [isTranslating, setIsTranslating] = useState(false)
+  const [translationCompleted, setTranslationCompleted] = useState(false)
+  const translationInProgress = useRef(false)
   
   const toast = useToast()
+
+  // Translate Spanish content to English using DeepL
+  const translateToEnglish = useCallback(async () => {
+    if (isTranslating || translationInProgress.current) return
+
+    translationInProgress.current = true
+    setIsTranslating(true)
+    setTranslationCompleted(false)
+    
+    try {
+      // Capture current formData values at the time of translation
+      const currentFormData = formData
+      
+      // Prepare texts to translate - ensure we have valid strings
+      const textsToTranslate = [
+        currentFormData.title || '',
+        currentFormData.description || '',
+        ...(currentFormData.categories || []),
+        ...(currentFormData.tags || [])
+      ].filter(text => text && text.trim())
+
+      console.log('Texts to translate:', textsToTranslate)
+
+      if (textsToTranslate.length === 0) {
+        toast.warning('No hay contenido en español para traducir')
+        setIsTranslating(false)
+        return
+      }
+
+      console.log('Calling translation API...')
+      
+      // Translate all texts at once
+      const response = await fetch('/api/translate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: textsToTranslate,
+          targetLang: 'EN',
+          sourceLang: 'ES'
+        })
+      })
+
+      console.log('Translation response status:', response.status)
+
+      if (!response.ok) {
+        const error = await response.json()
+        console.error('Translation API error:', error)
+        throw new Error(error.error || 'Translation failed')
+      }
+
+      const data = await response.json()
+      console.log('Translation response data:', data)
+      
+      const translations = data.translations
+
+      if (translations && translations.length > 0) {
+        let translationIndex = 0
+
+        // Prepare the new English form data with translations
+        const newEnglishData = {
+          ...formDataEnglish, // Use current formDataEnglish state
+          // Map title
+          title: currentFormData.title && currentFormData.title.trim() ? translations[translationIndex++] : '',
+          // Map description
+          description: currentFormData.description && currentFormData.description.trim() ? translations[translationIndex++] : '',
+          // Map categories
+          categories: currentFormData.categories && currentFormData.categories.length > 0 
+            ? currentFormData.categories.map(() => translations[translationIndex++])
+            : [],
+          // Map tags
+          tags: currentFormData.tags && currentFormData.tags.length > 0 
+            ? currentFormData.tags.map(() => translations[translationIndex++])
+            : []
+        }
+
+        console.log('Prepared new English form data:', newEnglishData)
+
+        // Update English form data with translations in a single call
+        setFormDataEnglish(newEnglishData)
+
+        // Mark translation as completed
+        setTranslationCompleted(true)
+        toast.success('Traducción completada exitosamente')
+      } else {
+        console.error('No translations received')
+        toast.error('No se recibieron traducciones')
+      }
+    } catch (error: any) {
+      console.error('Translation error:', error)
+      toast.error(`Error en la traducción: ${error.message}`)
+    } finally {
+      setIsTranslating(false)
+      translationInProgress.current = false
+    }
+  }, [isTranslating, toast])
+
 
   // Handle form input changes
   const handleInputChange = (field: string, value: string) => {
@@ -52,6 +153,13 @@ export default function AgregarNoticiaPage() {
       if (commonFields.includes(field)) {
         return // Don't update these fields in English mode
       }
+      
+      // Don't overwrite translated data with empty or undefined values
+      if ((value === '' || value === undefined || value === null) && (field === 'title' || field === 'description')) {
+        console.log('Preventing overwrite of translated data for field:', field, 'value:', value)
+        return
+      }
+      
       setFormDataEnglish(prev => ({ ...prev, [field]: value }))
     } else {
       setFormData(prev => ({ ...prev, [field]: value }))
@@ -347,8 +455,55 @@ export default function AgregarNoticiaPage() {
     }
   }
 
-  // Get current form data based on language mode
-  const getCurrentFormData = () => isEnglishMode ? formDataEnglish : formData
+  // Get current form data based on language mode (memoized to prevent excessive re-renders)
+  const getCurrentFormData = useMemo(() => {
+    const currentData = isEnglishMode ? formDataEnglish : formData
+    console.log('getCurrentFormData - isEnglishMode:', isEnglishMode, 'translationCompleted:', translationCompleted, 'currentData:', currentData)
+    
+    if (isEnglishMode) {
+      // For English mode, only show translated data if translation is completed
+      if (!translationCompleted) {
+        // Return empty form data while translating
+        return {
+          ...currentData,
+          title: '',
+          description: '',
+          categories: [],
+          tags: [],
+          location_city: currentData.location_city || '',
+          location_country: currentData.location_country || '',
+          publicationDate: currentData.publicationDate || new Date().toISOString().split('T')[0],
+          author: currentData.author || ''
+        }
+      }
+      
+      // Return translated data after completion
+      return {
+        ...currentData,
+        title: currentData.title || '',
+        description: currentData.description || '',
+        categories: currentData.categories || [],
+        tags: currentData.tags || [],
+        location_city: currentData.location_city || '',
+        location_country: currentData.location_country || '',
+        publicationDate: currentData.publicationDate || new Date().toISOString().split('T')[0],
+        author: currentData.author || ''
+      }
+    } else {
+      // For Spanish mode, use the normal logic
+      return {
+        ...currentData,
+        title: currentData.title || '',
+        description: currentData.description || '',
+        categories: currentData.categories || [],
+        tags: currentData.tags || [],
+        location_city: currentData.location_city || '',
+        location_country: currentData.location_country || '',
+        publicationDate: currentData.publicationDate || new Date().toISOString().split('T')[0],
+        author: currentData.author || ''
+      }
+    }
+  }, [isEnglishMode, formData, formDataEnglish, translationCompleted])
   const getCurrentNewCategory = () => isEnglishMode ? newCategoryEnglish : newCategory
   const getCurrentNewTag = () => isEnglishMode ? newTagEnglish : newTag
   const setCurrentNewCategory = (value: string) => isEnglishMode ? setNewCategoryEnglish(value) : setNewCategory(value)
@@ -428,9 +583,9 @@ export default function AgregarNoticiaPage() {
         <div className="flex items-center space-x-4 mb-4 lg:mb-0 flex-1 min-w-0">
           {/* Preview Image */}
           <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-            {getCurrentFormData().coverImage ? (
+            {getCurrentFormData.coverImage ? (
               <img
-                src={getImageSrc(getCurrentFormData().coverImage)}
+                src={getImageSrc(getCurrentFormData.coverImage)}
                 alt="Preview"
                 className="w-full h-full object-cover"
               />
@@ -446,10 +601,10 @@ export default function AgregarNoticiaPage() {
           {/* Preview Info */}
           <div className="min-w-0 flex-1">
             <h1 className="font-metropolis font-bold text-2xl mb-1 break-words" style={{ color: '#0D141C' }}>
-              {getCurrentFormData().title || translations.title}
+              {getCurrentFormData.title || translations.title}
             </h1>
             <p className="font-metropolis font-regular text-sm" style={{ color: '#4A739C' }}>
-              {getCurrentFormData().author} | {new Date(getCurrentFormData().publicationDate).getFullYear()}
+              {getCurrentFormData.author} | {new Date(getCurrentFormData.publicationDate).getFullYear()}
             </p>
           </div>
         </div>
@@ -458,14 +613,33 @@ export default function AgregarNoticiaPage() {
         <div className="flex items-center space-x-3 flex-shrink-0">
           {/* Language Toggle Button */}
           <button
-            onClick={() => setIsEnglishMode(!isEnglishMode)}
-            className={`inline-flex items-center px-4 py-3 border rounded-md shadow-sm text-sm font-medium transition-all duration-200 ${
+            onClick={async () => {
+              if (!isEnglishMode) {
+                // Switch to English mode and trigger translation
+                setIsEnglishMode(true)
+                setTranslationCompleted(false)
+                await translateToEnglish()
+              } else {
+                // Switching back to Spanish mode
+                setIsEnglishMode(false)
+                setTranslationCompleted(false)
+              }
+            }}
+            disabled={isTranslating}
+            className={`inline-flex items-center px-4 py-3 border rounded-md shadow-sm text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${
               isEnglishMode 
                 ? 'border-[#5A6F80] text-[#5A6F80] bg-white hover:bg-gray-50' 
                 : 'border-[#5A6F80] text-white bg-[#5A6F80] hover:bg-[#4A739C]'
             }`}
           >
-            {isEnglishMode ? translations.spanishVersion : translations.englishVersion}
+            {isTranslating ? (
+              <div className="flex items-center space-x-2">
+                <Spinner size="sm" />
+                <span>Traduciendo...</span>
+              </div>
+            ) : (
+              isEnglishMode ? translations.spanishVersion : translations.englishVersion
+            )}
           </button>
 
           {/* Publish Button */}
@@ -495,14 +669,24 @@ export default function AgregarNoticiaPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
             </svg>
             <span className="text-blue-800 font-medium">
-              English Mode - This section will be filled in English. The DeepL translation endpoint will be integrated later.
+              English Mode - Content has been automatically translated from Spanish using DeepL. You can edit the translations as needed.
             </span>
           </div>
         </div>
       )}
 
       {/* Form */}
-      <div className="bg-white border rounded-lg p-6 shadow-lg" style={{ borderColor: '#CFDBE8' }}>
+      <div className="bg-white border rounded-lg p-6 shadow-lg relative" style={{ borderColor: '#CFDBE8' }}>
+        {/* Translation Loading Overlay */}
+        {isTranslating && (
+          <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center z-10 rounded-lg">
+            <div className="text-center">
+              <Spinner size="lg" />
+              <p className="mt-4 text-lg font-medium text-gray-700">Traduciendo contenido...</p>
+              <p className="mt-2 text-sm text-gray-500">Por favor espera mientras se traduce el contenido al inglés</p>
+            </div>
+          </div>
+        )}
         <div className="space-y-8">
           {/* Basic Information Section */}
           <div>
@@ -516,7 +700,7 @@ export default function AgregarNoticiaPage() {
                 </label>
                 <input
                   type="text"
-                  value={getCurrentFormData().title}
+                  value={getCurrentFormData.title}
                   onChange={(e) => handleInputChange('title', e.target.value)}
                   placeholder={translations.title}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
@@ -528,7 +712,7 @@ export default function AgregarNoticiaPage() {
                 </label>
                 <input
                   type="text"
-                  value={isEnglishMode ? formData.author : getCurrentFormData().author}
+                  value={isEnglishMode ? formData.author : getCurrentFormData.author}
                   onChange={(e) => handleInputChange('author', e.target.value)}
                   placeholder={translations.author}
                   disabled={isEnglishMode}
@@ -552,7 +736,7 @@ export default function AgregarNoticiaPage() {
                 </label>
                 <input
                   type="text"
-                  value={isEnglishMode ? formData.location_city : getCurrentFormData().location_city}
+                  value={isEnglishMode ? formData.location_city : getCurrentFormData.location_city}
                   onChange={(e) => handleInputChange('location_city', e.target.value)}
                   placeholder={translations.location_city}
                   disabled={isEnglishMode}
@@ -567,7 +751,7 @@ export default function AgregarNoticiaPage() {
                 </label>
                 <input
                   type="text"
-                  value={isEnglishMode ? formData.location_country : getCurrentFormData().location_country}
+                  value={isEnglishMode ? formData.location_country : getCurrentFormData.location_country}
                   onChange={(e) => handleInputChange('location_country', e.target.value)}
                   placeholder={translations.location_country}
                   disabled={isEnglishMode}
@@ -591,9 +775,9 @@ export default function AgregarNoticiaPage() {
               <div className="flex items-center space-x-4">
                 {/* Image Preview */}
                 <div className="w-32 h-24 bg-gray-200 rounded-lg overflow-hidden">
-                  {getCurrentFormData().coverImage ? (
+                  {getCurrentFormData.coverImage ? (
                     <img
-                      src={getImageSrc(getCurrentFormData().coverImage)}
+                      src={getImageSrc(getCurrentFormData.coverImage)}
                       alt="Cover preview"
                       className="w-full h-full object-cover"
                     />
@@ -637,7 +821,7 @@ export default function AgregarNoticiaPage() {
               </div>
               <input
                 type="date"
-                value={isEnglishMode ? formData.publicationDate : getCurrentFormData().publicationDate}
+                value={isEnglishMode ? formData.publicationDate : getCurrentFormData.publicationDate}
                 onChange={(e) => handleInputChange('publicationDate', e.target.value)}
                 disabled={isEnglishMode}
                 className={`block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
@@ -656,7 +840,7 @@ export default function AgregarNoticiaPage() {
               {translations.descriptionHelp}
             </p>
             <textarea
-              value={getCurrentFormData().description}
+              value={getCurrentFormData.description}
               onChange={(e) => handleInputChange('description', e.target.value)}
               rows={6}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent resize-none"
@@ -710,9 +894,9 @@ export default function AgregarNoticiaPage() {
             </label>
             
             {/* Uploaded Images Preview */}
-            {getCurrentFormData().images.length > 0 && (
+            {getCurrentFormData.images.length > 0 && (
               <div className="mt-4 grid grid-cols-2 md:grid-cols-5 gap-3">
-                {getCurrentFormData().images.map((image, index) => (
+                {getCurrentFormData.images.map((image, index) => (
                   <div key={index} className="relative">
                     <img
                       src={typeof image === 'string' ? image : URL.createObjectURL(image)}
@@ -722,8 +906,9 @@ export default function AgregarNoticiaPage() {
                     <button
                       onClick={() => {
                         // Always remove from both Spanish and English versions
-                        setFormData(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }))
-                        setFormDataEnglish(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }))
+                        const newImages = getCurrentFormData.images.filter((_, i) => i !== index)
+                        setFormData(prev => ({ ...prev, images: newImages }))
+                        setFormDataEnglish(prev => ({ ...prev, images: newImages }))
                       }}
                       className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors"
                     >
@@ -767,7 +952,7 @@ export default function AgregarNoticiaPage() {
               
               {/* Categories Tags */}
               <div className="flex flex-wrap gap-2">
-                {getCurrentFormData().categories.map((category, index) => (
+                {getCurrentFormData.categories.map((category, index) => (
                   <span
                     key={index}
                     className="inline-flex items-center px-3 py-1 text-sm font-metropolis font-medium bg-[#E8EDF5] text-[#0D141C] rounded-full"
@@ -817,7 +1002,7 @@ export default function AgregarNoticiaPage() {
               
               {/* Tags */}
               <div className="flex flex-wrap gap-2">
-                {getCurrentFormData().tags.map((tag, index) => (
+                {getCurrentFormData.tags.map((tag, index) => (
                   <span
                     key={index}
                     className="inline-flex items-center px-3 py-1 text-sm font-metropolis font-medium bg-[#E8EDF5] text-[#0D141C] rounded-full"
