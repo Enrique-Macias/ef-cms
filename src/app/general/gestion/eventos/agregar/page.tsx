@@ -366,7 +366,17 @@ export default function AgregarEventoPage() {
 
 
       {/* Form */}
-      <div className="bg-white border rounded-lg p-6 shadow-lg" style={{ borderColor: '#CFDBE8' }}>
+      <div className="bg-white border rounded-lg p-6 shadow-lg relative" style={{ borderColor: '#CFDBE8' }}>
+        {/* Translation Loading Overlay */}
+        {isTranslating && (
+          <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center z-10 rounded-lg">
+            <div className="text-center">
+              <Spinner size="lg" />
+              <p className="mt-4 text-lg font-medium text-gray-700">Traduciendo contenido...</p>
+              <p className="mt-2 text-sm text-gray-500">Por favor espera mientras se traduce el contenido al inglés</p>
+            </div>
+          </div>
+        )}
         <div className="space-y-8">
           {/* Basic Information Section */}
           <div>
