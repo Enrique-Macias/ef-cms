@@ -4,317 +4,115 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
+import { useEventForm } from '@/hooks/useEventForm'
+import { useEventTranslation } from '@/hooks/useEventTranslation'
+import { fileToBase64, getImageSrc } from '@/utils/eventFileUtils'
+import { validateEventForm } from '@/utils/eventValidationUtils'
+import { 
+  createEventInputHandler, 
+  createEventImageHandlers, 
+  createEventDragHandlers, 
+  createEventLanguageToggleHandler 
+} from '@/utils/eventFormHandlers'
+import { 
+  createEventCategoryHandlers, 
+  createEventTagHandlers 
+} from '@/utils/eventCategoryTagUtils'
 
 export default function AgregarEventoPage() {
   const router = useRouter()
-  const [formData, setFormData] = useState({
-    title: '',
-    author: '',
-    coverImage: null as File | null,
-    eventDate: new Date().toISOString().split('T')[0],
-    description: '',
-    images: [] as File[],
-    categories: [] as string[],
-    tags: [] as string[],
-    phrase: '',
-    credits: '',
-    locationCity: '',
-    locationCountry: ''
-  })
+  const toast = useToast()
+  
+  // Custom hooks
+  const {
+    formData,
+    setFormData,
+    formDataEnglish,
+    setFormDataEnglish,
+    isEnglishMode,
+    setIsEnglishMode,
+    newCategory,
+    setNewCategory,
+    newTag,
+    setNewTag,
+    newCategoryEnglish,
+    setNewCategoryEnglish,
+    newTagEnglish,
+    setNewTagEnglish,
+    getCurrentFormData,
+    getCurrentNewCategory,
+    getCurrentNewTag,
+    setCurrentNewCategory,
+    setCurrentNewTag
+  } = useEventForm()
 
-  const [formDataEnglish, setFormDataEnglish] = useState({
-    title: '',
-    author: '',
-    coverImage: null as File | null,
-    eventDate: new Date().toISOString().split('T')[0],
-    description: '',
-    images: [] as File[],
-    categories: [] as string[],
-    tags: [] as string[],
-    phrase: '',
-    credits: '',
-    locationCity: '',
-    locationCountry: ''
-  })
+  const {
+    isTranslating,
+    translationCompleted,
+    setTranslationCompleted,
+    translateToEnglish
+  } = useEventTranslation()
 
-  const [isEnglishMode, setIsEnglishMode] = useState(false)
-  const [newCategory, setNewCategory] = useState('')
-  const [newTag, setNewTag] = useState('')
-  const [newCategoryEnglish, setNewCategoryEnglish] = useState('')
-  const [newTagEnglish, setNewTagEnglish] = useState('')
+  // State for UI
   const [isPublishing, setIsPublishing] = useState(false)
   const [isDragOver, setIsDragOver] = useState(false)
   const [isCoverDragOver, setIsCoverDragOver] = useState(false)
+
+  // Event handlers using utility functions
+  const handleInputChange = createEventInputHandler(isEnglishMode, setFormData, setFormDataEnglish)
   
-  const toast = useToast()
-
-  // Handle form input changes
-  const handleInputChange = (field: string, value: string) => {
-    if (isEnglishMode) {
-      // For common fields, don't allow editing in English mode
-      const commonFields = ['author', 'eventDate', 'locationCity', 'locationCountry']
-      if (commonFields.includes(field)) {
-        return // Don't update these fields in English mode
-      }
-      setFormDataEnglish(prev => ({ ...prev, [field]: value }))
-    } else {
-      setFormData(prev => ({ ...prev, [field]: value }))
-      
-      // Auto-sync common fields to English version
-      const commonFields = ['author', 'eventDate', 'locationCity', 'locationCountry']
-      if (commonFields.includes(field)) {
-        setFormDataEnglish(prev => ({ ...prev, [field]: value }))
-      }
-    }
-  }
-
-  // Handle language mode toggle - preserve images between modes
-  const handleLanguageToggle = () => {
-    const newEnglishMode = !isEnglishMode
-    
-    if (newEnglishMode) {
-      // Switching to English mode - copy images from Spanish to English
-      setFormDataEnglish(prev => ({
-        ...prev,
-        coverImage: formData.coverImage,
-        images: formData.images
-      }))
-    } else {
-      // Switching to Spanish mode - copy images from English to Spanish
-      setFormData(prev => ({
-        ...prev,
-        coverImage: formDataEnglish.coverImage,
-        images: formDataEnglish.images
-      }))
-    }
-    
-    setIsEnglishMode(newEnglishMode)
-  }
-
-  // Handle cover image upload
-  const handleCoverImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      // Update both Spanish and English forms to keep images synchronized
-      setFormData(prev => ({ ...prev, coverImage: file }))
-      setFormDataEnglish(prev => ({ ...prev, coverImage: file }))
-    }
-  }
-
-  // Handle multiple images upload
-  const handleImagesUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || [])
-    if (files.length > 0) {
-      // Update both Spanish and English forms to keep images synchronized
-      setFormData(prev => ({ ...prev, images: [...prev.images, ...files] }))
-      setFormDataEnglish(prev => ({ ...prev, images: [...prev.images, ...files] }))
-    }
-  }
-
-  // Handle drag and drop for multiple images
-  const handleDragOver = (event: React.DragEvent) => {
-    event.preventDefault()
-    event.stopPropagation()
-    setIsDragOver(true)
-  }
-
-  const handleDragLeave = (event: React.DragEvent) => {
-    event.preventDefault()
-    event.stopPropagation()
-    setIsDragOver(false)
-  }
-
-  const handleDrop = (event: React.DragEvent) => {
-    event.preventDefault()
-    event.stopPropagation()
-    setIsDragOver(false)
-    
-    const files = Array.from(event.dataTransfer.files)
-    const imageFiles = files.filter(file => file.type.startsWith('image/'))
-    
-    if (imageFiles.length > 0) {
-      // Update both Spanish and English forms to keep images synchronized
-      setFormData(prev => ({ ...prev, images: [...prev.images, ...imageFiles] }))
-      setFormDataEnglish(prev => ({ ...prev, images: [...prev.images, ...imageFiles] }))
-    }
-  }
-
-  // Handle drag and drop for cover image
-  const handleCoverDragOver = (event: React.DragEvent) => {
-    event.preventDefault()
-    event.stopPropagation()
-    setIsCoverDragOver(true)
-  }
-
-  const handleCoverDragLeave = (event: React.DragEvent) => {
-    event.preventDefault()
-    event.stopPropagation()
-    setIsCoverDragOver(false)
-  }
-
-  const handleCoverDrop = (event: React.DragEvent) => {
-    event.preventDefault()
-    event.stopPropagation()
-    setIsCoverDragOver(false)
-    
-    const files = Array.from(event.dataTransfer.files)
-    const imageFile = files.find(file => file.type.startsWith('image/'))
-    
-    if (imageFile) {
-      // Update both Spanish and English forms to keep images synchronized
-      setFormData(prev => ({ ...prev, coverImage: imageFile }))
-      setFormDataEnglish(prev => ({ ...prev, coverImage: imageFile }))
-    }
-  }
-
-  // Add new category
-  const addCategory = () => {
-    if (isEnglishMode) {
-      if (newCategoryEnglish.trim() && !formDataEnglish.categories.includes(newCategoryEnglish.trim())) {
-        setFormDataEnglish(prev => ({ ...prev, categories: [...prev.categories, newCategoryEnglish.trim()] }))
-        setNewCategoryEnglish('')
-      }
-    } else {
-      if (newCategory.trim() && !formData.categories.includes(newCategory.trim())) {
-        setFormData(prev => ({ ...prev, categories: [...prev.categories, newCategory.trim()] }))
-        setNewCategory('')
-      }
-    }
-  }
-
-  // Remove category
-  const removeCategory = (category: string) => {
-    if (isEnglishMode) {
-      setFormDataEnglish(prev => ({ ...prev, categories: prev.categories.filter(c => c !== category) }))
-    } else {
-      setFormData(prev => ({ ...prev, categories: prev.categories.filter(c => c !== category) }))
-    }
-  }
-
-  // Add new tag
-  const addTag = () => {
-    if (isEnglishMode) {
-      if (newTagEnglish.trim() && !formDataEnglish.tags.includes(newTagEnglish.trim())) {
-        setFormDataEnglish(prev => ({ ...prev, tags: [...prev.tags, newTagEnglish.trim()] }))
-        setNewTagEnglish('')
-      }
-    } else {
-      if (newTag.trim() && !formData.tags.includes(newTag.trim())) {
-        setFormData(prev => ({ ...prev, tags: [...prev.tags, newTag.trim()] }))
-        setNewTag('')
-      }
-    }
-  }
-
-  // Remove tag
-  const removeTag = (tag: string) => {
-    if (isEnglishMode) {
-      setFormDataEnglish(prev => ({ ...prev, tags: prev.tags.filter(t => t !== tag) }))
-    } else {
-      setFormData(prev => ({ ...prev, tags: prev.tags.filter(t => t !== tag) }))
-    }
-  }
-
-  // Helper function to convert File to base64
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.readAsDataURL(file)
-      reader.onload = () => resolve(reader.result as string)
-      reader.onerror = error => reject(error)
-    })
-  }
+  const { handleCoverImageUpload, handleImagesUpload } = createEventImageHandlers(setFormData, setFormDataEnglish)
+  
+  const {
+    handleDragOver,
+    handleDragLeave,
+    handleDrop,
+    handleCoverDragOver,
+    handleCoverDragLeave,
+    handleCoverDrop
+  } = createEventDragHandlers(setIsDragOver, setIsCoverDragOver, setFormData, setFormDataEnglish)
+  
+  const handleLanguageToggle = createEventLanguageToggleHandler(
+    isEnglishMode,
+    setIsEnglishMode,
+    formData,
+    formDataEnglish,
+    setFormData,
+    setFormDataEnglish
+  )
+  
+  const { addCategory, removeCategory } = createEventCategoryHandlers(
+    isEnglishMode,
+    formData,
+    formDataEnglish,
+    setFormData,
+    setFormDataEnglish,
+    newCategory,
+    newCategoryEnglish,
+    setNewCategory,
+    setNewCategoryEnglish
+  )
+  
+  const { addTag, removeTag } = createEventTagHandlers(
+    isEnglishMode,
+    formData,
+    formDataEnglish,
+    setFormData,
+    setFormDataEnglish,
+    newTag,
+    newTagEnglish,
+    setNewTag,
+    setNewTagEnglish
+  )
 
   // Handle form submission
   const handleSubmit = async () => {
-    // Always validate both Spanish and English versions
-    const spanishRequiredFields = {
-      title: formData.title.trim(),
-      author: formData.author.trim(),
-      coverImage: formData.coverImage,
-      eventDate: formData.eventDate,
-      description: formData.description.trim(),
-      phrase: formData.phrase.trim(),
-      credits: formData.credits.trim(),
-      locationCity: formData.locationCity.trim(),
-      locationCountry: formData.locationCountry.trim()
-    }
+    // Validate form using utility function
+    const validation = validateEventForm(formData, formDataEnglish, isEnglishMode)
     
-    const englishRequiredFields = {
-      title: formDataEnglish.title.trim(),
-      author: formDataEnglish.author.trim(),
-      coverImage: formDataEnglish.coverImage,
-      eventDate: formDataEnglish.eventDate,
-      description: formDataEnglish.description.trim(),
-      phrase: formDataEnglish.phrase.trim(),
-      credits: formDataEnglish.credits.trim(),
-      locationCity: formDataEnglish.locationCity.trim(),
-      locationCountry: formDataEnglish.locationCountry.trim()
-    }
-    
-    const spanishMissingFields = Object.entries(spanishRequiredFields)
-      .filter(([key, value]) => !value)
-      .map(([key]) => key)
-    
-    const englishMissingFields = Object.entries(englishRequiredFields)
-      .filter(([key, value]) => !value)
-      .map(([key]) => key)
-    
-    // Field names for both languages
-    const spanishFieldNames = {
-      title: 'Título',
-      author: 'Autor',
-      coverImage: 'Portada',
-      eventDate: 'Fecha del Evento',
-      description: 'Descripción',
-      phrase: 'Frase',
-      credits: 'Créditos',
-      locationCity: 'Ciudad',
-      locationCountry: 'País'
-    }
-    
-    const englishFieldNames = {
-      title: 'Title',
-      author: 'Author',
-      coverImage: 'Cover Image',
-      eventDate: 'Event Date',
-      description: 'Description',
-      phrase: 'Phrase',
-      credits: 'Credits',
-      locationCity: 'City',
-      locationCountry: 'Country'
-    }
-    
-    // Check if we're in Spanish mode and Spanish fields are missing
-    if (!isEnglishMode && spanishMissingFields.length > 0) {
-      const missingFieldNames = spanishMissingFields.map(field => spanishFieldNames[field as keyof typeof spanishFieldNames])
-      toast.warning(`Debes llenar todos los campos obligatorios: ${missingFieldNames.join(', ')}`)
+    if (!validation.isValid) {
+      toast.warning(validation.errorMessage!)
       return
-    }
-    
-    // Check if we're in English mode and English fields are missing
-    if (isEnglishMode && englishMissingFields.length > 0) {
-      const missingFieldNames = englishMissingFields.map(field => englishFieldNames[field as keyof typeof englishFieldNames])
-      toast.warning(`You must fill all required fields: ${missingFieldNames.join(', ')}`)
-      return
-    }
-    
-    // If we're in Spanish mode, also check English fields
-    if (!isEnglishMode) {
-      if (englishMissingFields.length > 0) {
-        const missingFieldNames = englishMissingFields.map(field => englishFieldNames[field as keyof typeof englishFieldNames])
-        toast.warning(`También debes llenar todos los campos obligatorios de la versión en inglés: ${missingFieldNames.join(', ')}`)
-        return
-      }
-    }
-    
-    // If we're in English mode, also check Spanish fields
-    if (isEnglishMode) {
-      if (spanishMissingFields.length > 0) {
-        const missingFieldNames = spanishMissingFields.map(field => spanishFieldNames[field as keyof typeof spanishFieldNames])
-        toast.warning(`You must also fill all required fields in the Spanish version: ${missingFieldNames.join(', ')}`)
-        return
-      }
     }
     
     setIsPublishing(true)
@@ -387,12 +185,6 @@ export default function AgregarEventoPage() {
     }
   }
 
-  // Get current form data based on language mode
-  const getCurrentFormData = () => isEnglishMode ? formDataEnglish : formData
-  const getCurrentNewCategory = () => isEnglishMode ? newCategoryEnglish : newCategory
-  const getCurrentNewTag = () => isEnglishMode ? newTagEnglish : newTag
-  const setCurrentNewCategory = (value: string) => isEnglishMode ? setNewCategoryEnglish(value) : setNewCategory(value)
-  const setCurrentNewTag = (value: string) => isEnglishMode ? setNewTagEnglish(value) : setNewTag(value)
 
   // English translations
   const translations = {
@@ -475,9 +267,9 @@ export default function AgregarEventoPage() {
         <div className="flex items-center space-x-4 mb-4 lg:mb-0">
           {/* Preview Image */}
           <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden">
-            {getCurrentFormData().coverImage ? (
+            {getCurrentFormData.coverImage ? (
               <img
-                src={URL.createObjectURL(getCurrentFormData().coverImage!)}
+                src={getImageSrc(getCurrentFormData.coverImage)!}
                 alt="Preview"
                 className="w-full h-full object-cover"
               />
@@ -493,14 +285,14 @@ export default function AgregarEventoPage() {
           {/* Preview Info */}
           <div>
             <h1 className="font-metropolis font-bold text-2xl mb-1" style={{ color: '#0D141C' }}>
-              {getCurrentFormData().title || translations.title}
+              {getCurrentFormData.title || translations.title}
             </h1>
             <p className="font-metropolis font-regular text-sm" style={{ color: '#4A739C' }}>
-              {getCurrentFormData().author} | {new Date(getCurrentFormData().eventDate).getFullYear()}
+              {getCurrentFormData.author} | {new Date(getCurrentFormData.eventDate).getFullYear()}
             </p>
-            {getCurrentFormData().locationCity && (
+            {getCurrentFormData.locationCity && (
               <p className="font-metropolis font-regular text-sm" style={{ color: '#4A739C' }}>
-                📍 {getCurrentFormData().locationCity}, {getCurrentFormData().locationCountry}
+                📍 {getCurrentFormData.locationCity}, {getCurrentFormData.locationCountry}
               </p>
             )}
           </div>
@@ -510,14 +302,33 @@ export default function AgregarEventoPage() {
         <div className="flex items-center space-x-3">
           {/* Language Toggle Button */}
           <button
-            onClick={handleLanguageToggle}
-            className={`inline-flex items-center px-4 py-3 border rounded-md shadow-sm text-sm font-medium transition-all duration-200 ${
+            onClick={async () => {
+              if (!isEnglishMode) {
+                // Switch to English mode and trigger translation
+                setIsEnglishMode(true)
+                setTranslationCompleted(false)
+                await translateToEnglish(formData, setFormDataEnglish)
+              } else {
+                // Switching back to Spanish mode
+                setIsEnglishMode(false)
+                setTranslationCompleted(false)
+              }
+            }}
+            disabled={isTranslating}
+            className={`inline-flex items-center px-4 py-3 border rounded-md shadow-sm text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${
               isEnglishMode 
                 ? 'border-[#5A6F80] text-[#5A6F80] bg-white hover:bg-gray-50' 
                 : 'border-[#5A6F80] text-white bg-[#5A6F80] hover:bg-[#4A739C]'
             }`}
           >
-            {isEnglishMode ? translations.spanishVersion : translations.englishVersion}
+            {isTranslating ? (
+              <div className="flex items-center space-x-2">
+                <Spinner size="sm" />
+                <span>Traduciendo...</span>
+              </div>
+            ) : (
+              isEnglishMode ? translations.spanishVersion : translations.englishVersion
+            )}
           </button>
 
           {/* Publish Button */}
@@ -547,11 +358,12 @@ export default function AgregarEventoPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
             </svg>
             <span className="text-blue-800 font-medium">
-              English Mode - This section will be filled in English. The DeepL translation endpoint will be integrated later.
+              English Mode - Content has been automatically translated from Spanish using DeepL. You can edit the translations as needed.
             </span>
           </div>
         </div>
       )}
+
 
       {/* Form */}
       <div className="bg-white border rounded-lg p-6 shadow-lg" style={{ borderColor: '#CFDBE8' }}>
@@ -568,7 +380,7 @@ export default function AgregarEventoPage() {
                 </label>
                 <input
                   type="text"
-                  value={getCurrentFormData().title}
+                  value={getCurrentFormData.title}
                   onChange={(e) => handleInputChange('title', e.target.value)}
                   placeholder={translations.title}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
@@ -580,7 +392,7 @@ export default function AgregarEventoPage() {
                 </label>
                 <input
                   type="text"
-                  value={isEnglishMode ? formData.author : getCurrentFormData().author}
+                  value={isEnglishMode ? formData.author : getCurrentFormData.author}
                   onChange={(e) => handleInputChange('author', e.target.value)}
                   placeholder={translations.author}
                   disabled={isEnglishMode}
@@ -604,9 +416,9 @@ export default function AgregarEventoPage() {
               <div className="flex items-center space-x-4">
                 {/* Image Preview */}
                 <div className="w-32 h-24 bg-gray-200 rounded-lg overflow-hidden">
-                  {getCurrentFormData().coverImage ? (
+                  {getCurrentFormData.coverImage ? (
                     <img
-                      src={URL.createObjectURL(getCurrentFormData().coverImage!)}
+                      src={getImageSrc(getCurrentFormData.coverImage)!}
                       alt="Cover preview"
                       className="w-full h-full object-cover"
                     />
@@ -650,7 +462,7 @@ export default function AgregarEventoPage() {
               </div>
               <input
                 type="date"
-                value={isEnglishMode ? formData.eventDate : getCurrentFormData().eventDate}
+                value={isEnglishMode ? formData.eventDate : getCurrentFormData.eventDate}
                 onChange={(e) => handleInputChange('eventDate', e.target.value)}
                 disabled={isEnglishMode}
                 className={`block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
@@ -672,7 +484,7 @@ export default function AgregarEventoPage() {
                 </label>
                 <input
                   type="text"
-                  value={isEnglishMode ? formData.locationCity : getCurrentFormData().locationCity}
+                  value={isEnglishMode ? formData.locationCity : getCurrentFormData.locationCity}
                   onChange={(e) => handleInputChange('locationCity', e.target.value)}
                   placeholder={translations.locationCity}
                   disabled={isEnglishMode}
@@ -687,7 +499,7 @@ export default function AgregarEventoPage() {
                 </label>
                 <input
                   type="text"
-                  value={isEnglishMode ? formData.locationCountry : getCurrentFormData().locationCountry}
+                  value={isEnglishMode ? formData.locationCountry : getCurrentFormData.locationCountry}
                   onChange={(e) => handleInputChange('locationCountry', e.target.value)}
                   placeholder={translations.locationCountry}
                   disabled={isEnglishMode}
@@ -708,7 +520,7 @@ export default function AgregarEventoPage() {
               {translations.descriptionHelp}
             </p>
             <textarea
-              value={getCurrentFormData().description}
+              value={getCurrentFormData.description}
               onChange={(e) => handleInputChange('description', e.target.value)}
               rows={6}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent resize-none"
@@ -726,7 +538,7 @@ export default function AgregarEventoPage() {
             </p>
             <input
               type="text"
-              value={getCurrentFormData().phrase}
+              value={getCurrentFormData.phrase}
               onChange={(e) => handleInputChange('phrase', e.target.value)}
               placeholder={translations.phrasePlaceholder}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
@@ -743,7 +555,7 @@ export default function AgregarEventoPage() {
             </p>
             <input
               type="text"
-              value={getCurrentFormData().credits}
+              value={getCurrentFormData.credits}
               onChange={(e) => handleInputChange('credits', e.target.value)}
               placeholder={translations.creditsPlaceholder}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
@@ -796,12 +608,12 @@ export default function AgregarEventoPage() {
             </label>
             
             {/* Uploaded Images Preview */}
-            {getCurrentFormData().images.length > 0 && (
+            {getCurrentFormData.images.length > 0 && (
               <div className="mt-4 grid grid-cols-2 md:grid-cols-5 gap-3">
-                {getCurrentFormData().images.map((image, index) => (
+                {getCurrentFormData.images.map((image: File, index: number) => (
                   <div key={index} className="relative">
                     <img
-                      src={URL.createObjectURL(image)}
+                      src={getImageSrc(image)!}
                       alt={`Uploaded ${index + 1}`}
                       className="w-full h-20 object-cover rounded-lg"
                     />
@@ -837,7 +649,7 @@ export default function AgregarEventoPage() {
               <div className="flex space-x-2">
                 <input
                   type="text"
-                  value={getCurrentNewCategory()}
+                  value={getCurrentNewCategory}
                   onChange={(e) => setCurrentNewCategory(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && addCategory()}
                   placeholder={translations.newCategory}
@@ -855,7 +667,7 @@ export default function AgregarEventoPage() {
               
               {/* Categories Tags */}
               <div className="flex flex-wrap gap-2">
-                {getCurrentFormData().categories.map((category, index) => (
+                {getCurrentFormData.categories.map((category: string, index: number) => (
                   <span
                     key={index}
                     className="inline-flex items-center px-3 py-1 text-sm font-metropolis font-medium bg-[#E8EDF5] text-[#0D141C] rounded-full"
@@ -887,7 +699,7 @@ export default function AgregarEventoPage() {
               <div className="flex space-x-2">
                 <input
                   type="text"
-                  value={getCurrentNewTag()}
+                  value={getCurrentNewTag}
                   onChange={(e) => setCurrentNewTag(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && addTag()}
                   placeholder={translations.newTag}
@@ -905,7 +717,7 @@ export default function AgregarEventoPage() {
               
               {/* Tags */}
               <div className="flex flex-wrap gap-2">
-                {getCurrentFormData().tags.map((tag, index) => (
+                {getCurrentFormData.tags.map((tag: string, index: number) => (
                   <span
                     key={index}
                     className="inline-flex items-center px-3 py-1 text-sm font-metropolis font-medium bg-[#E8EDF5] text-[#0D141C] rounded-full"
