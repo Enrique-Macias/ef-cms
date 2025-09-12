@@ -284,8 +284,11 @@ export default function AgregarEquipoPage() {
                   type="text"
                   value={getCurrentFormData().name}
                   onChange={(e) => handleInputChange('name', e.target.value, isEnglishMode)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
+                  className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
+                    isEnglishMode ? 'bg-gray-100 cursor-not-allowed' : ''
+                  }`}
                   placeholder={isEnglishMode ? 'Enter member name' : 'Ingresa el nombre del miembro'}
+                  disabled={isEnglishMode}
                 />
               </div>
               
@@ -318,8 +321,11 @@ export default function AgregarEquipoPage() {
                   type="url"
                   value={getCurrentFormData().instagram_url}
                   onChange={(e) => handleInputChange('instagram_url', e.target.value, isEnglishMode)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
+                  className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
+                    isEnglishMode ? 'bg-gray-100 cursor-not-allowed' : ''
+                  }`}
                   placeholder="https://instagram.com/username"
+                  disabled={isEnglishMode}
                 />
               </div>
               
@@ -331,8 +337,11 @@ export default function AgregarEquipoPage() {
                   type="url"
                   value={getCurrentFormData().facebook_url}
                   onChange={(e) => handleInputChange('facebook_url', e.target.value, isEnglishMode)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
+                  className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
+                    isEnglishMode ? 'bg-gray-100 cursor-not-allowed' : ''
+                  }`}
                   placeholder="https://facebook.com/username"
+                  disabled={isEnglishMode}
                 />
               </div>
               
@@ -344,8 +353,11 @@ export default function AgregarEquipoPage() {
                   type="url"
                   value={getCurrentFormData().x_url}
                   onChange={(e) => handleInputChange('x_url', e.target.value, isEnglishMode)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
+                  className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
+                    isEnglishMode ? 'bg-gray-100 cursor-not-allowed' : ''
+                  }`}
                   placeholder="https://x.com/username"
+                  disabled={isEnglishMode}
                 />
               </div>
             </div>
@@ -366,12 +378,14 @@ export default function AgregarEquipoPage() {
                 className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
                   getCurrentFormData().image 
                     ? 'border-[#5A6F80] bg-[#F0F4F8]' 
-                    : 'border-gray-300 hover:border-[#5A6F80] hover:bg-gray-50'
+                    : isEnglishMode 
+                      ? 'border-gray-300 bg-gray-100 cursor-not-allowed' 
+                      : 'border-gray-300 hover:border-[#5A6F80] hover:bg-gray-50'
                 }`}
-                onDragOver={(e) => e.preventDefault()}
-                onDragEnter={() => setIsDragOver(true)}
-                onDragLeave={() => setIsDragOver(false)}
-                onDrop={handleDrop}
+                onDragOver={isEnglishMode ? undefined : (e) => e.preventDefault()}
+                onDragEnter={isEnglishMode ? undefined : () => setIsDragOver(true)}
+                onDragLeave={isEnglishMode ? undefined : () => setIsDragOver(false)}
+                onDrop={isEnglishMode ? undefined : handleDrop}
               >
                 {getCurrentFormData().image ? (
                   <div className="space-y-3">
@@ -416,10 +430,15 @@ export default function AgregarEquipoPage() {
                 onChange={handleImageUploadEvent}
                 className="hidden"
                 id="image-upload"
+                disabled={isEnglishMode}
               />
               <label
                 htmlFor="image-upload"
-                className="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-[#5A6F80] bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5A6F80]"
+                className={`inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-[#5A6F80] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5A6F80] ${
+                  isEnglishMode 
+                    ? 'cursor-not-allowed bg-gray-100 opacity-50' 
+                    : 'cursor-pointer bg-white hover:bg-gray-50'
+                }`}
               >
                 <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

@@ -349,7 +349,10 @@ export default function AgregarArticuloPage() {
                   value={getCurrentFormData().author}
                   onChange={(e) => handleInputChange('author', e.target.value, isEnglishMode)}
                   placeholder={translations.author}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
+                  disabled={isEnglishMode}
+                  className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
+                    isEnglishMode ? 'bg-gray-100 cursor-not-allowed' : ''
+                  }`}
                 />
               </div>
             </div>
@@ -367,15 +370,17 @@ export default function AgregarArticuloPage() {
               <div className="flex items-center space-x-4">
                 {/* Image Preview */}
                 <div 
-                  className={`w-32 h-24 bg-gray-200 rounded-lg overflow-hidden border-2 border-dashed transition-colors cursor-pointer ${
+                  className={`w-32 h-24 bg-gray-200 rounded-lg overflow-hidden border-2 border-dashed transition-colors ${
                     isDragOver 
                       ? 'border-[#5A6F80] bg-[#E8EDF5]' 
-                      : 'border-gray-300 hover:border-[#5A6F80]'
+                      : isEnglishMode
+                        ? 'border-gray-300 bg-gray-100 cursor-not-allowed'
+                        : 'border-gray-300 hover:border-[#5A6F80] cursor-pointer'
                   }`}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                  onClick={() => document.getElementById('coverImageInput')?.click()}
+                  onDragOver={isEnglishMode ? undefined : handleDragOver}
+                  onDragLeave={isEnglishMode ? undefined : handleDragLeave}
+                  onDrop={isEnglishMode ? undefined : handleDrop}
+                  onClick={isEnglishMode ? undefined : () => document.getElementById('coverImageInput')?.click()}
                 >
                   {getCurrentFormData().image ? (
                     <Image
@@ -395,7 +400,11 @@ export default function AgregarArticuloPage() {
                 </div>
                 
                 {/* Upload Button */}
-                <label className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5A6F80] cursor-pointer transition-colors">
+                <label className={`inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5A6F80] transition-colors ${
+                  isEnglishMode 
+                    ? 'cursor-not-allowed bg-gray-100 opacity-50' 
+                    : 'cursor-pointer bg-white hover:bg-gray-50'
+                }`}>
                   <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
@@ -406,6 +415,7 @@ export default function AgregarArticuloPage() {
                     accept="image/*"
                     onChange={handleImageUploadEvent}
                     className="hidden"
+                    disabled={isEnglishMode}
                   />
                 </label>
               </div>
@@ -427,7 +437,10 @@ export default function AgregarArticuloPage() {
                 type="date"
                 value={getCurrentFormData().date}
                 onChange={(e) => handleInputChange('date', e.target.value, isEnglishMode)}
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
+                disabled={isEnglishMode}
+                className={`block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
+                  isEnglishMode ? 'bg-gray-100 cursor-not-allowed' : ''
+                }`}
               />
             </div>
           </div>
@@ -462,7 +475,10 @@ export default function AgregarArticuloPage() {
               value={getCurrentFormData().linkUrl}
               onChange={(e) => handleInputChange('linkUrl', e.target.value, isEnglishMode)}
               placeholder={translations.linkUrlPlaceholder}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
+              disabled={isEnglishMode}
+              className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
+                isEnglishMode ? 'bg-gray-100 cursor-not-allowed' : ''
+              }`}
             />
           </div>
         </form>
