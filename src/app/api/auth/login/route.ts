@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     // Validate required fields
     if (!email || !password) {
       return NextResponse.json(
-        { error: 'Email and password are required' },
+        { error: 'Email y contraseña son requeridos' },
         { status: 400 }
       )
     }
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     const user = await getUserByEmail(email)
     if (!user) {
       return NextResponse.json(
-        { error: 'Invalid credentials' },
+        { error: 'Credenciales inválidas' },
         { status: 401 }
       )
     }
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     const isPasswordValid = await comparePassword(password, user.passwordHash)
     if (!isPasswordValid) {
       return NextResponse.json(
-        { error: 'Invalid credentials' },
+        { error: 'Credenciales inválidas' },
         { status: 401 }
       )
     }
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
 
     // Return user data (without password) and token
     return NextResponse.json({
-      message: 'Login successful',
+      message: 'Inicio de sesión exitoso',
       user: {
         id: user.id,
         email: user.email,
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Login error:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     )
   }

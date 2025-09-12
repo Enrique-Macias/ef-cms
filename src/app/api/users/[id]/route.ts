@@ -11,7 +11,7 @@ export async function GET(
     
     if (isNaN(id)) {
       return NextResponse.json(
-        { error: 'Invalid user ID' },
+        { error: 'ID de usuario inválido' },
         { status: 400 }
       )
     }
@@ -20,7 +20,7 @@ export async function GET(
     
     if (!user) {
       return NextResponse.json(
-        { error: 'User not found' },
+        { error: 'Usuario no encontrado' },
         { status: 404 }
       )
     }
@@ -29,7 +29,7 @@ export async function GET(
   } catch (error) {
     console.error('Error fetching user:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch user' },
+      { error: 'Error al obtener usuario' },
       { status: 500 }
     )
   }
@@ -45,7 +45,7 @@ export async function PUT(
     
     if (isNaN(id)) {
       return NextResponse.json(
-        { error: 'Invalid user ID' },
+        { error: 'ID de usuario inválido' },
         { status: 400 }
       )
     }
@@ -57,7 +57,7 @@ export async function PUT(
     const existingUser = await getUserById(id)
     if (!existingUser) {
       return NextResponse.json(
-        { error: 'User not found' },
+        { error: 'Usuario no encontrado' },
         { status: 404 }
       )
     }
@@ -83,13 +83,13 @@ export async function PUT(
     // Handle unique constraint violation
     if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
       return NextResponse.json(
-        { error: 'Email already exists' },
+        { error: 'El email ya existe' },
         { status: 400 }
       )
     }
 
     return NextResponse.json(
-      { error: 'Failed to update user' },
+      { error: 'Error al actualizar usuario' },
       { status: 500 }
     )
   }
@@ -105,7 +105,7 @@ export async function DELETE(
     
     if (isNaN(id)) {
       return NextResponse.json(
-        { error: 'Invalid user ID' },
+        { error: 'ID de usuario inválido' },
         { status: 400 }
       )
     }
@@ -114,7 +114,7 @@ export async function DELETE(
     const existingUser = await getUserById(id)
     if (!existingUser) {
       return NextResponse.json(
-        { error: 'User not found' },
+        { error: 'Usuario no encontrado' },
         { status: 404 }
       )
     }
@@ -126,7 +126,7 @@ export async function DELETE(
   } catch (error) {
     console.error('Error deleting user:', error)
     return NextResponse.json(
-      { error: 'Failed to delete user' },
+      { error: 'Error al eliminar usuario' },
       { status: 500 }
     )
   }

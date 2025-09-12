@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { uploadImageFromBase64, extractPublicId, deleteImage } from '@/lib/cloudinary'
 import { updateEvent, deleteEvent } from '@/lib/eventService'
+import { createAuditLog, auditActions, auditResources } from '@/lib/audit'
+import { getAuthenticatedUser } from '@/utils/authUtils'
 
 export async function GET(
   request: NextRequest,
@@ -19,7 +21,7 @@ export async function GET(
 
     if (!event) {
       return NextResponse.json(
-        { error: 'Event not found' },
+        { error: 'Evento no encontrado' },
         { status: 404 }
       )
     }
@@ -31,7 +33,7 @@ export async function GET(
   } catch (error) {
     console.error('Error fetching event:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch event' },
+      { error: 'Error al obtener evento' },
       { status: 500 }
     )
   }
@@ -42,6 +44,13 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const user = await getAuthenticatedUser(request)
+    
+    // Check if user is authenticated
+    if (!user) {
+      return NextResponse.json({ error: 'Autenticación requerida' }, { status: 401 })
+    }
+    
     const { id } = await params
     const body = await request.json()
 
@@ -53,7 +62,7 @@ export async function PUT(
 
     if (!existingEvent) {
       return NextResponse.json(
-        { error: 'Event not found' },
+        { error: 'Evento no encontrado' },
         { status: 404 }
       )
     }
@@ -80,7 +89,7 @@ export async function PUT(
       } catch (error) {
         console.error('Error uploading cover image:', error)
         return NextResponse.json(
-          { error: 'Failed to upload cover image' },
+          { error: 'Error al subir imagen de portada' },
           { status: 500 }
         )
       }
@@ -124,7 +133,7 @@ export async function PUT(
       } catch (error) {
         console.error('Error uploading event images:', error)
         return NextResponse.json(
-          { error: 'Failed to upload event images' },
+          { error: 'Error al subir imágenes del evento' },
           { status: 500 }
         )
       }
@@ -159,15 +168,37 @@ export async function PUT(
     // Update event using the service (same as news)
     const updatedEvent = await updateEvent(id, { ...updateData, id })
 
+    // Log audit action
+    await createAuditLog({
+      userId: user.userId,
+      resource: auditResources.EVENTS,
+      action: auditActions.UPDATE,
+      changes: {
+        title_es: updatedEvent.title_es,
+        title_en: updatedEvent.title_en,
+        author: updatedEvent.author,
+        location_city: updatedEvent.location_city,
+        location_country: updatedEvent.location_country,
+        eventId: updatedEvent.id,
+        previousData: {
+          title_es: existingEvent.title_es,
+          title_en: existingEvent.title_en,
+          author: existingEvent.author,
+          location_city: existingEvent.location_city,
+          location_country: existingEvent.location_country
+        }
+      }
+    })
+
     return NextResponse.json({
       success: true,
       event: updatedEvent,
-      message: 'Event updated successfully'
+      message: 'Evento actualizado exitosamente'
     })
   } catch (error) {
     console.error('Error updating event:', error)
     return NextResponse.json(
-      { error: 'Failed to update event' },
+      { error: 'Error al actualizar evento' },
       { status: 500 }
     )
   }
@@ -178,6 +209,13 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const user = await getAuthenticatedUser(request)
+    
+    // Check if user is authenticated
+    if (!user) {
+      return NextResponse.json({ error: 'Autenticación requerida' }, { status: 401 })
+    }
+    
     const { id } = await params
 
     // Get event with images to delete from Cloudinary
@@ -188,7 +226,7 @@ export async function DELETE(
 
     if (!event) {
       return NextResponse.json(
-        { error: 'Event not found' },
+        { error: 'Evento no encontrado' },
         { status: 404 }
       )
     }
@@ -222,14 +260,29 @@ export async function DELETE(
     // Delete event from database (this will also delete related event images)
     await deleteEvent(id)
 
+    // Log audit action
+    await createAuditLog({
+      userId: user.userId,
+      resource: auditResources.EVENTS,
+      action: auditActions.DELETE,
+      changes: {
+        title_es: event.title_es,
+        title_en: event.title_en,
+        author: event.author,
+        location_city: event.location_city,
+        location_country: event.location_country,
+        eventId: event.id
+      }
+    })
+
     return NextResponse.json({
       success: true,
-      message: 'Event deleted successfully'
+      message: 'Evento eliminado exitosamente'
     })
   } catch (error) {
     console.error('Error deleting event:', error)
     return NextResponse.json(
-      { error: 'Failed to delete event' },
+      { error: 'Error al eliminar evento' },
       { status: 500 }
     )
   }

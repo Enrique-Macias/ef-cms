@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { uploadImageFromBase64, deleteImage, extractPublicId } from '@/lib/cloudinary'
+import { createAuditLog, auditActions, auditResources } from '@/lib/audit'
+import { getAuthenticatedUser } from '@/utils/authUtils'
 
 export async function GET(
   request: NextRequest,
@@ -17,7 +19,7 @@ export async function GET(
 
     if (!testimonial) {
       return NextResponse.json(
-        { error: 'Testimonial not found' },
+        { error: 'Testimonio no encontrado' },
         { status: 404 }
       )
     }
@@ -26,7 +28,7 @@ export async function GET(
   } catch (error) {
     console.error('Error fetching testimonial:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch testimonial' },
+      { error: 'Error al obtener testimonio' },
       { status: 500 }
     )
   }
@@ -37,6 +39,13 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const user = await getAuthenticatedUser(request)
+    
+    // Check if user is authenticated
+    if (!user) {
+      return NextResponse.json({ error: 'Autenticación requerida' }, { status: 401 })
+    }
+    
     const { id } = await params
     const body = await request.json()
 
@@ -47,7 +56,7 @@ export async function PUT(
 
     if (!existingTestimonial) {
       return NextResponse.json(
-        { error: 'Testimonial not found' },
+        { error: 'Testimonio no encontrado' },
         { status: 404 }
       )
     }
@@ -84,7 +93,7 @@ export async function PUT(
         } catch (error) {
           console.error('Error uploading new image:', error)
           return NextResponse.json(
-            { error: 'Failed to upload new image' },
+            { error: 'Error al subir nueva imagen' },
             { status: 500 }
           )
         }
@@ -103,6 +112,22 @@ export async function PUT(
       data: updateData
     })
 
+    // Log audit action
+    await createAuditLog({
+      userId: user.userId,
+      resource: auditResources.TESTIMONIALS,
+      action: auditActions.UPDATE,
+      changes: {
+        author: updatedTestimonial.author,
+        role: updatedTestimonial.role,
+        testimonialId: updatedTestimonial.id,
+        previousData: {
+          author: existingTestimonial.author,
+          role: existingTestimonial.role
+        }
+      }
+    })
+
     return NextResponse.json(updatedTestimonial)
   } catch (error) {
     console.error('Error updating testimonial:', error)
@@ -118,6 +143,13 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const user = await getAuthenticatedUser(request)
+    
+    // Check if user is authenticated
+    if (!user) {
+      return NextResponse.json({ error: 'Autenticación requerida' }, { status: 401 })
+    }
+    
     const { id } = await params
 
     // Check if testimonial exists
@@ -127,7 +159,7 @@ export async function DELETE(
 
     if (!existingTestimonial) {
       return NextResponse.json(
-        { error: 'Testimonial not found' },
+        { error: 'Testimonio no encontrado' },
         { status: 404 }
       )
     }
@@ -150,7 +182,19 @@ export async function DELETE(
       where: { id }
     })
 
-    return NextResponse.json({ message: 'Testimonial deleted successfully' })
+    // Log audit action
+    await createAuditLog({
+      userId: user.userId,
+      resource: auditResources.TESTIMONIALS,
+      action: auditActions.DELETE,
+      changes: {
+        author: existingTestimonial.author,
+        role: existingTestimonial.role,
+        testimonialId: existingTestimonial.id
+      }
+    })
+
+    return NextResponse.json({ message: 'Testimonio eliminado exitosamente' })
   } catch (error) {
     console.error('Error deleting testimonial:', error)
     return NextResponse.json(

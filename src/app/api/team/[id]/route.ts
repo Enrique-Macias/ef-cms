@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getTeamById, updateTeam, deleteTeam } from '@/lib/teamService'
 import { uploadImageFromBase64, deleteImage, extractPublicId } from '@/lib/cloudinary'
+import { createAuditLog, auditActions, auditResources } from '@/lib/audit'
+import { getAuthenticatedUser } from '@/utils/authUtils'
 
 // GET /api/team/[id] - Get a single team member
 export async function GET(
@@ -14,7 +16,7 @@ export async function GET(
     
     if (!team) {
       return NextResponse.json(
-        { error: 'Team member not found' },
+        { error: 'Miembro del equipo no encontrado' },
         { status: 404 }
       )
     }
@@ -23,7 +25,7 @@ export async function GET(
   } catch (error) {
     console.error('Error fetching team member:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch team member' },
+      { error: 'Error al obtener miembro del equipo' },
       { status: 500 }
     )
   }
@@ -35,6 +37,13 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const user = await getAuthenticatedUser(request)
+    
+    // Check if user is authenticated
+    if (!user) {
+      return NextResponse.json({ error: 'Autenticación requerida' }, { status: 401 })
+    }
+    
     const { id } = await params
     const body = await request.json()
     const {
@@ -51,7 +60,7 @@ export async function PUT(
     // Validate required fields
     if (!name || !role || !role_en || !imageUrl) {
       return NextResponse.json(
-        { error: 'Missing required fields: name, role, role_en, imageUrl' },
+        { error: 'Campos requeridos faltantes: name, role, role_en, imageUrl' },
         { status: 400 }
       )
     }
@@ -74,10 +83,19 @@ export async function PUT(
       } catch (uploadError) {
         console.error('Error uploading image:', uploadError)
         return NextResponse.json(
-          { error: 'Failed to upload image' },
+          { error: 'Error al subir imagen' },
           { status: 500 }
         )
       }
+    }
+
+    // Get existing team member for audit log
+    const existingTeam = await getTeamById(id)
+    if (!existingTeam) {
+      return NextResponse.json(
+        { error: 'Miembro del equipo no encontrado' },
+        { status: 404 }
+      )
     }
 
     // Update team member
@@ -92,11 +110,27 @@ export async function PUT(
       imageUrl: finalImageUrl,
     })
 
+    // Log audit action
+    await createAuditLog({
+      userId: user.userId,
+      resource: auditResources.TEAM,
+      action: auditActions.UPDATE,
+      changes: {
+        name: team.name,
+        role: team.role,
+        teamId: team.id,
+        previousData: {
+          name: existingTeam.name,
+          role: existingTeam.role
+        }
+      }
+    })
+
     return NextResponse.json(team)
   } catch (error) {
     console.error('Error updating team member:', error)
     return NextResponse.json(
-      { error: 'Failed to update team member' },
+      { error: 'Error al actualizar miembro del equipo' },
       { status: 500 }
     )
   }
@@ -108,13 +142,20 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const user = await getAuthenticatedUser(request)
+    
+    // Check if user is authenticated
+    if (!user) {
+      return NextResponse.json({ error: 'Autenticación requerida' }, { status: 401 })
+    }
+    
     const { id } = await params
 
     // Get team member to access image URL for deletion
     const team = await getTeamById(id)
     if (!team) {
       return NextResponse.json(
-        { error: 'Team member not found' },
+        { error: 'Miembro del equipo no encontrado' },
         { status: 404 }
       )
     }
@@ -135,11 +176,23 @@ export async function DELETE(
     // Delete team member from database
     await deleteTeam(id)
 
-    return NextResponse.json({ message: 'Team member deleted successfully' })
+    // Log audit action
+    await createAuditLog({
+      userId: user.userId,
+      resource: auditResources.TEAM,
+      action: auditActions.DELETE,
+      changes: {
+        name: team.name,
+        role: team.role,
+        teamId: team.id
+      }
+    })
+
+    return NextResponse.json({ message: 'Miembro del equipo eliminado exitosamente' })
   } catch (error) {
     console.error('Error deleting team member:', error)
     return NextResponse.json(
-      { error: 'Failed to delete team member' },
+      { error: 'Error al eliminar miembro del equipo' },
       { status: 500 }
     )
   }

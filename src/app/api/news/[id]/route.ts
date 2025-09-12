@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getNewsById, updateNews, deleteNews } from '@/lib/newsService'
 import { uploadImageFromBase64, extractPublicId, deleteImage } from '@/lib/cloudinary'
+import { createAuditLog, auditActions, auditResources } from '@/lib/audit'
+import { getAuthenticatedUser } from '@/utils/authUtils'
 
 export async function GET(
   request: NextRequest,
@@ -13,7 +15,7 @@ export async function GET(
 
     if (!news) {
       return NextResponse.json(
-        { error: 'News not found' },
+        { error: 'Noticia no encontrada' },
         { status: 404 }
       )
     }
@@ -22,7 +24,7 @@ export async function GET(
   } catch (error) {
     console.error('Error fetching news:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch news' },
+      { error: 'Error al obtener noticia' },
       { status: 500 }
     )
   }
@@ -33,6 +35,13 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const user = await getAuthenticatedUser(request)
+    
+    // Check if user is authenticated
+    if (!user) {
+      return NextResponse.json({ error: 'Autenticación requerida' }, { status: 401 })
+    }
+    
     const { id } = await params
     const body = await request.json()
 
@@ -40,7 +49,7 @@ export async function PUT(
     const existingNews = await getNewsById(id)
     if (!existingNews) {
       return NextResponse.json(
-        { error: 'News not found' },
+        { error: 'Noticia no encontrada' },
         { status: 404 }
       )
     }
@@ -65,7 +74,7 @@ export async function PUT(
       } catch (error) {
         console.error('Error uploading cover image:', error)
         return NextResponse.json(
-          { error: 'Failed to upload cover image' },
+          { error: 'Error al subir imagen de portada' },
           { status: 500 }
         )
       }
@@ -107,7 +116,7 @@ export async function PUT(
       } catch (error) {
         console.error('Error uploading news images:', error)
         return NextResponse.json(
-          { error: 'Failed to upload news images' },
+          { error: 'Error al subir imágenes de noticia' },
           { status: 500 }
         )
       }
@@ -133,14 +142,34 @@ export async function PUT(
 
     const news = await updateNews(id, { ...updateData, id })
 
+    // Log audit action
+    await createAuditLog({
+      userId: user.userId,
+      resource: auditResources.NEWS,
+      action: auditActions.UPDATE,
+      changes: {
+        title_es: news.title_es,
+        title_en: news.title_en,
+        author: news.author,
+        category: news.category,
+        newsId: news.id,
+        previousData: {
+          title_es: existingNews.title_es,
+          title_en: existingNews.title_en,
+          author: existingNews.author,
+          category: existingNews.category
+        }
+      }
+    })
+
     return NextResponse.json({
-      message: 'News updated successfully',
+      message: 'Noticia actualizada exitosamente',
       news
     })
   } catch (error) {
     console.error('Error updating news:', error)
     return NextResponse.json(
-      { error: 'Failed to update news' },
+      { error: 'Error al actualizar noticia' },
       { status: 500 }
     )
   }
@@ -151,13 +180,20 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const user = await getAuthenticatedUser(request)
+    
+    // Check if user is authenticated
+    if (!user) {
+      return NextResponse.json({ error: 'Autenticación requerida' }, { status: 401 })
+    }
+    
     const { id } = await params
 
     // Check if news exists
     const existingNews = await getNewsById(id)
     if (!existingNews) {
       return NextResponse.json(
-        { error: 'News not found' },
+        { error: 'Noticia no encontrada' },
         { status: 404 }
       )
     }
@@ -189,13 +225,27 @@ export async function DELETE(
 
     await deleteNews(id)
 
+    // Log audit action
+    await createAuditLog({
+      userId: user.userId,
+      resource: auditResources.NEWS,
+      action: auditActions.DELETE,
+      changes: {
+        title_es: existingNews.title_es,
+        title_en: existingNews.title_en,
+        author: existingNews.author,
+        category: existingNews.category,
+        newsId: existingNews.id
+      }
+    })
+
     return NextResponse.json({
-      message: 'News deleted successfully'
+      message: 'Noticia eliminada exitosamente'
     })
   } catch (error) {
     console.error('Error deleting news:', error)
     return NextResponse.json(
-      { error: 'Failed to delete news' },
+      { error: 'Error al eliminar noticia' },
       { status: 500 }
     )
   }

@@ -142,6 +142,7 @@ export default function EditarTestimonioPage() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
         },
         body: JSON.stringify(testimonialData),
       })

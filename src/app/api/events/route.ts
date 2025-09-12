@@ -2,9 +2,18 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { uploadImageFromBase64 } from '@/lib/cloudinary'
 import { validateServerImagesForContentType } from '@/utils/serverImageValidation'
+import { createAuditLog, auditActions, auditResources } from '@/lib/audit'
+import { getAuthenticatedUser } from '@/utils/authUtils'
 
 export async function POST(request: NextRequest) {
   try {
+    const user = await getAuthenticatedUser(request)
+    
+    // Check if user is authenticated
+    if (!user) {
+      return NextResponse.json({ error: 'Autenticación requerida' }, { status: 401 })
+    }
+    
     const body = await request.json()
     
     // Required fields validation
@@ -18,7 +27,7 @@ export async function POST(request: NextRequest) {
     
     if (missingFields.length > 0) {
       return NextResponse.json(
-        { error: `Missing required fields: ${missingFields.join(', ')}` },
+        { error: `Campos requeridos faltantes: ${missingFields.join(', ')}` },
         { status: 400 }
       )
     }
@@ -40,7 +49,7 @@ export async function POST(request: NextRequest) {
       } catch (error) {
         console.error('Error uploading cover image:', error)
         return NextResponse.json(
-          { error: 'Failed to upload cover image' },
+          { error: 'Error al subir imagen de portada' },
           { status: 500 }
         )
       }
@@ -69,7 +78,7 @@ export async function POST(request: NextRequest) {
           } catch (error) {
             console.error('Error uploading event image:', error)
             return NextResponse.json(
-              { error: 'Failed to upload event image' },
+              { error: 'Error al subir imagen del evento' },
               { status: 500 }
             )
           }
@@ -111,15 +120,30 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    // Log audit action
+    await createAuditLog({
+      userId: user.userId,
+      resource: auditResources.EVENTS,
+      action: auditActions.CREATE,
+      changes: {
+        title_es: event.title_es,
+        title_en: event.title_en,
+        author: event.author,
+        location_city: event.location_city,
+        location_country: event.location_country,
+        eventId: event.id
+      }
+    })
+
     return NextResponse.json({
       success: true,
       event,
-      message: 'Event created successfully'
+      message: 'Evento creado exitosamente'
     })
   } catch (error) {
     console.error('Error creating event:', error)
     return NextResponse.json(
-      { error: 'Failed to create event' },
+      { error: 'Error al crear evento' },
       { status: 500 }
     )
   }
@@ -205,7 +229,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching events:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch events' },
+      { error: 'Error al obtener eventos' },
       { status: 500 }
     )
   }

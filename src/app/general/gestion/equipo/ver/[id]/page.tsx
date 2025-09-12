@@ -86,6 +86,9 @@ export default function VerEquipoPage() {
     try {
       const response = await fetch(`/api/team/${memberId}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+        }
       })
       
       if (!response.ok) {

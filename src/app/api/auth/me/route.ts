@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
     
     if (!token) {
       return NextResponse.json(
-        { error: 'Access token required' },
+        { error: 'Token de acceso requerido' },
         { status: 401 }
       )
     }
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     const user = await getUserById(payload.userId)
     if (!user) {
       return NextResponse.json(
-        { error: 'User not found' },
+        { error: 'Usuario no encontrado' },
         { status: 401 }
       )
     }
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Auth check error:', error)
     return NextResponse.json(
-      { error: 'Invalid or expired token' },
+      { error: 'Token inválido o expirado' },
       { status: 401 }
     )
   }

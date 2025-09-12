@@ -4,7 +4,7 @@ import { User } from '../generated/prisma';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'default-secret';
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'default-refresh-secret';
-const JWT_EXPIRES_IN: string = process.env.JWT_EXPIRES_IN || '15m';
+const JWT_EXPIRES_IN: string = process.env.JWT_EXPIRES_IN || '24h';
 const JWT_REFRESH_EXPIRES_IN: string = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
 const BCRYPT_ROUNDS = parseInt(process.env.BCRYPT_ROUNDS || '12');
 

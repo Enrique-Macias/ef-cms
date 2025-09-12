@@ -116,7 +116,10 @@ export default function VerNoticiaPage() {
     setIsDeleting(true)
     try {
       const response = await fetch(`/api/news/${newsId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+        }
       })
 
       if (!response.ok) {

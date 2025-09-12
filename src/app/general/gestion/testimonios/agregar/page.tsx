@@ -10,6 +10,7 @@ import { useTestimonialTranslation } from '@/hooks/useTestimonialTranslation'
 import { fileToBase64, getImageSrc } from '@/utils/testimonialFileUtils'
 import { validateTestimonialForm } from '@/utils/testimonialValidationUtils'
 import { createTestimonialFormHandlers } from '@/utils/testimonialFormHandlers'
+import { notifyAuditLogUpdate } from '@/utils/auditRefresh'
 
 export default function AgregarTestimonioPage() {
   const router = useRouter()
@@ -88,6 +89,7 @@ export default function AgregarTestimonioPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
         },
         body: JSON.stringify(testimonialData),
       })
@@ -102,6 +104,9 @@ export default function AgregarTestimonioPage() {
       // Show success toast
       const successMessage = isEnglishMode ? 'Testimonial created successfully' : 'Testimonio creado exitosamente'
       toast.success(successMessage)
+      
+      // Notify audit logs to refresh
+      notifyAuditLogUpdate()
       
       // Redirect to testimonials listing page
       router.push('/general/gestion/testimonios')

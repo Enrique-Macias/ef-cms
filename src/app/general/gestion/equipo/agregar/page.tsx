@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/useToast'
 import { useTeamForm } from '@/hooks/useTeamForm'
 import { useTeamTranslation } from '@/hooks/useTeamTranslation'
 import { createTeamFormHandlers } from '@/utils/teamFormHandlers'
+import { notifyAuditLogUpdate } from '@/utils/auditRefresh'
 
 
 export default function AgregarEquipoPage() {
@@ -99,6 +100,7 @@ export default function AgregarEquipoPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
         },
         body: JSON.stringify(teamData)
       })
@@ -111,6 +113,9 @@ export default function AgregarEquipoPage() {
       // Show success toast
       const successMessage = isEnglishMode ? 'Team member added successfully' : 'Miembro del equipo agregado exitosamente'
       toast.success(successMessage)
+      
+      // Notify audit logs to refresh
+      notifyAuditLogUpdate()
       
       // Reset form and redirect
       resetForm()

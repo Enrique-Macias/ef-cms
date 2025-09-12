@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getNewsList, createNews, getNewsStats } from '@/lib/newsService'
 import { uploadImageFromBase64, extractPublicId } from '@/lib/cloudinary'
 import { validateServerImagesForContentType } from '@/utils/serverImageValidation'
+import { createAuditLog, auditActions, auditResources } from '@/lib/audit'
+import { getAuthenticatedUser } from '@/utils/authUtils'
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,7 +26,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching news:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch news' },
+      { error: 'Error al obtener noticias' },
       { status: 500 }
     )
   }
@@ -32,6 +34,13 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const user = await getAuthenticatedUser(request)
+    
+    // Check if user is authenticated
+    if (!user) {
+      return NextResponse.json({ error: 'Autenticación requerida' }, { status: 401 })
+    }
+    
     const body = await request.json()
     
     // Validate required fields
@@ -39,7 +48,7 @@ export async function POST(request: NextRequest) {
     for (const field of requiredFields) {
       if (!body[field]) {
         return NextResponse.json(
-          { error: `Missing required field: ${field}` },
+          { error: `Campo requerido faltante: ${field}` },
           { status: 400 }
         )
       }
@@ -63,7 +72,7 @@ export async function POST(request: NextRequest) {
       } catch (error) {
         console.error('Error uploading cover image:', error)
         return NextResponse.json(
-          { error: 'Failed to upload cover image' },
+          { error: 'Error al subir imagen de portada' },
           { status: 500 }
         )
       }
@@ -101,7 +110,7 @@ export async function POST(request: NextRequest) {
       } catch (error) {
         console.error('Error uploading news images:', error)
         return NextResponse.json(
-          { error: 'Failed to upload news images' },
+          { error: 'Error al subir imágenes de noticia' },
           { status: 500 }
         )
       }
@@ -127,14 +136,28 @@ export async function POST(request: NextRequest) {
 
     const news = await createNews(newsData)
 
+    // Log audit action
+    await createAuditLog({
+      userId: user.userId,
+      resource: auditResources.NEWS,
+      action: auditActions.CREATE,
+      changes: {
+        title_es: news.title_es,
+        title_en: news.title_en,
+        author: news.author,
+        category: news.category,
+        newsId: news.id
+      }
+    })
+
     return NextResponse.json({
-      message: 'News created successfully',
+      message: 'Noticia creada exitosamente',
       news
     })
   } catch (error) {
     console.error('Error creating news:', error)
     return NextResponse.json(
-      { error: 'Failed to create news' },
+      { error: 'Error al crear noticia' },
       { status: 500 }
     )
   }

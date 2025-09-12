@@ -1,6 +1,5 @@
 import { prisma } from './prisma';
 import { uploadImageFromBase64, deleteImage } from './cloudinary';
-import { logUserAction } from './audit';
 import { validateServerImagesForContentType } from '@/utils/serverImageValidation';
 
 export interface Article {
@@ -77,7 +76,6 @@ export const createArticle = async (data: CreateArticleData): Promise<Article> =
     },
   });
 
-  await logUserAction(1, 'CREATE', 'Article', newArticle); // Assuming userId 1 for now
   return newArticle;
 };
 
@@ -120,7 +118,6 @@ export const updateArticle = async (id: string, data: UpdateArticleData): Promis
     },
   });
 
-  await logUserAction(1, 'UPDATE', 'Article', updatedArticle); // Assuming userId 1 for now
   return updatedArticle;
 };
 
@@ -139,6 +136,5 @@ export const deleteArticle = async (id: string): Promise<Article> => {
     where: { id },
   });
 
-  await logUserAction(1, 'DELETE', 'Article', deletedArticle); // Assuming userId 1 for now
   return deletedArticle;
 };

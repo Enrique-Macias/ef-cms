@@ -72,6 +72,9 @@ export default function VerTestimonioPage() {
     try {
       const response = await fetch(`/api/testimonials/${testimonialId}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+        }
       })
       
       if (!response.ok) {

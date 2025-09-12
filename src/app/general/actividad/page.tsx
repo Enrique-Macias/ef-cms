@@ -2,13 +2,59 @@
 
 import { useState, useEffect } from 'react'
 
+interface AuditLog {
+  id: number
+  title: string
+  type: string
+  action: string
+  author: string
+  date: string
+  createdAt: string
+}
+
+interface AuditLogResponse {
+  auditLogs: AuditLog[]
+  total: number
+  page: number
+  limit: number
+  totalPages: number
+}
+
 export default function ActividadPage() {
   const [searchText, setSearchText] = useState('')
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false)
   const [typeFilter, setTypeFilter] = useState<string | null>(null)
   const [dateFilter, setDateFilter] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([])
+  const [totalPages, setTotalPages] = useState(1)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState(false)
   const itemsPerPage = 8
+
+  // Fetch audit logs from API
+  const fetchAuditLogs = async (page: number = 1) => {
+    try {
+      setLoading(true)
+      setError(null)
+      
+      const response = await fetch(`/api/audit-logs?page=${page}&limit=${itemsPerPage}`)
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch audit logs')
+      }
+      
+      const data: AuditLogResponse = await response.json()
+      setAuditLogs(data.auditLogs)
+      setTotalPages(data.totalPages)
+    } catch (err) {
+      console.error('Error fetching audit logs:', err)
+      setError(err instanceof Error ? err.message : 'Failed to fetch audit logs')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   // Close filter menu when clicking outside
   useEffect(() => {
@@ -22,172 +68,34 @@ export default function ActividadPage() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [isFilterMenuOpen])
 
-  // Simulated activity data
-  const activity = [
-    {
-      id: 1,
-      title: 'Design landing page',
-      type: 'Noticia',
-      action: 'Creación',
-      author: 'Sergio Elías',
-      date: '2024-08-15'
-    },
-    {
-      id: 2,
-      title: 'Implement user authentication',
-      type: 'Noticia',
-      action: 'Actualizar',
-      author: 'Alejandro Medina',
-      date: '2024-07-20'
-    },
-    {
-      id: 3,
-      title: 'Write documentation',
-      type: 'Evento',
-      action: 'Eliminar',
-      author: 'Enrique Macias',
-      date: '2024-06-10'
-    },
-    {
-      id: 4,
-      title: 'Create user management system',
-      type: 'Noticia',
-      action: 'Creación',
-      author: 'Guillermo Morales',
-      date: '2024-08-12'
-    },
-    {
-      id: 5,
-      title: 'Update team information',
-      type: 'Equipo',
-      action: 'Actualizar',
-      author: 'Miguel Castellano',
-      date: '2024-08-08'
-    },
-    {
-      id: 6,
-      title: 'Add new testimonials',
-      type: 'Testimonio',
-      action: 'Creación',
-      author: 'Sergio Elías',
-      date: '2024-08-05'
-    },
-    {
-      id: 7,
-      title: 'Fix navigation bugs',
-      type: 'Noticia',
-      action: 'Actualizar',
-      author: 'Alejandro Medina',
-      date: '2024-07-28'
-    },
-    {
-      id: 8,
-      title: 'Remove outdated content',
-      type: 'Evento',
-      action: 'Eliminar',
-      author: 'Enrique Macias',
-      date: '2024-07-15'
-    },
-    {
-      id: 9,
-      title: 'Optimize database queries',
-      type: 'Noticia',
-      action: 'Actualizar',
-      author: 'Carlos Rodríguez',
-      date: '2024-07-10'
-    },
-    {
-      id: 10,
-      title: 'Add new team member',
-      type: 'Equipo',
-      action: 'Creación',
-      author: 'Ana Martínez',
-      date: '2024-07-08'
-    },
-    {
-      id: 11,
-      title: 'Update privacy policy',
-      type: 'Evento',
-      action: 'Actualizar',
-      author: 'Luis González',
-      date: '2024-07-05'
-    },
-    {
-      id: 12,
-      title: 'Create backup system',
-      type: 'Noticia',
-      action: 'Creación',
-      author: 'María López',
-      date: '2024-07-01'
-    },
-    {
-      id: 13,
-      title: 'Fix security vulnerabilities',
-      type: 'Noticia',
-      action: 'Actualizar',
-      author: 'Pedro Sánchez',
-      date: '2024-06-28'
-    },
-    {
-      id: 14,
-      title: 'Add new testimonials',
-      type: 'Testimonio',
-      action: 'Creación',
-      author: 'Carmen Torres',
-      date: '2024-06-25'
-    },
-    {
-      id: 15,
-      title: 'Update contact information',
-      type: 'Equipo',
-      action: 'Actualizar',
-      author: 'Javier Ruiz',
-      date: '2024-06-20'
-    },
-    {
-      id: 16,
-      title: 'Remove old blog posts',
-      type: 'Evento',
-      action: 'Eliminar',
-      author: 'Isabel Moreno',
-      date: '2024-06-15'
-    },
-    {
-      id: 17,
-      title: 'Implement search functionality',
-      type: 'Noticia',
-      action: 'Creación',
-      author: 'Roberto Jiménez',
-      date: '2024-06-10'
-    },
-    {
-      id: 18,
-      title: 'Update user interface',
-      type: 'Noticia',
-      action: 'Actualizar',
-      author: 'Elena Castro',
-      date: '2024-06-05'
-    },
-    {
-      id: 19,
-      title: 'Add new event calendar',
-      type: 'Evento',
-      action: 'Creación',
-      author: 'Fernando Silva',
-      date: '2024-06-01'
-    },
-    {
-      id: 20,
-      title: 'Fix mobile responsiveness',
-      type: 'Noticia',
-      action: 'Actualizar',
-      author: 'Patricia Vega',
-      date: '2024-05-28'
-    }
-  ]
+  // Fetch audit logs on component mount and when page changes
+  useEffect(() => {
+    fetchAuditLogs(currentPage)
+  }, [currentPage])
 
-  // Filter activity based on search and filters, then sort by date (newest first)
-  const filteredActivity = activity.filter(item => {
+  // Auto-refresh audit logs every 30 seconds when page is visible
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        fetchAuditLogs(currentPage)
+      }
+    }, 30000) // Refresh every 30 seconds
+
+    return () => clearInterval(interval)
+  }, [currentPage])
+
+  // Listen for custom events to refresh audit logs (for cross-page communication)
+  useEffect(() => {
+    const handleAuditRefresh = () => {
+      fetchAuditLogs(currentPage)
+    }
+
+    window.addEventListener('auditLogsUpdated', handleAuditRefresh)
+    return () => window.removeEventListener('auditLogsUpdated', handleAuditRefresh)
+  }, [currentPage])
+
+  // Filter audit logs based on search and filters
+  const filteredActivity = auditLogs.filter(item => {
     const matchesSearch = !searchText || 
       item.title.toLowerCase().includes(searchText.toLowerCase()) ||
       item.author.toLowerCase().includes(searchText.toLowerCase())
@@ -196,7 +104,7 @@ export default function ActividadPage() {
     
     let matchesDate = true
     if (dateFilter) {
-      const itemDate = new Date(item.date)
+      const itemDate = new Date(item.createdAt)
       const today = new Date()
       
       switch (dateFilter) {
@@ -215,28 +123,25 @@ export default function ActividadPage() {
     }
     
     return matchesSearch && matchesType && matchesDate
-  }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-
-  // Pagination logic
-  const totalPages = Math.ceil(filteredActivity.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const endIndex = startIndex + itemsPerPage
-  const currentActivity = filteredActivity.slice(startIndex, endIndex)
+  })
 
   // Search and filter functions with pagination reset
   const handleSearch = (text: string) => {
     setSearchText(text)
     setCurrentPage(1)
+    fetchAuditLogs(1)
   }
 
   const handleTypeFilter = (type: string | null) => {
     setTypeFilter(type)
     setCurrentPage(1)
+    fetchAuditLogs(1)
   }
 
   const handleDateFilter = (date: string | null) => {
     setDateFilter(date)
     setCurrentPage(1)
+    fetchAuditLogs(1)
   }
 
   const clearAllFilters = () => {
@@ -244,6 +149,39 @@ export default function ActividadPage() {
     setTypeFilter(null)
     setDateFilter(null)
     setCurrentPage(1)
+    fetchAuditLogs(1)
+  }
+
+  // Delete all audit logs
+  const deleteAllAuditLogs = async () => {
+    if (!confirm('¿Estás seguro de que quieres eliminar todos los registros de actividad? Esta acción no se puede deshacer.')) {
+      return
+    }
+
+    try {
+      setDeleting(true)
+      setError(null)
+      
+      const response = await fetch('/api/audit-logs', {
+        method: 'DELETE'
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete audit logs')
+      }
+      
+      // Refresh the data
+      await fetchAuditLogs(1)
+      
+      // Show success message (you might want to add a toast notification here)
+      alert('Todos los registros de actividad han sido eliminados correctamente.')
+    } catch (err) {
+      console.error('Error deleting audit logs:', err)
+      setError(err instanceof Error ? err.message : 'Failed to delete audit logs')
+      alert('Error al eliminar los registros de actividad. Por favor, inténtalo de nuevo.')
+    } finally {
+      setDeleting(false)
+    }
   }
 
   return (
@@ -404,70 +342,127 @@ export default function ActividadPage() {
                 </div>
               )}
             </div>
+
+            {/* Delete All Button */}
+            <button 
+              onClick={deleteAllAuditLogs}
+              disabled={deleting || loading}
+              className="inline-flex items-center px-4 py-2 border border-red-300 rounded-md shadow-sm text-sm font-medium text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+            >
+              {deleting ? (
+                <>
+                  <svg className="animate-spin h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Eliminando...
+                </>
+              ) : (
+                <>
+                  <svg className="h-4 w-4 mr-2 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  Eliminar Todo
+                </>
+              )}
+            </button>
           </div>
         </div>
       </div>
 
       {/* Activity Table */}
       <div className="bg-white border rounded-lg overflow-hidden" style={{ borderColor: '#CFDBE8' }}>
-        <table className="min-w-full divide-y" style={{ borderColor: '#CFDBE8' }}>
-          <thead className="bg-stroke/20">
-            <tr>
-              <th className="px-6 py-3 text-left text-sm font-metropolis font-regular" style={{ color: '#0D141C' }}>
-                Título
-              </th>
-              <th className="px-6 py-3 text-left text-sm font-metropolis font-regular" style={{ color: '#0D141C' }}>
-                Tipo
-              </th>
-              <th className="px-6 py-3 text-left text-sm font-metropolis font-regular" style={{ color: '#0D141C' }}>
-                Acción
-              </th>
-              <th className="px-6 py-3 text-left text-sm font-metropolis font-regular" style={{ color: '#0D141C' }}>
-                Autor
-              </th>
-              <th className="px-6 py-3 text-left text-sm font-metropolis font-regular" style={{ color: '#0D141C' }}>
-                Fecha
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y" style={{ borderColor: '#CFDBE8' }}>
-            {currentActivity.map((item) => (
-              <tr key={item.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-base font-metropolis font-regular" style={{ color: '#0D141C' }}>
-                  {item.title}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-base font-metropolis font-regular" style={{ color: '#4A739C' }}>
-                  {item.type}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex px-2 py-1 text-sm font-metropolis font-regular rounded-full ${
-                    item.action === 'Creación' 
-                      ? 'bg-green-100 text-green-800' 
-                      : item.action === 'Actualizar'
-                      ? 'bg-blue-100 text-blue-800'
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    {item.action}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-base font-metropolis font-regular" style={{ color: '#4A739C' }}>
-                  {item.author}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-base font-metropolis font-regular" style={{ color: '#4A739C' }}>
-                  {item.date}
-                </td>
+        {loading ? (
+          <div className="p-8 text-center">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: '#4A739C' }}></div>
+            <p className="mt-2 text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
+              Cargando actividad...
+            </p>
+          </div>
+        ) : error ? (
+          <div className="p-8 text-center">
+            <p className="text-red-600 font-metropolis font-regular">
+              Error: {error}
+            </p>
+            <button 
+              onClick={() => fetchAuditLogs(currentPage)}
+              className="mt-2 px-4 py-2 bg-[#4A739C] text-white rounded-md hover:bg-[#3A5F7A] transition-colors"
+            >
+              Reintentar
+            </button>
+          </div>
+        ) : (
+          <table className="min-w-full divide-y" style={{ borderColor: '#CFDBE8' }}>
+            <thead className="bg-stroke/20">
+              <tr>
+                <th className="px-6 py-3 text-left text-sm font-metropolis font-regular" style={{ color: '#0D141C' }}>
+                  Título
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-metropolis font-regular" style={{ color: '#0D141C' }}>
+                  Tipo
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-metropolis font-regular" style={{ color: '#0D141C' }}>
+                  Acción
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-metropolis font-regular" style={{ color: '#0D141C' }}>
+                  Autor
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-metropolis font-regular" style={{ color: '#0D141C' }}>
+                  Fecha
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="bg-white divide-y" style={{ borderColor: '#CFDBE8' }}>
+              {filteredActivity.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-8 text-center text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
+                    No se encontraron registros de actividad
+                  </td>
+                </tr>
+              ) : (
+                filteredActivity.map((item) => (
+                  <tr key={item.id}>
+                    <td className="px-6 py-4 whitespace-nowrap text-base font-metropolis font-regular" style={{ color: '#0D141C' }}>
+                      {item.title}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-base font-metropolis font-regular" style={{ color: '#4A739C' }}>
+                      {item.type}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-1 text-sm font-metropolis font-regular rounded-full ${
+                        item.action === 'Creación' 
+                          ? 'bg-green-100 text-green-800' 
+                          : item.action === 'Actualización'
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {item.action}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-base font-metropolis font-regular" style={{ color: '#4A739C' }}>
+                      {item.author}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-base font-metropolis font-regular" style={{ color: '#4A739C' }}>
+                      {item.date}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
 
       {/* Pagination */}
-      {totalPages > 1 && (
+      {totalPages > 1 && !loading && (
         <div className="mt-6 flex items-center justify-center">
           <div className="flex items-center space-x-2">
             <button 
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              onClick={() => {
+                const newPage = Math.max(1, currentPage - 1)
+                setCurrentPage(newPage)
+                fetchAuditLogs(newPage)
+              }}
               disabled={currentPage === 1}
               className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -487,7 +482,10 @@ export default function ActividadPage() {
                   pages.push(
                     <button
                       key={i}
-                      onClick={() => setCurrentPage(i)}
+                      onClick={() => {
+                        setCurrentPage(i)
+                        fetchAuditLogs(i)
+                      }}
                       className={`px-3 py-2 text-sm font-medium rounded-md ${
                         currentPage === i
                           ? 'bg-[#5A6F80] text-white border border-[#5A6F80]'
@@ -506,7 +504,10 @@ export default function ActividadPage() {
                     pages.push(
                       <button
                         key={i}
-                        onClick={() => setCurrentPage(i)}
+                        onClick={() => {
+                        setCurrentPage(i)
+                        fetchAuditLogs(i)
+                      }}
                         className={`px-3 py-2 text-sm font-medium rounded-md ${
                           currentPage === i
                             ? 'bg-[#5A6F80] text-white border border-[#5A6F80]'
@@ -523,7 +524,10 @@ export default function ActividadPage() {
                   pages.push(
                     <button
                       key={totalPages}
-                      onClick={() => setCurrentPage(totalPages)}
+                      onClick={() => {
+                        setCurrentPage(totalPages)
+                        fetchAuditLogs(totalPages)
+                      }}
                       className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
                     >
                       {totalPages}
@@ -534,7 +538,10 @@ export default function ActividadPage() {
                   pages.push(
                     <button
                       key={1}
-                      onClick={() => setCurrentPage(1)}
+                      onClick={() => {
+                        setCurrentPage(1)
+                        fetchAuditLogs(1)
+                      }}
                       className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
                     >
                       1
@@ -547,7 +554,10 @@ export default function ActividadPage() {
                     pages.push(
                       <button
                         key={i}
-                        onClick={() => setCurrentPage(i)}
+                        onClick={() => {
+                        setCurrentPage(i)
+                        fetchAuditLogs(i)
+                      }}
                         className={`px-3 py-2 text-sm font-medium rounded-md ${
                           currentPage === i
                             ? 'bg-[#5A6F80] text-white border border-[#5A6F80]'
@@ -563,7 +573,10 @@ export default function ActividadPage() {
                   pages.push(
                     <button
                       key={1}
-                      onClick={() => setCurrentPage(1)}
+                      onClick={() => {
+                        setCurrentPage(1)
+                        fetchAuditLogs(1)
+                      }}
                       className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
                     >
                       1
@@ -576,7 +589,10 @@ export default function ActividadPage() {
                     pages.push(
                       <button
                         key={i}
-                        onClick={() => setCurrentPage(i)}
+                        onClick={() => {
+                        setCurrentPage(i)
+                        fetchAuditLogs(i)
+                      }}
                         className={`px-3 py-2 text-sm font-medium rounded-md ${
                           currentPage === i
                             ? 'bg-[#5A6F80] text-white border border-[#5A6F80]'
@@ -593,7 +609,10 @@ export default function ActividadPage() {
                   pages.push(
                     <button
                       key={totalPages}
-                      onClick={() => setCurrentPage(totalPages)}
+                      onClick={() => {
+                        setCurrentPage(totalPages)
+                        fetchAuditLogs(totalPages)
+                      }}
                       className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
                     >
                       {totalPages}
@@ -606,7 +625,11 @@ export default function ActividadPage() {
             })()}
             
             <button 
-              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+              onClick={() => {
+                const newPage = Math.min(totalPages, currentPage + 1)
+                setCurrentPage(newPage)
+                fetchAuditLogs(newPage)
+              }}
               disabled={currentPage === totalPages}
               className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >

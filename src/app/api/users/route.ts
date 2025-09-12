@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching users:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch users' },
+      { error: 'Error al obtener usuarios' },
       { status: 500 }
     )
   }
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     // Validate required fields
     if (!email || !password || !role || !fullName) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Campos requeridos faltantes' },
         { status: 400 }
       )
     }
@@ -70,13 +70,13 @@ export async function POST(request: NextRequest) {
     // Handle unique constraint violation
     if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
       return NextResponse.json(
-        { error: 'Email already exists' },
+        { error: 'El email ya existe' },
         { status: 400 }
       )
     }
 
     return NextResponse.json(
-      { error: 'Failed to create user' },
+      { error: 'Error al crear usuario' },
       { status: 500 }
     )
   }

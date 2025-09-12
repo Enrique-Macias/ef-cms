@@ -17,6 +17,7 @@ model User {
   fullName     String
   avatarUrl    String?
   usedTokens   UsedToken[]
+  auditLogs    AuditLog[]
 }
 
 model UsedToken {
@@ -147,6 +148,7 @@ model AuditLog {
   action    String
   changes   Json
   createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id])
 }
 
 enum Role {

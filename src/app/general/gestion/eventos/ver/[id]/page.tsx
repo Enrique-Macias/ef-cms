@@ -73,7 +73,10 @@ export default function VerEventoPage() {
     setIsDeleting(true)
     try {
       const response = await fetch(`/api/events/${eventId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+        }
       })
       
       if (response.ok) {

@@ -63,7 +63,10 @@ export default function VerArticuloPage() {
     setIsDeleting(true)
     try {
       const response = await fetch(`/api/articles/${articleId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+        }
       })
       
       if (!response.ok) {

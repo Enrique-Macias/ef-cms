@@ -506,6 +506,7 @@ export default function EditarNoticiaPage() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
         },
         body: JSON.stringify(newsData)
       })
@@ -536,7 +537,10 @@ export default function EditarNoticiaPage() {
     setIsDeleting(true)
     try {
       const response = await fetch(`/api/news/${newsId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+        }
       })
 
       if (!response.ok) {

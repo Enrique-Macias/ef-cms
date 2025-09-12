@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { uploadImageFromBase64 } from '@/lib/cloudinary'
 import { validateServerImagesForContentType } from '@/utils/serverImageValidation'
+import { createAuditLog, auditActions, auditResources } from '@/lib/audit'
+import { getAuthenticatedUser } from '@/utils/authUtils'
 
 export async function GET() {
   try {
@@ -15,7 +17,7 @@ export async function GET() {
   } catch (error) {
     console.error('Error fetching testimonials:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch testimonials' },
+      { error: 'Error al obtener testimonios' },
       { status: 500 }
     )
   }
@@ -23,6 +25,13 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const user = await getAuthenticatedUser(request)
+    
+    // Check if user is authenticated
+    if (!user) {
+      return NextResponse.json({ error: 'Autenticación requerida' }, { status: 401 })
+    }
+    
     const body = await request.json()
 
     // Validate required fields
@@ -30,7 +39,7 @@ export async function POST(request: NextRequest) {
     for (const field of requiredFields) {
       if (!body[field]) {
         return NextResponse.json(
-          { error: `Missing required field: ${field}` },
+          { error: `Campo requerido faltante: ${field}` },
           { status: 400 }
         )
       }
@@ -53,7 +62,7 @@ export async function POST(request: NextRequest) {
       } catch (error) {
         console.error('Error uploading image to Cloudinary:', error)
         return NextResponse.json(
-          { error: 'Failed to upload image' },
+          { error: 'Error al subir imagen' },
           { status: 500 }
         )
       }
@@ -71,11 +80,23 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    // Log audit action
+    await createAuditLog({
+      userId: user.userId,
+      resource: auditResources.TESTIMONIALS,
+      action: auditActions.CREATE,
+      changes: {
+        author: testimonial.author,
+        role: testimonial.role,
+        testimonialId: testimonial.id
+      }
+    })
+
     return NextResponse.json({ testimonial }, { status: 201 })
   } catch (error) {
     console.error('Error creating testimonial:', error)
     return NextResponse.json(
-      { error: 'Failed to create testimonial' },
+      { error: 'Error al crear testimonio' },
       { status: 500 }
     )
   }
