@@ -28,51 +28,6 @@ export default function UsuariosPage() {
   
   const toast = useToast()
 
-  // Load data on component mount and when filters change
-  useEffect(() => {
-    if (user) {
-      fetchUsers()
-      fetchUserStats()
-    }
-  }, [currentPage, searchText, roleFilter, user])
-
-  // Show loading state if user is not loaded
-  if (!user) {
-    return (
-      <div className="p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <Spinner size="lg" />
-            <p className="mt-4 text-[#4A739C] font-metropolis font-regular">Verificando permisos...</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // Check if user has admin access
-  if (user.role !== 'ADMIN') {
-    return (
-      <div className="p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
-              <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-metropolis font-bold text-[#0D141C] mb-2">
-              Acceso Denegado
-            </h3>
-            <p className="text-sm font-metropolis font-regular text-[#4A739C]">
-              No tienes permisos para acceder a esta página. Solo los administradores pueden gestionar usuarios.
-            </p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   // Fetch users from API
   const fetchUsers = async () => {
     setIsLoading(true)
@@ -111,6 +66,106 @@ export default function UsuariosPage() {
     } catch (error) {
       console.error('Error fetching user stats:', error)
     }
+  }
+
+  // Load data on component mount and when filters change
+  useEffect(() => {
+    if (user) {
+      fetchUsers()
+      fetchUserStats()
+    }
+  }, [currentPage, searchText, roleFilter, user])
+
+  // Show loading state if user is not loaded
+  if (!user) {
+    return (
+      <div className="p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <Spinner size="lg" />
+            <p className="mt-4 text-[#4A739C] font-metropolis font-regular">Verificando permisos...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Check if user has admin access
+  if (user.role !== 'ADMIN') {
+    return (
+      <div className="p-6">
+        {/* Breadcrumbs - Left aligned */}
+        <div className="mb-6">
+          <nav className="text-base font-metropolis font-regular" style={{ color: '#4A739C' }}>
+            <span>Inicio</span>
+            <span className="mx-2 font-metropolis font-medium" style={{ color: '#4A739C' }}>/</span>
+            <span className="font-metropolis font-medium" style={{ color: '#0D141C' }}>Gestión de Usuarios</span>
+          </nav>
+        </div>
+
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center max-w-md mx-auto">
+
+            {/* Access Denied Icon */}
+            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-6">
+              <svg className="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+
+            {/* Access Denied Content */}
+            <h1 className="font-metropolis font-bold text-2xl mb-3" style={{ color: '#0D141C' }}>
+              Acceso Denegado
+            </h1>
+            
+            <h2 className="font-metropolis font-semibold text-lg mb-4" style={{ color: '#0D141C' }}>
+              Gestión de Usuarios
+            </h2>
+            
+            <p className="text-base font-metropolis font-regular mb-6" style={{ color: '#4A739C' }}>
+              No tienes permisos para acceder a esta página. Solo los administradores pueden gestionar usuarios del sistema.
+            </p>
+
+            {/* Current User Info */}
+            <div className="bg-gray-50 rounded-lg p-4 mb-6" style={{ backgroundColor: '#F8FAFC' }}>
+              <p className="text-sm font-metropolis font-medium mb-2" style={{ color: '#0D141C' }}>
+                Usuario actual:
+              </p>
+              <div className="flex items-center justify-center space-x-3">
+                <div className="flex items-center space-x-2">
+                  <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  <span className="text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
+                    {user.fullName}
+                  </span>
+                </div>
+                <span className="inline-flex px-2 py-1 text-xs font-metropolis font-regular rounded-full bg-stroke text-[#4A739C]">
+                  Editor
+                </span>
+              </div>
+            </div>
+
+            {/* Help Text */}
+            <div className="bg-blue-50 rounded-lg p-4" style={{ backgroundColor: '#EFF6FF' }}>
+              <div className="flex items-start space-x-3">
+                <svg className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <p className="text-sm font-metropolis font-medium mb-1" style={{ color: '#1E40AF' }}>
+                    ¿Necesitas acceso de administrador?
+                  </p>
+                  <p className="text-sm font-metropolis font-regular" style={{ color: '#3730A3' }}>
+                    Contacta a un administrador del sistema para obtener los permisos necesarios.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   // Reset to first page when filters change
@@ -366,10 +421,25 @@ export default function UsuariosPage() {
                         </button>
                         <button 
                           onClick={() => {
+                            // Check if this is the last admin
+                            if (user.role === 'ADMIN' && userStats.admins <= 1) {
+                              toast.error('No se puede eliminar el último administrador del sistema')
+                              return
+                            }
                             setDeletingUser(user)
                             setIsDeleteModalOpen(true)
                           }}
-                          className="text-red-600 hover:text-red-900">
+                          disabled={user.role === 'ADMIN' && userStats.admins <= 1}
+                          className={`${
+                            user.role === 'ADMIN' && userStats.admins <= 1
+                              ? 'text-gray-400 cursor-not-allowed'
+                              : 'text-red-600 hover:text-red-900'
+                          }`}
+                          title={
+                            user.role === 'ADMIN' && userStats.admins <= 1
+                              ? 'No se puede eliminar el último administrador'
+                              : 'Eliminar usuario'
+                          }>
                           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                           </svg>
@@ -607,10 +677,20 @@ export default function UsuariosPage() {
                 <select 
                   name="role"
                   defaultValue={String(editingUser.role)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent">
+                  disabled={editingUser.role === 'ADMIN' && userStats.admins <= 1}
+                  className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
+                    editingUser.role === 'ADMIN' && userStats.admins <= 1 
+                      ? 'bg-gray-100 cursor-not-allowed' 
+                      : ''
+                  }`}>
                   <option value="ADMIN">Admin</option>
                   <option value="EDITOR">Editor</option>
                 </select>
+                {editingUser.role === 'ADMIN' && userStats.admins <= 1 && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    No se puede cambiar el rol del último administrador
+                  </p>
+                )}
               </div>
             </form>
 

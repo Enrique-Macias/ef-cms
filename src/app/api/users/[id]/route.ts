@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getUserById, updateUser, deleteUser, generateAvatarUrl } from '@/lib/userService'
+import { prisma } from '@/lib/prisma'
 
 export async function GET(
   request: NextRequest,
@@ -62,6 +63,20 @@ export async function PUT(
       )
     }
 
+    // Check if trying to change the last admin's role
+    if (existingUser.role === 'ADMIN' && role === 'EDITOR') {
+      const adminCount = await prisma.user.count({
+        where: { role: 'ADMIN' }
+      })
+      
+      if (adminCount <= 1) {
+        return NextResponse.json(
+          { error: 'No se puede cambiar el rol del último administrador del sistema' },
+          { status: 400 }
+        )
+      }
+    }
+
     // Generate avatar URL if name is updated and no avatar URL is provided
     let finalAvatarUrl = avatarUrl
     if (fullName && fullName !== existingUser.fullName && !avatarUrl) {
@@ -117,6 +132,20 @@ export async function DELETE(
         { error: 'Usuario no encontrado' },
         { status: 404 }
       )
+    }
+
+    // Check if this is the last admin
+    if (existingUser.role === 'ADMIN') {
+      const adminCount = await prisma.user.count({
+        where: { role: 'ADMIN' }
+      })
+      
+      if (adminCount <= 1) {
+        return NextResponse.json(
+          { error: 'No se puede eliminar el último administrador del sistema' },
+          { status: 400 }
+        )
+      }
     }
 
     // Delete user

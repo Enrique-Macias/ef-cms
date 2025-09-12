@@ -1,13 +1,50 @@
 
 'use client'
 
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { useAuth } from '@/contexts/AuthContext'
 import { useStats } from '@/hooks/useStats'
 
+interface AuditLog {
+  id: number
+  title: string
+  type: string
+  action: string
+  author: string
+  date: string
+  createdAt: string
+}
+
 export default function GeneralPage() {
   const { user } = useAuth()
   const { news, events, users, loading, error } = useStats()
+  const [recentActivity, setRecentActivity] = useState<AuditLog[]>([])
+  const [activityLoading, setActivityLoading] = useState(true)
+
+  // Fetch recent activity (last 5 audit logs)
+  useEffect(() => {
+    const fetchRecentActivity = async () => {
+      try {
+        setActivityLoading(true)
+        const response = await fetch('/api/audit-logs?page=1&limit=5')
+        
+        if (!response.ok) {
+          throw new Error('Error al obtener actividad reciente')
+        }
+        
+        const data = await response.json()
+        setRecentActivity(data.auditLogs || [])
+      } catch (error) {
+        console.error('Error fetching recent activity:', error)
+        setRecentActivity([])
+      } finally {
+        setActivityLoading(false)
+      }
+    }
+
+    fetchRecentActivity()
+  }, [])
 
   // Function to get role-specific permissions description
   const getRolePermissions = (role: string) => {
@@ -21,44 +58,6 @@ export default function GeneralPage() {
     }
   }
 
-  // Simulated general activity data
-  const general_activity = [
-    {
-      id: 1,
-      title: 'Design landing page',
-      type: 'Noticia',
-      status: 'In Progress',
-      date: '2024-08-15'
-    },
-    {
-      id: 2,
-      title: 'Implement user authentication',
-      type: 'Noticia',
-      status: 'Completed',
-      date: '2024-07-20'
-    },
-    {
-      id: 3,
-      title: 'Write documentation',
-      type: 'Evento',
-      status: 'Completed',
-      date: '2024-06-10'
-    },
-    {
-      id: 4,
-      title: 'Test application',
-      type: 'Noticia',
-      status: 'In Progress',
-      date: '2024-08-22'
-    },
-    {
-      id: 5,
-      title: 'Deploy to production',
-      type: 'Testimonio',
-      status: 'Completed',
-      date: '2024-05-15'
-    }
-  ]
 
   return (
     <div className="p-6">
@@ -164,7 +163,7 @@ export default function GeneralPage() {
                   Tipo
                 </th>
                 <th className="px-6 py-3 text-left text-sm font-metropolis font-regular" style={{ color: '#0D141C' }}>
-                  Estatus
+                  Acción
                 </th>
                 <th className="px-6 py-3 text-left text-sm font-metropolis font-regular" style={{ color: '#0D141C' }}>
                   Fecha
@@ -172,24 +171,44 @@ export default function GeneralPage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y" style={{ borderColor: '#CFDBE8' }}>
-              {general_activity.map((activity) => (
-                <tr key={activity.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-metropolis font-regular" style={{ color: '#0D141C' }}>
-                    {activity.title}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
-                    {activity.type}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="inline-flex px-2 py-1 text-sm font-metropolis font-regular bg-[#E8EDF5] text-title rounded-full">
-                      {activity.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
-                    {activity.date}
+              {activityLoading ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-8 text-center text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
+                    Cargando actividad reciente...
                   </td>
                 </tr>
-              ))}
+              ) : recentActivity.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-8 text-center text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
+                    No hay actividad reciente
+                  </td>
+                </tr>
+              ) : (
+                recentActivity.map((activity) => (
+                  <tr key={activity.id}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-metropolis font-regular" style={{ color: '#0D141C' }}>
+                      {activity.title}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
+                      {activity.type}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-1 text-sm font-metropolis font-regular rounded-full ${
+                        activity.action === 'Creación' 
+                          ? 'bg-green-100 text-green-800' 
+                          : activity.action === 'Actualización'
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {activity.action}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
+                      {activity.date}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
