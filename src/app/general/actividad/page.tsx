@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useToast } from '@/hooks/useToast'
 
 interface AuditLog {
   id: number
@@ -28,10 +29,13 @@ export default function ActividadPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([])
   const [totalPages, setTotalPages] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const itemsPerPage = 8
+  const toast = useToast()
 
   // Fetch audit logs from API
   const fetchAuditLogs = async (page: number = 1) => {
@@ -48,6 +52,7 @@ export default function ActividadPage() {
       const data: AuditLogResponse = await response.json()
       setAuditLogs(data.auditLogs)
       setTotalPages(data.totalPages)
+      setTotalCount(data.total)
     } catch (err) {
       console.error('Error fetching audit logs:', err)
       setError(err instanceof Error ? err.message : 'Error al obtener registros')
@@ -154,10 +159,6 @@ export default function ActividadPage() {
 
   // Delete all audit logs
   const deleteAllAuditLogs = async () => {
-    if (!confirm('¿Estás seguro de que quieres eliminar todos los registros de actividad? Esta acción no se puede deshacer.')) {
-      return
-    }
-
     try {
       setDeleting(true)
       setError(null)
@@ -173,15 +174,21 @@ export default function ActividadPage() {
       // Refresh the data
       await fetchAuditLogs(1)
       
-      // Show success message (you might want to add a toast notification here)
-      alert('Todos los registros de actividad han sido eliminados correctamente.')
+      // Show success toast notification
+      toast.success('Todos los registros de actividad han sido eliminados correctamente.')
     } catch (err) {
       console.error('Error deleting audit logs:', err)
       setError(err instanceof Error ? err.message : 'Error al eliminar registros')
-      alert('Error al eliminar los registros de actividad. Por favor, inténtalo de nuevo.')
+      toast.error('Error al eliminar los registros de actividad. Por favor, inténtalo de nuevo.')
     } finally {
       setDeleting(false)
+      setIsDeleteModalOpen(false)
     }
+  }
+
+  // Open delete modal
+  const openDeleteModal = () => {
+    setIsDeleteModalOpen(true)
   }
 
   return (
@@ -342,10 +349,12 @@ export default function ActividadPage() {
                 </div>
               )}
             </div>
+          </div>
 
-            {/* Delete All Button */}
+          {/* Delete All Button - Moved to trailing end */}
+          <div className="ml-auto">
             <button 
-              onClick={deleteAllAuditLogs}
+              onClick={openDeleteModal}
               disabled={deleting || loading}
               className="inline-flex items-center px-4 py-2 border border-red-300 rounded-md shadow-sm text-sm font-medium text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
@@ -637,6 +646,77 @@ export default function ActividadPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* Black overlay with 60% opacity */}
+          <div 
+            className="absolute inset-0 bg-black opacity-60"
+            onClick={() => setIsDeleteModalOpen(false)}
+          ></div>
+          
+          {/* Modal content */}
+          <div className="relative bg-white rounded-lg shadow-xl w-full max-w-xl mx-4 z-10">
+            {/* Modal body */}
+            <div className="p-6 text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              
+              <h3 className="text-lg font-metropolis font-bold text-[#0D141C] mb-2">
+                ¿Estás seguro que deseas eliminar todos los registros de actividad?
+              </h3>
+              
+              <p className="text-sm font-metropolis font-regular text-[#4A739C] mb-6">
+                Esta acción no se puede deshacer y eliminará todos los registros de auditoría.
+              </p>
+
+              {/* Info box */}
+              <div className="bg-red-50 rounded-lg p-4 mb-6">
+                <div className="flex items-center">
+                  <svg className="h-5 w-5 text-red-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                  <p className="text-sm font-metropolis font-medium text-red-800">
+                    Se eliminarán {totalCount} registros de actividad
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal footer */}
+            <div className="flex items-center justify-center space-x-3 p-6 border-t border-gray-200">
+              <button
+                onClick={() => setIsDeleteModalOpen(false)}
+                disabled={deleting}
+                className="px-4 py-2 text-sm font-metropolis font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5A6F80] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={deleteAllAuditLogs}
+                disabled={deleting}
+                className="px-4 py-2 text-sm font-metropolis font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {deleting ? (
+                  <div className="flex items-center space-x-2">
+                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Eliminando...</span>
+                  </div>
+                ) : (
+                  'Eliminar Todo'
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}
