@@ -286,10 +286,21 @@ export default function TestimoniosPage() {
           </div>
         ) : Array.isArray(filteredTestimonials) && filteredTestimonials.length === 0 ? (
           <div className="text-center py-12">
+            <div className="mb-4">
+              <svg className="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-metropolis font-medium text-[#0D141C] mb-2">
+              {searchTerm || dateFilter 
+                ? 'No se encontraron testimonios'
+                : 'No hay testimonios disponibles'
+              }
+            </h3>
             <p className="text-[#4A739C] font-metropolis font-regular">
               {searchTerm || dateFilter 
                 ? `No se encontraron testimonios ${searchTerm ? `que coincidan con "${searchTerm}"` : ''} ${dateFilter ? `en el período seleccionado` : ''}`
-                : 'No se encontraron testimonios'
+                : 'Comienza creando tu primer testimonio usando el botón "Agregar Testimonio"'
               }
             </p>
           </div>

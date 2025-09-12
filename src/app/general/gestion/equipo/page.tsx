@@ -287,10 +287,21 @@ export default function EquipoPage() {
           </div>
         ) : filteredTeam.length === 0 ? (
           <div className="text-center py-12">
+            <div className="mb-4">
+              <svg className="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-metropolis font-medium text-[#0D141C] mb-2">
+              {searchTerm || dateFilter 
+                ? 'No se encontraron miembros del equipo'
+                : 'No hay miembros del equipo disponibles'
+              }
+            </h3>
             <p className="text-[#4A739C] font-metropolis font-regular">
               {searchTerm || dateFilter 
                 ? `No se encontraron miembros ${searchTerm ? `que coincidan con "${searchTerm}"` : ''} ${dateFilter ? `en el período seleccionado` : ''}`
-                : 'No se encontraron miembros del equipo'
+                : 'Comienza agregando tu primer miembro del equipo usando el botón "Agregar Miembro"'
               }
             </p>
           </div>
