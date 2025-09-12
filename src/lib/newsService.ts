@@ -18,11 +18,11 @@ export interface CreateNewsData {
 }
 
 export interface UpdateNewsData extends Partial<CreateNewsData> {
-  id: number
+  id: string
 }
 
 export interface NewsWithImages {
-  id: number
+  id: string
   title_es: string
   title_en: string
   body_es: string
@@ -39,8 +39,8 @@ export interface NewsWithImages {
   category_en?: string | null
   tags_en: string[]
   newsImages: {
-    id: number
-    newsId: number
+    id: string
+    newsId: string
     imageUrl: string
     order: number | null
   }[]
@@ -76,7 +76,7 @@ export async function createNews(data: CreateNewsData): Promise<NewsWithImages> 
 }
 
 // Get news by ID
-export async function getNewsById(id: number): Promise<NewsWithImages | null> {
+export async function getNewsById(id: string): Promise<NewsWithImages | null> {
   return await prisma.news.findUnique({
     where: { id },
     include: {
@@ -171,7 +171,7 @@ export async function getNewsList(params: NewsListParams) {
 }
 
 // Update news
-export async function updateNews(id: number, data: UpdateNewsData): Promise<NewsWithImages> {
+export async function updateNews(id: string, data: UpdateNewsData): Promise<NewsWithImages> {
   const { newsImages, ...newsData } = data
 
   // If newsImages are provided, delete existing ones and create new ones
@@ -200,7 +200,7 @@ export async function updateNews(id: number, data: UpdateNewsData): Promise<News
 }
 
 // Delete news
-export async function deleteNews(id: number): Promise<void> {
+export async function deleteNews(id: string): Promise<void> {
   // Delete related news images first
   await prisma.newsImage.deleteMany({
     where: { newsId: id }

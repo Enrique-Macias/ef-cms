@@ -7,7 +7,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
 
 interface Team {
-  id: number
+  id: string
   name: string
   role: string
   role_en: string

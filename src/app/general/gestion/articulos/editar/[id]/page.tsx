@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/useToast'
 import { useArticleForm } from '@/hooks/useArticleForm'
 
 interface Article {
-  id: number
+  id: string
   title: string
   title_en: string
   body_es: string

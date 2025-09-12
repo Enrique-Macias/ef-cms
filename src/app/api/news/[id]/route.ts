@@ -8,16 +8,8 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-    const newsId = parseInt(id)
 
-    if (isNaN(newsId)) {
-      return NextResponse.json(
-        { error: 'Invalid news ID' },
-        { status: 400 }
-      )
-    }
-
-    const news = await getNewsById(newsId)
+    const news = await getNewsById(id)
 
     if (!news) {
       return NextResponse.json(
@@ -42,19 +34,10 @@ export async function PUT(
 ) {
   try {
     const { id } = await params
-    const newsId = parseInt(id)
-
-    if (isNaN(newsId)) {
-      return NextResponse.json(
-        { error: 'Invalid news ID' },
-        { status: 400 }
-      )
-    }
-
     const body = await request.json()
 
     // Check if news exists
-    const existingNews = await getNewsById(newsId)
+    const existingNews = await getNewsById(id)
     if (!existingNews) {
       return NextResponse.json(
         { error: 'News not found' },
@@ -148,7 +131,7 @@ export async function PUT(
     if (body.tags_en !== undefined) updateData.tags_en = body.tags_en
     if (processedNewsImages.length > 0) updateData.newsImages = processedNewsImages
 
-    const news = await updateNews(newsId, { ...updateData, id: newsId })
+    const news = await updateNews(id, { ...updateData, id })
 
     return NextResponse.json({
       message: 'News updated successfully',
@@ -169,17 +152,9 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
-    const newsId = parseInt(id)
-
-    if (isNaN(newsId)) {
-      return NextResponse.json(
-        { error: 'Invalid news ID' },
-        { status: 400 }
-      )
-    }
 
     // Check if news exists
-    const existingNews = await getNewsById(newsId)
+    const existingNews = await getNewsById(id)
     if (!existingNews) {
       return NextResponse.json(
         { error: 'News not found' },
@@ -212,7 +187,7 @@ export async function DELETE(
       console.error('Error deleting images from Cloudinary:', error)
     }
 
-    await deleteNews(newsId)
+    await deleteNews(id)
 
     return NextResponse.json({
       message: 'News deleted successfully'

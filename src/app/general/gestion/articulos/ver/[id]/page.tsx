@@ -7,7 +7,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
 
 interface Article {
-  id: number
+  id: string
   title: string
   title_en: string
   body_es: string

@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/useToast'
 import { useTeamForm } from '@/hooks/useTeamForm'
 
 interface Team {
-  id: number
+  id: string
   name: string
   role: string
   role_en: string

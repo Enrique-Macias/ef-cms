@@ -22,11 +22,11 @@ export interface CreateEventData {
 }
 
 export interface UpdateEventData extends Partial<CreateEventData> {
-  id: number
+  id: string
 }
 
 export interface EventWithImages {
-  id: number
+  id: string
   title_es: string
   title_en: string
   body_es: string
@@ -47,8 +47,8 @@ export interface EventWithImages {
   category_en: string | null
   tags_en: string[]
   eventImages: {
-    id: number
-    eventId: number
+    id: string
+    eventId: string
     imageUrl: string
     order: number | null
   }[]
@@ -84,7 +84,7 @@ export async function createEvent(data: CreateEventData): Promise<EventWithImage
 }
 
 // Get event by ID
-export async function getEventById(id: number): Promise<EventWithImages | null> {
+export async function getEventById(id: string): Promise<EventWithImages | null> {
   return await prisma.event.findUnique({
     where: { id },
     include: {
@@ -183,7 +183,7 @@ export async function getEventsList(params: EventListParams) {
 }
 
 // Update event
-export async function updateEvent(id: number, data: UpdateEventData): Promise<EventWithImages> {
+export async function updateEvent(id: string, data: UpdateEventData): Promise<EventWithImages> {
   const { eventImages, ...eventData } = data
 
   // If eventImages are provided, delete existing ones and create new ones
@@ -212,7 +212,7 @@ export async function updateEvent(id: number, data: UpdateEventData): Promise<Ev
 }
 
 // Delete event
-export async function deleteEvent(id: number): Promise<void> {
+export async function deleteEvent(id: string): Promise<void> {
   // Delete related event images first
   await prisma.eventImage.deleteMany({
     where: { eventId: id }

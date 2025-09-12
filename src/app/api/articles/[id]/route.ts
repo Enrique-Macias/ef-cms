@@ -3,8 +3,7 @@ import { getArticleById, updateArticle, deleteArticle } from '@/lib/articleServi
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id: idParam } = await params;
-    const id = parseInt(idParam, 10);
+    const { id } = await params;
     const article = await getArticleById(id);
 
     if (!article) {
@@ -21,8 +20,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id: idParam } = await params;
-    const id = parseInt(idParam, 10);
+    const { id } = await params;
     const data = await request.json();
     const updatedArticle = await updateArticle(id, data);
     return NextResponse.json(updatedArticle, { status: 200 });
@@ -35,8 +33,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id: idParam } = await params;
-    const id = parseInt(idParam, 10);
+    const { id } = await params;
     await deleteArticle(id);
     return NextResponse.json({ message: 'Article deleted successfully' }, { status: 200 });
   } catch (error: unknown) {

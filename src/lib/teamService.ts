@@ -1,7 +1,7 @@
 import { prisma } from './prisma'
 
 export interface Team {
-  id: number
+  id: string
   name: string
   role: string
   role_en: string
@@ -24,7 +24,7 @@ export interface CreateTeamData {
 }
 
 export interface UpdateTeamData {
-  id: number
+  id: string
   name?: string
   role?: string
   role_en?: string
@@ -61,7 +61,7 @@ export const getAllTeams = async (): Promise<Team[]> => {
 }
 
 // Get a single team member by ID
-export const getTeamById = async (id: number): Promise<Team | null> => {
+export const getTeamById = async (id: string): Promise<Team | null> => {
   const team = await prisma.team.findUnique({
     where: { id },
   })
@@ -69,7 +69,7 @@ export const getTeamById = async (id: number): Promise<Team | null> => {
 }
 
 // Update a team member
-export const updateTeam = async (id: number, data: UpdateTeamData): Promise<Team> => {
+export const updateTeam = async (id: string, data: UpdateTeamData): Promise<Team> => {
   const team = await prisma.team.update({
     where: { id },
     data: {
@@ -86,7 +86,7 @@ export const updateTeam = async (id: number, data: UpdateTeamData): Promise<Team
 }
 
 // Delete a team member
-export const deleteTeam = async (id: number): Promise<void> => {
+export const deleteTeam = async (id: string): Promise<void> => {
   await prisma.team.delete({
     where: { id },
   })

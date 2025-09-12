@@ -9,16 +9,8 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-    const teamId = parseInt(id)
 
-    if (isNaN(teamId)) {
-      return NextResponse.json(
-        { error: 'Invalid team ID' },
-        { status: 400 }
-      )
-    }
-
-    const team = await getTeamById(teamId)
+    const team = await getTeamById(id)
     
     if (!team) {
       return NextResponse.json(
@@ -44,15 +36,6 @@ export async function PUT(
 ) {
   try {
     const { id } = await params
-    const teamId = parseInt(id)
-
-    if (isNaN(teamId)) {
-      return NextResponse.json(
-        { error: 'Invalid team ID' },
-        { status: 400 }
-      )
-    }
-
     const body = await request.json()
     const {
       name,
@@ -98,8 +81,8 @@ export async function PUT(
     }
 
     // Update team member
-    const team = await updateTeam(teamId, {
-      id: teamId,
+    const team = await updateTeam(id, {
+      id,
       name,
       role,
       role_en,
@@ -126,17 +109,9 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
-    const teamId = parseInt(id)
-
-    if (isNaN(teamId)) {
-      return NextResponse.json(
-        { error: 'Invalid team ID' },
-        { status: 400 }
-      )
-    }
 
     // Get team member to access image URL for deletion
-    const team = await getTeamById(teamId)
+    const team = await getTeamById(id)
     if (!team) {
       return NextResponse.json(
         { error: 'Team member not found' },
@@ -158,7 +133,7 @@ export async function DELETE(
     }
 
     // Delete team member from database
-    await deleteTeam(teamId)
+    await deleteTeam(id)
 
     return NextResponse.json({ message: 'Team member deleted successfully' })
   } catch (error) {

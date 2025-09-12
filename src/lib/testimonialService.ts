@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma'
 
 export interface Testimonial {
-  id: number
+  id: string
   author: string
   role: string
   role_en: string
@@ -38,7 +38,7 @@ export async function getAllTestimonials(): Promise<Testimonial[]> {
   })
 }
 
-export async function getTestimonialById(id: number): Promise<Testimonial | null> {
+export async function getTestimonialById(id: string): Promise<Testimonial | null> {
   return await prisma.testimonial.findUnique({
     where: { id }
   })
@@ -50,14 +50,14 @@ export async function createTestimonial(data: CreateTestimonialData): Promise<Te
   })
 }
 
-export async function updateTestimonial(id: number, data: UpdateTestimonialData): Promise<Testimonial> {
+export async function updateTestimonial(id: string, data: UpdateTestimonialData): Promise<Testimonial> {
   return await prisma.testimonial.update({
     where: { id },
     data
   })
 }
 
-export async function deleteTestimonial(id: number): Promise<void> {
+export async function deleteTestimonial(id: string): Promise<void> {
   await prisma.testimonial.delete({
     where: { id }
   })

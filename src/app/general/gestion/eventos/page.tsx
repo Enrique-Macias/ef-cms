@@ -7,7 +7,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
 
 interface Event {
-  id: number
+  id: string
   title_es: string
   title_en: string
   body_es: string

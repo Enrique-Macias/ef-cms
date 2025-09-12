@@ -28,7 +28,7 @@ model UsedToken {
 }
 
 model News {
-  id               Int         @id @default(autoincrement())
+  id               String      @id @default(uuid())
   title_es         String
   title_en         String
   body_es          String
@@ -50,8 +50,8 @@ model News {
 }
 
 model NewsImage {
-  id       Int    @id @default(autoincrement())
-  newsId   Int
+  id       String @id @default(uuid())
+  newsId   String
   imageUrl String
   order    Int?
   news     News   @relation(fields: [newsId], references: [id])
@@ -60,7 +60,7 @@ model NewsImage {
 }
 
 model Event {
-  id               Int          @id @default(autoincrement())
+  id               String       @id @default(uuid())
   title_es         String
   title_en         String
   body_es          String
@@ -86,8 +86,8 @@ model Event {
 }
 
 model EventImage {
-  id       Int    @id @default(autoincrement())
-  eventId  Int
+  id       String @id @default(uuid())
+  eventId  String
   imageUrl String
   order    Int?
   event    Event  @relation(fields: [eventId], references: [id])
@@ -96,7 +96,7 @@ model EventImage {
 }
 
 model Testimonial {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   author    String
   role      String
   role_en   String
@@ -110,7 +110,7 @@ model Testimonial {
 }
 
 model Team {
-  id            Int      @id @default(autoincrement())
+  id            String   @id @default(uuid())
   name          String
   role          String
   role_en       String
@@ -125,7 +125,7 @@ model Team {
 }
 
 model Article {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   title     String
   title_en  String
   body_es   String

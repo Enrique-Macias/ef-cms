@@ -3,7 +3,7 @@ import { uploadImageFromBase64, deleteImage } from './cloudinary';
 import { logUserAction } from './audit';
 
 export interface Article {
-  id: number;
+  id: string;
   title: string;
   title_en: string;
   body_es: string;
@@ -45,7 +45,7 @@ export const getAllArticles = async (): Promise<Article[]> => {
   });
 };
 
-export const getArticleById = async (id: number): Promise<Article | null> => {
+export const getArticleById = async (id: string): Promise<Article | null> => {
   return prisma.article.findUnique({
     where: { id },
   });
@@ -74,7 +74,7 @@ export const createArticle = async (data: CreateArticleData): Promise<Article> =
   return newArticle;
 };
 
-export const updateArticle = async (id: number, data: UpdateArticleData): Promise<Article> => {
+export const updateArticle = async (id: string, data: UpdateArticleData): Promise<Article> => {
   let updatedImageUrl = data.imageUrl;
 
   if (data.imageUrl && data.imageUrl.startsWith('data:image')) {
@@ -111,7 +111,7 @@ export const updateArticle = async (id: number, data: UpdateArticleData): Promis
   return updatedArticle;
 };
 
-export const deleteArticle = async (id: number): Promise<Article> => {
+export const deleteArticle = async (id: string): Promise<Article> => {
   const articleToDelete = await prisma.article.findUnique({ where: { id } });
   if (!articleToDelete) {
     throw new Error('Article not found');

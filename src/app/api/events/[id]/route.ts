@@ -9,17 +9,9 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-    const eventId = parseInt(id)
-    
-    if (isNaN(eventId)) {
-      return NextResponse.json(
-        { error: 'Invalid event ID' },
-        { status: 400 }
-      )
-    }
 
     const event = await prisma.event.findUnique({
-      where: { id: eventId },
+      where: { id },
       include: {
         eventImages: true
       }
@@ -51,19 +43,11 @@ export async function PUT(
 ) {
   try {
     const { id } = await params
-    const eventId = parseInt(id)
     const body = await request.json()
-    
-    if (isNaN(eventId)) {
-      return NextResponse.json(
-        { error: 'Invalid event ID' },
-        { status: 400 }
-      )
-    }
 
     // Check if event exists
     const existingEvent = await prisma.event.findUnique({
-      where: { id: eventId },
+      where: { id },
       include: { eventImages: true }
     })
 
@@ -173,7 +157,7 @@ export async function PUT(
     }
 
     // Update event using the service (same as news)
-    const updatedEvent = await updateEvent(eventId, { ...updateData, id: eventId })
+    const updatedEvent = await updateEvent(id, { ...updateData, id })
 
     return NextResponse.json({
       success: true,
@@ -195,18 +179,10 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
-    const eventId = parseInt(id)
-    
-    if (isNaN(eventId)) {
-      return NextResponse.json(
-        { error: 'Invalid event ID' },
-        { status: 400 }
-      )
-    }
 
     // Get event with images to delete from Cloudinary
     const event = await prisma.event.findUnique({
-      where: { id: eventId },
+      where: { id },
       include: { eventImages: true }
     })
 
@@ -244,7 +220,7 @@ export async function DELETE(
     }
 
     // Delete event from database (this will also delete related event images)
-    await deleteEvent(eventId)
+    await deleteEvent(id)
 
     return NextResponse.json({
       success: true,

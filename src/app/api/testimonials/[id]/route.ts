@@ -8,18 +8,10 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-    const testimonialId = parseInt(id)
-
-    if (isNaN(testimonialId)) {
-      return NextResponse.json(
-        { error: 'Invalid testimonial ID' },
-        { status: 400 }
-      )
-    }
 
     const testimonial = await prisma.testimonial.findUnique({
       where: {
-        id: testimonialId
+        id
       }
     })
 
@@ -46,19 +38,11 @@ export async function PUT(
 ) {
   try {
     const { id } = await params
-    const testimonialId = parseInt(id)
     const body = await request.json()
-
-    if (isNaN(testimonialId)) {
-      return NextResponse.json(
-        { error: 'Invalid testimonial ID' },
-        { status: 400 }
-      )
-    }
 
     // Check if testimonial exists
     const existingTestimonial = await prisma.testimonial.findUnique({
-      where: { id: testimonialId }
+      where: { id }
     })
 
     if (!existingTestimonial) {
@@ -112,7 +96,7 @@ export async function PUT(
 
     // Update testimonial
     const updatedTestimonial = await prisma.testimonial.update({
-      where: { id: testimonialId },
+      where: { id },
       data: updateData
     })
 
@@ -132,18 +116,10 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
-    const testimonialId = parseInt(id)
-
-    if (isNaN(testimonialId)) {
-      return NextResponse.json(
-        { error: 'Invalid testimonial ID' },
-        { status: 400 }
-      )
-    }
 
     // Check if testimonial exists
     const existingTestimonial = await prisma.testimonial.findUnique({
-      where: { id: testimonialId }
+      where: { id }
     })
 
     if (!existingTestimonial) {
@@ -168,7 +144,7 @@ export async function DELETE(
 
     // Delete testimonial from database
     await prisma.testimonial.delete({
-      where: { id: testimonialId }
+      where: { id }
     })
 
     return NextResponse.json({ message: 'Testimonial deleted successfully' })
