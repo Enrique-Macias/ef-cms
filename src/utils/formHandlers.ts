@@ -1,11 +1,13 @@
 import { NewsFormData } from '@/hooks/useNewsForm'
+import { validateImagesForContentType } from '@/utils/imageValidationUtils'
 
 export const createFormHandlers = (
   formData: NewsFormData,
   setFormData: React.Dispatch<React.SetStateAction<NewsFormData>>,
   formDataEnglish: NewsFormData,
   setFormDataEnglish: React.Dispatch<React.SetStateAction<NewsFormData>>,
-  isEnglishMode: boolean
+  isEnglishMode: boolean,
+  toast?: { warning: (message: string) => void }
 ) => {
   // Handle form input changes
   const handleInputChange = (field: string, value: string) => {
@@ -38,6 +40,13 @@ export const createFormHandlers = (
   const handleCoverImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
+      // Validate image
+      const validation = validateImagesForContentType('news', file, true)
+      if (!validation.isValid) {
+        toast?.warning(validation.errorMessage || 'Error de validación de imagen')
+        return
+      }
+      
       // Always update both Spanish and English versions with the same image
       setFormData(prev => ({ ...prev, coverImage: file }))
       setFormDataEnglish(prev => ({ ...prev, coverImage: file }))
@@ -48,6 +57,21 @@ export const createFormHandlers = (
   const handleImagesUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || [])
     if (files.length > 0) {
+      // Validate images
+      const validation = validateImagesForContentType('news', files, false)
+      if (!validation.isValid) {
+        toast?.warning(validation.errorMessage || 'Error de validación de imágenes')
+        return
+      }
+      
+      // Check total quantity limit
+      const currentImages = formData.images.length
+      const newTotal = currentImages + files.length
+      if (newTotal > 5) {
+        toast?.warning(`Máximo 5 imágenes permitidas. Actual: ${currentImages}, intentando agregar: ${files.length}`)
+        return
+      }
+      
       // Always update both Spanish and English versions with the same images
       setFormData(prev => ({ ...prev, images: [...prev.images, ...files] }))
       setFormDataEnglish(prev => ({ ...prev, images: [...prev.images, ...files] }))
@@ -73,6 +97,21 @@ export const createFormHandlers = (
     const imageFiles = files.filter(file => file.type.startsWith('image/'))
     
     if (imageFiles.length > 0) {
+      // Validate images
+      const validation = validateImagesForContentType('news', imageFiles, false)
+      if (!validation.isValid) {
+        toast?.warning(validation.errorMessage || 'Error de validación de imágenes')
+        return
+      }
+      
+      // Check total quantity limit
+      const currentImages = formData.images.length
+      const newTotal = currentImages + imageFiles.length
+      if (newTotal > 5) {
+        toast?.warning(`Máximo 5 imágenes permitidas. Actual: ${currentImages}, intentando agregar: ${imageFiles.length}`)
+        return
+      }
+      
       // Always update both Spanish and English versions with the same images
       setFormData(prev => ({ ...prev, images: [...prev.images, ...imageFiles] }))
       setFormDataEnglish(prev => ({ ...prev, images: [...prev.images, ...imageFiles] }))
@@ -98,6 +137,13 @@ export const createFormHandlers = (
     const imageFile = files.find(file => file.type.startsWith('image/'))
     
     if (imageFile) {
+      // Validate image
+      const validation = validateImagesForContentType('news', imageFile, true)
+      if (!validation.isValid) {
+        toast?.warning(validation.errorMessage || 'Error de validación de imagen')
+        return
+      }
+      
       // Always update both Spanish and English versions with the same image
       setFormData(prev => ({ ...prev, coverImage: imageFile }))
       setFormDataEnglish(prev => ({ ...prev, coverImage: imageFile }))

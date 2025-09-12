@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getNewsList, createNews, getNewsStats } from '@/lib/newsService'
 import { uploadImageFromBase64, extractPublicId } from '@/lib/cloudinary'
+import { validateServerImagesForContentType } from '@/utils/serverImageValidation'
 
 export async function GET(request: NextRequest) {
   try {
@@ -48,6 +49,15 @@ export async function POST(request: NextRequest) {
     
     // Handle cover image upload to Cloudinary if it's a base64 data URL
     if (body.coverImageUrl && body.coverImageUrl.startsWith('data:image/')) {
+      // Validate cover image before upload
+      const coverValidation = validateServerImagesForContentType('news', body.coverImageUrl, true)
+      if (!coverValidation.isValid) {
+        return NextResponse.json(
+          { error: coverValidation.errorMessage },
+          { status: 400 }
+        )
+      }
+
       try {
         coverImageUrl = await uploadImageFromBase64(body.coverImageUrl, 'ef-cms/covers')
       } catch (error) {
@@ -62,6 +72,18 @@ export async function POST(request: NextRequest) {
     // Handle news images upload to Cloudinary
     const processedNewsImages = []
     if (body.newsImages && body.newsImages.length > 0) {
+      // Validate all news images before upload
+      const imageUrls = body.newsImages.map((img: { imageUrl: string }) => img.imageUrl).filter((url: string) => url && url.startsWith('data:image/'))
+      if (imageUrls.length > 0) {
+        const imagesValidation = validateServerImagesForContentType('news', imageUrls, false)
+        if (!imagesValidation.isValid) {
+          return NextResponse.json(
+            { error: imagesValidation.errorMessage },
+            { status: 400 }
+          )
+        }
+      }
+
       try {
         for (const imageData of body.newsImages) {
           let imageUrl = imageData.imageUrl

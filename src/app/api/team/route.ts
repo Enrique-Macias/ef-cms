@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createTeam, getAllTeams, getTeamStats } from '@/lib/teamService'
 import { uploadImageFromBase64, deleteImage } from '@/lib/cloudinary'
+import { validateServerImagesForContentType } from '@/utils/serverImageValidation'
 
 // GET /api/team - Get all team members
 export async function GET(request: NextRequest) {
@@ -49,6 +50,15 @@ export async function POST(request: NextRequest) {
     // Upload image to Cloudinary if it's a base64 string
     let finalImageUrl = imageUrl
     if (imageUrl.startsWith('data:image/')) {
+      // Validate image before upload
+      const imageValidation = validateServerImagesForContentType('team', imageUrl, true)
+      if (!imageValidation.isValid) {
+        return NextResponse.json(
+          { error: imageValidation.errorMessage },
+          { status: 400 }
+        )
+      }
+
       try {
         finalImageUrl = await uploadImageFromBase64(imageUrl, 'team')
       } catch (uploadError) {

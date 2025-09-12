@@ -1,6 +1,7 @@
 import { prisma } from './prisma';
 import { uploadImageFromBase64, deleteImage } from './cloudinary';
 import { logUserAction } from './audit';
+import { validateServerImagesForContentType } from '@/utils/serverImageValidation';
 
 export interface Article {
   id: string;
@@ -54,6 +55,12 @@ export const getArticleById = async (id: string): Promise<Article | null> => {
 export const createArticle = async (data: CreateArticleData): Promise<Article> => {
   let uploadedImageUrl = data.imageUrl;
   if (data.imageUrl && data.imageUrl.startsWith('data:image')) {
+    // Validate image before upload
+    const imageValidation = validateServerImagesForContentType('articles', data.imageUrl, true)
+    if (!imageValidation.isValid) {
+      throw new Error(imageValidation.errorMessage)
+    }
+    
     uploadedImageUrl = await uploadImageFromBase64(data.imageUrl, 'articles');
   }
 
@@ -78,6 +85,12 @@ export const updateArticle = async (id: string, data: UpdateArticleData): Promis
   let updatedImageUrl = data.imageUrl;
 
   if (data.imageUrl && data.imageUrl.startsWith('data:image')) {
+    // Validate image before upload
+    const imageValidation = validateServerImagesForContentType('articles', data.imageUrl, true)
+    if (!imageValidation.isValid) {
+      throw new Error(imageValidation.errorMessage)
+    }
+    
     // New image uploaded, delete old one if it exists
     if (data.originalImageUrl) {
       await deleteImage(data.originalImageUrl);

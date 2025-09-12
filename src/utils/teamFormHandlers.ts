@@ -1,11 +1,11 @@
-import { TestimonialFormData, TestimonialFormDataEnglish } from '@/hooks/useTestimonialForm'
+import { TeamFormData, TeamFormDataEnglish } from '@/hooks/useTeamForm'
 import { validateImagesForContentType } from '@/utils/imageValidationUtils'
 
-export const createTestimonialFormHandlers = (
-  formData: TestimonialFormData,
-  setFormData: React.Dispatch<React.SetStateAction<TestimonialFormData>>,
-  formDataEnglish: TestimonialFormDataEnglish,
-  setFormDataEnglish: React.Dispatch<React.SetStateAction<TestimonialFormDataEnglish>>,
+export const createTeamFormHandlers = (
+  formData: TeamFormData,
+  setFormData: React.Dispatch<React.SetStateAction<TeamFormData>>,
+  formDataEnglish: TeamFormDataEnglish,
+  setFormDataEnglish: React.Dispatch<React.SetStateAction<TeamFormDataEnglish>>,
   isEnglishMode: boolean,
   toast?: { warning: (message: string) => void }
 ) => {
@@ -13,7 +13,7 @@ export const createTestimonialFormHandlers = (
   const handleInputChange = (field: string, value: string) => {
     if (isEnglishMode) {
       // For common fields, don't allow editing in English mode
-      const commonFields = ['author']
+      const commonFields = ['name', 'instagram_url', 'facebook_url', 'x_url', 'image']
       if (commonFields.includes(field)) {
         return // Don't update these fields in English mode
       }
@@ -23,7 +23,7 @@ export const createTestimonialFormHandlers = (
       setFormData(prev => ({ ...prev, [field]: value }))
       
       // Auto-sync common fields to English version
-      const commonFields = ['author']
+      const commonFields = ['name', 'instagram_url', 'facebook_url', 'x_url', 'image']
       if (commonFields.includes(field)) {
         setFormDataEnglish(prev => ({ ...prev, [field]: value }))
       }
@@ -35,7 +35,7 @@ export const createTestimonialFormHandlers = (
     const file = event.target.files?.[0]
     if (file) {
       // Validate image
-      const validation = validateImagesForContentType('testimonials', file, true)
+      const validation = validateImagesForContentType('team', file, true)
       if (!validation.isValid) {
         toast?.warning(validation.errorMessage || 'Error de validación de imagen')
         return
@@ -67,7 +67,7 @@ export const createTestimonialFormHandlers = (
     
     if (imageFile) {
       // Validate image
-      const validation = validateImagesForContentType('testimonials', imageFile, true)
+      const validation = validateImagesForContentType('team', imageFile, true)
       if (!validation.isValid) {
         toast?.warning(validation.errorMessage || 'Error de validación de imagen')
         return

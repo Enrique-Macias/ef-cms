@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 
-interface FormData {
+export interface TeamFormData {
   name: string
   role: string
   instagram_url: string
@@ -9,7 +9,7 @@ interface FormData {
   image: File | null
 }
 
-interface FormDataEnglish {
+export interface TeamFormDataEnglish {
   name: string
   role: string
   instagram_url: string
@@ -19,7 +19,7 @@ interface FormDataEnglish {
 }
 
 export const useTeamForm = () => {
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<TeamFormData>({
     name: '',
     role: '',
     instagram_url: '',
@@ -28,7 +28,7 @@ export const useTeamForm = () => {
     image: null
   })
   
-  const [formDataEnglish, setFormDataEnglish] = useState<FormDataEnglish>({
+  const [formDataEnglish, setFormDataEnglish] = useState<TeamFormDataEnglish>({
     name: '',
     role: '',
     instagram_url: '',
@@ -37,7 +37,7 @@ export const useTeamForm = () => {
     image: null
   })
 
-  const handleInputChange = useCallback((field: keyof FormData, value: string, isEnglishMode: boolean) => {
+  const handleInputChange = useCallback((field: keyof TeamFormData, value: string, isEnglishMode: boolean) => {
     if (isEnglishMode) {
       // For common fields, don't allow editing in English mode
       const commonFields = ['name', 'instagram_url', 'facebook_url', 'x_url', 'image']

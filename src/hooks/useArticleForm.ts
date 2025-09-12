@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 
-interface ArticleFormData {
+export interface ArticleFormData {
   title: string;
   body_es: string;
   author: string;

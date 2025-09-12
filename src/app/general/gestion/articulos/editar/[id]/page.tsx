@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
 import { useArticleForm } from '@/hooks/useArticleForm'
+import { createArticleFormHandlers } from '@/utils/articleFormHandlers'
 
 interface Article {
   id: string
@@ -30,11 +31,11 @@ export default function EditarArticuloPage() {
   // Custom hooks
   const {
     formData,
-    formDataEnglish,
     setFormData,
+    formDataEnglish,
     setFormDataEnglish,
-    handleInputChange,
-    handleImageUpload
+    handleInputChange: originalHandleInputChange,
+    handleImageUpload: originalHandleImageUpload
   } = useArticleForm()
   
   
@@ -44,6 +45,15 @@ export default function EditarArticuloPage() {
   const [isUpdating, setIsUpdating] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [isDragOver, setIsDragOver] = useState(false)
+
+  // Form handlers with validation
+  const {
+    handleInputChange,
+    handleImageUpload,
+    handleDragOver,
+    handleDragLeave,
+    handleDrop
+  } = createArticleFormHandlers(formData, setFormData, formDataEnglish, setFormDataEnglish, isEnglishMode, toast)
 
   // Load article data on component mount
   useEffect(() => {
@@ -115,38 +125,14 @@ export default function EditarArticuloPage() {
     return spanishChanges || englishChanges
   }
 
-  // Handle image upload
+  // Handle image upload event
   const handleImageUploadEvent = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      handleImageUpload(file, isEnglishMode)
+      handleImageUpload(event)
     }
   }
 
-  // Handle drag and drop
-  const handleDragOver = (event: React.DragEvent) => {
-    event.preventDefault()
-    event.stopPropagation()
-    setIsDragOver(true)
-  }
-
-  const handleDragLeave = (event: React.DragEvent) => {
-    event.preventDefault()
-    event.stopPropagation()
-    setIsDragOver(false)
-  }
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragOver(false)
-    const files = Array.from(e.dataTransfer.files)
-    if (files.length > 0) {
-      const imageFile = files[0]
-      if (imageFile.type.startsWith('image/')) {
-        handleImageUpload(imageFile, isEnglishMode)
-      }
-    }
-  }
 
   // Get current form data based on language mode
   const getCurrentFormData = () => isEnglishMode ? formDataEnglish : formData
@@ -234,8 +220,8 @@ export default function EditarArticuloPage() {
     updateArticle: isEnglishMode ? 'Update Article' : 'Actualizar Artículo',
     updating: isEnglishMode ? 'Updating...' : 'Actualizando...',
     coverDescription: isEnglishMode 
-      ? 'JPG or PNG, Maximum 300 KB. Drag and drop an image here.'
-      : 'JPG o PNG, Máximo 300 KB. Arrastra y suelta una imagen aquí.',
+      ? 'JPG, JPEG or PNG, Maximum 2MB. Drag and drop an image here.'
+      : 'JPG, JPEG o PNG, Máximo 2MB. Arrastra y suelta una imagen aquí.',
     uploadImage: isEnglishMode ? 'Upload Image' : 'Subir Imagen',
     descriptionPlaceholder: isEnglishMode 
       ? 'Write the article description...'
@@ -405,7 +391,7 @@ export default function EditarArticuloPage() {
                 <input
                   type="text"
                   value={getCurrentFormData().title}
-                  onChange={(e) => handleInputChange('title', e.target.value, isEnglishMode)}
+                  onChange={(e) => handleInputChange('title', e.target.value)}
                   placeholder={translations.title}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
                 />
@@ -417,7 +403,7 @@ export default function EditarArticuloPage() {
                 <input
                   type="text"
                   value={isEnglishMode ? formData.author : getCurrentFormData().author}
-                  onChange={(e) => handleInputChange('author', e.target.value, isEnglishMode)}
+                  onChange={(e) => handleInputChange('author', e.target.value)}
                   placeholder={translations.author}
                   disabled={isEnglishMode}
                   className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
@@ -501,7 +487,7 @@ export default function EditarArticuloPage() {
               <input
                 type="date"
                 value={isEnglishMode ? formData.date : getCurrentFormData().date}
-                onChange={(e) => handleInputChange('date', e.target.value, isEnglishMode)}
+                onChange={(e) => handleInputChange('date', e.target.value)}
                 disabled={isEnglishMode}
                 className={`block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
                   isEnglishMode ? 'bg-gray-100 cursor-not-allowed' : ''
@@ -520,7 +506,7 @@ export default function EditarArticuloPage() {
             </p>
             <textarea
               value={getCurrentFormData().body_es}
-              onChange={(e) => handleInputChange('body_es', e.target.value, isEnglishMode)}
+              onChange={(e) => handleInputChange('body_es', e.target.value)}
               rows={6}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent resize-none"
               placeholder={translations.descriptionPlaceholder}
@@ -538,7 +524,7 @@ export default function EditarArticuloPage() {
             <input
               type="url"
               value={isEnglishMode ? formData.linkUrl : getCurrentFormData().linkUrl}
-              onChange={(e) => handleInputChange('linkUrl', e.target.value, isEnglishMode)}
+              onChange={(e) => handleInputChange('linkUrl', e.target.value)}
               placeholder={translations.linkUrlPlaceholder}
               disabled={isEnglishMode}
               className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${

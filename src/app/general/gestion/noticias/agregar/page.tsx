@@ -14,7 +14,7 @@ import { createCategoryTagHandlers } from '@/utils/categoryTagUtils'
 export default function AgregarNoticiaPage() {
   const router = useRouter()
   const toast = useToast()
-  
+
   // Custom hooks
   const {
     formData,
@@ -62,7 +62,7 @@ export default function AgregarNoticiaPage() {
     handleCoverDragOver,
     handleCoverDragLeave,
     handleCoverDrop
-  } = createFormHandlers(formData, setFormData, formDataEnglish, setFormDataEnglish, isEnglishMode)
+  } = createFormHandlers(formData, setFormData, formDataEnglish, setFormDataEnglish, isEnglishMode, toast)
 
   // Category and tag handlers
   const {
@@ -179,12 +179,12 @@ export default function AgregarNoticiaPage() {
     publishNews: isEnglishMode ? 'Publish News' : 'Publicar Noticia',
     publishing: isEnglishMode ? 'Publishing...' : 'Publicando...',
     coverDescription: isEnglishMode 
-      ? 'JPG or PNG, Maximum 300 KB. Drag and drop an image here.'
-      : 'JPG o PNG, Máximo 300 KB. Arrastra y suelta una imagen aquí.',
+      ? 'JPG, JPEG or PNG, Maximum 2MB. Drag and drop an image here.'
+      : 'JPG, JPEG o PNG, Máximo 2MB. Arrastra y suelta una imagen aquí.',
     uploadImage: isEnglishMode ? 'Upload Image' : 'Subir Imagen',
     imagesDescription: isEnglishMode 
-      ? 'JPG or PNG. Maximum 5 photos of 300 KB each.'
-      : 'JPG o PNG. Máximo 5 fotos de 300 KB c/u.',
+      ? 'JPG, JPEG or PNG. Maximum 5 photos of 2MB each.'
+      : 'JPG, JPEG o PNG. Máximo 5 fotos de 2MB c/u.',
     pressToUpload: isEnglishMode ? 'Click here to upload images' : 'Presiona aquí para subir imágenes',
     or: isEnglishMode ? 'or' : 'o',
     dragAndDrop: isEnglishMode ? 'Drag and drop images here' : 'Arrastra y suelta imágenes aquí',
@@ -366,9 +366,9 @@ export default function AgregarNoticiaPage() {
                   }`}
                 />
               </div>
+              </div>
             </div>
-          </div>
-
+            
           {/* Location Section */}
           <div>
             <h2 className="font-metropolis font-bold text-xl mb-4" style={{ color: '#0D141C' }}>

@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/useToast'
 import { useTestimonialForm } from '@/hooks/useTestimonialForm'
 import { fileToBase64 } from '@/utils/testimonialFileUtils'
 import { validateTestimonialForm } from '@/utils/testimonialValidationUtils'
-import { createTestimonialInputHandler, createTestimonialImageHandlers, createTestimonialDragHandlers } from '@/utils/testimonialFormHandlers'
+import { createTestimonialFormHandlers } from '@/utils/testimonialFormHandlers'
 
 export default function EditarTestimonioPage() {
   const params = useParams()
@@ -78,22 +78,13 @@ export default function EditarTestimonioPage() {
   }, [testimonialId]) // Remove toast dependency to prevent infinite loop
 
   // Form handlers using utility functions
-  const handleInputChange = createTestimonialInputHandler(
-    isEnglishMode,
-    setFormData,
-    setFormDataEnglish
-  )
-
-  const { handleImageUpload } = createTestimonialImageHandlers(
-    setFormData,
-    setFormDataEnglish
-  )
-
-  const { handleDragOver, handleDragLeave, handleDrop } = createTestimonialDragHandlers(
-    setIsDragOver,
-    setFormData,
-    setFormDataEnglish
-  )
+  const {
+    handleInputChange,
+    handleImageUpload,
+    handleDragOver,
+    handleDragLeave,
+    handleDrop
+  } = createTestimonialFormHandlers(formData, setFormData, formDataEnglish, setFormDataEnglish, isEnglishMode, toast)
 
   // Check if there are changes
   const hasChanges = () => {
@@ -183,8 +174,8 @@ export default function EditarTestimonioPage() {
     testimonial: isEnglishMode ? 'Testimonial' : 'Testimonio',
     image: isEnglishMode ? 'Profile Image' : 'Imagen de Perfil',
     imageDescription: isEnglishMode 
-      ? 'JPG or PNG, Maximum 300 KB. Drag and drop an image here.'
-      : 'JPG o PNG, Máximo 300 KB. Arrastra y suelta una imagen aquí.',
+      ? 'JPG, JPEG or PNG, Maximum 2MB. Drag and drop an image here.'
+      : 'JPG, JPEG o PNG, Máximo 2MB. Arrastra y suelta una imagen aquí.',
     uploadImage: isEnglishMode ? 'Upload Image' : 'Subir Imagen',
     dragDropImage: isEnglishMode ? 'Drag and drop an image here, or click to select' : 'Arrastra y suelta una imagen aquí, o haz clic para seleccionar',
     englishVersion: 'English Version',

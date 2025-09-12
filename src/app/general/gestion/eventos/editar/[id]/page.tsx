@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
+import { validateImagesForContentType } from '@/utils/imageValidationUtils'
 
 interface Event {
   id: string
@@ -269,6 +270,13 @@ export default function EditarEventoPage() {
   const handleCoverImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
+      // Validate image
+      const validation = validateImagesForContentType('events', file, true)
+      if (!validation.isValid) {
+        toast.warning(validation.errorMessage || 'Error de validación de imagen')
+        return
+      }
+      
       // Update both Spanish and English forms to keep images synchronized
       setFormData(prev => ({ ...prev, coverImage: file }))
       setFormDataEnglish(prev => ({ ...prev, coverImage: file }))
@@ -279,6 +287,24 @@ export default function EditarEventoPage() {
   const handleImagesUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || [])
     if (files.length > 0) {
+      // Check total count (existing + new images)
+      const currentImages = getCurrentFormData().images
+      const totalImages = currentImages.length + files.length
+      
+      if (totalImages > 5) {
+        toast.warning(`Máximo 5 imágenes permitidas. Ya tienes ${currentImages.length} imágenes, intentas agregar ${files.length} más.`)
+        return
+      }
+      
+      // Validate individual images
+      for (let i = 0; i < files.length; i++) {
+        const validation = validateImagesForContentType('events', files[i], false)
+        if (!validation.isValid) {
+          toast.warning(`Imagen ${i + 1}: ${validation.errorMessage}`)
+          return
+        }
+      }
+      
       // Update both Spanish and English forms to keep images synchronized
       setFormData(prev => ({ ...prev, images: [...prev.images, ...files] }))
       setFormDataEnglish(prev => ({ ...prev, images: [...prev.images, ...files] }))
@@ -299,6 +325,13 @@ export default function EditarEventoPage() {
     if (files.length > 0) {
       const imageFile = files[0]
       if (imageFile.type.startsWith('image/')) {
+        // Validate image
+        const validation = validateImagesForContentType('events', imageFile, true)
+        if (!validation.isValid) {
+          toast.warning(validation.errorMessage || 'Error de validación de imagen')
+          return
+        }
+        
         // Update both Spanish and English forms to keep images synchronized
         setFormData(prev => ({ ...prev, coverImage: imageFile }))
         setFormDataEnglish(prev => ({ ...prev, coverImage: imageFile }))
@@ -312,6 +345,24 @@ export default function EditarEventoPage() {
     const files = Array.from(e.dataTransfer.files)
     const imageFiles = files.filter(file => file.type.startsWith('image/'))
     if (imageFiles.length > 0) {
+      // Check total count (existing + new images)
+      const currentImages = getCurrentFormData().images
+      const totalImages = currentImages.length + imageFiles.length
+      
+      if (totalImages > 5) {
+        toast.warning(`Máximo 5 imágenes permitidas. Ya tienes ${currentImages.length} imágenes, intentas agregar ${imageFiles.length} más.`)
+        return
+      }
+      
+      // Validate individual images
+      for (let i = 0; i < imageFiles.length; i++) {
+        const validation = validateImagesForContentType('events', imageFiles[i], false)
+        if (!validation.isValid) {
+          toast.warning(`Imagen ${i + 1}: ${validation.errorMessage}`)
+          return
+        }
+      }
+      
       // Update both Spanish and English forms to keep images synchronized
       setFormData(prev => ({ ...prev, images: [...prev.images, ...imageFiles] }))
       setFormDataEnglish(prev => ({ ...prev, images: [...prev.images, ...imageFiles] }))
@@ -474,13 +525,13 @@ export default function EditarEventoPage() {
     newTag: isEnglishMode ? 'New tag' : 'Nueva etiqueta',
     coverImage: isEnglishMode ? 'Cover Image' : 'Portada',
     coverDescription: isEnglishMode 
-      ? 'JPG or PNG, Maximum 300 KB. Drag and drop an image here.'
-      : 'JPG o PNG, Máximo 300 KB. Arrastra y suelta una imagen aquí.',
+      ? 'JPG, JPEG or PNG, Maximum 2MB. Drag and drop an image here.'
+      : 'JPG, JPEG o PNG, Máximo 2MB. Arrastra y suelta una imagen aquí.',
     uploadImage: isEnglishMode ? 'Upload Image' : 'Subir Imagen',
     images: isEnglishMode ? 'Images' : 'Imágenes',
     imagesDescription: isEnglishMode 
-      ? 'JPG or PNG. Maximum 5 photos of 300 KB each.'
-      : 'JPG o PNG. Máximo 5 fotos de 300 KB c/u.',
+      ? 'JPG, JPEG or PNG. Maximum 5 photos of 2MB each.'
+      : 'JPG, JPEG o PNG. Máximo 5 fotos de 2MB c/u.',
     pressToUpload: isEnglishMode ? 'Click here to upload images' : 'Presiona aquí para subir imágenes',
     or: isEnglishMode ? 'or' : 'o',
     dragAndDrop: isEnglishMode ? 'Drag and drop images here' : 'Arrastra y suelta imágenes aquí',

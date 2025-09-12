@@ -7,6 +7,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
 import { useArticleForm } from '@/hooks/useArticleForm'
 import { useArticleTranslation } from '@/hooks/useArticleTranslation'
+import { createArticleFormHandlers } from '@/utils/articleFormHandlers'
 
 export default function AgregarArticuloPage() {
   const router = useRouter()
@@ -15,10 +16,10 @@ export default function AgregarArticuloPage() {
   // Custom hooks
   const {
     formData,
+    setFormData,
     formDataEnglish,
     setFormDataEnglish,
-    handleInputChange,
-    handleImageUpload,
+    handleInputChange: originalHandleInputChange,
     resetForm
   } = useArticleForm()
   
@@ -33,38 +34,23 @@ export default function AgregarArticuloPage() {
   const [isPublishing, setIsPublishing] = useState(false)
   const [isDragOver, setIsDragOver] = useState(false)
 
-  // Handle image upload
+  // Form handlers with validation
+  const {
+    handleInputChange,
+    handleImageUpload,
+    handleDragOver,
+    handleDragLeave,
+    handleDrop
+  } = createArticleFormHandlers(formData, setFormData, formDataEnglish, setFormDataEnglish, isEnglishMode, toast)
+
+  // Handle image upload event
   const handleImageUploadEvent = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      handleImageUpload(file, isEnglishMode)
+      handleImageUpload(event)
     }
   }
 
-  // Handle drag and drop
-  const handleDragOver = (event: React.DragEvent) => {
-    event.preventDefault()
-    event.stopPropagation()
-    setIsDragOver(true)
-  }
-
-  const handleDragLeave = (event: React.DragEvent) => {
-    event.preventDefault()
-    event.stopPropagation()
-    setIsDragOver(false)
-  }
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragOver(false)
-    const files = Array.from(e.dataTransfer.files)
-    if (files.length > 0) {
-      const imageFile = files[0]
-      if (imageFile.type.startsWith('image/')) {
-        handleImageUpload(imageFile, isEnglishMode)
-      }
-    }
-  }
 
   // Get current form data based on language mode
   const getCurrentFormData = () => isEnglishMode ? formDataEnglish : formData
@@ -153,8 +139,8 @@ export default function AgregarArticuloPage() {
     publishArticle: isEnglishMode ? 'Publish Article' : 'Publicar Artículo',
     publishing: isEnglishMode ? 'Publishing...' : 'Publicando...',
     coverDescription: isEnglishMode 
-      ? 'JPG or PNG, Maximum 300 KB. Drag and drop an image here.'
-      : 'JPG o PNG, Máximo 300 KB. Arrastra y suelta una imagen aquí.',
+      ? 'JPG, JPEG or PNG, Maximum 2MB. Drag and drop an image here.'
+      : 'JPG, JPEG o PNG, Máximo 2MB. Arrastra y suelta una imagen aquí.',
     uploadImage: isEnglishMode ? 'Upload Image' : 'Subir Imagen',
     descriptionPlaceholder: isEnglishMode 
       ? 'Write the article description...'
@@ -335,7 +321,7 @@ export default function AgregarArticuloPage() {
                 <input
                   type="text"
                   value={getCurrentFormData().title}
-                  onChange={(e) => handleInputChange('title', e.target.value, isEnglishMode)}
+                  onChange={(e) => handleInputChange('title', e.target.value)}
                   placeholder={translations.title}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
                 />
@@ -347,7 +333,7 @@ export default function AgregarArticuloPage() {
                 <input
                   type="text"
                   value={getCurrentFormData().author}
-                  onChange={(e) => handleInputChange('author', e.target.value, isEnglishMode)}
+                  onChange={(e) => handleInputChange('author', e.target.value)}
                   placeholder={translations.author}
                   disabled={isEnglishMode}
                   className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
@@ -436,7 +422,7 @@ export default function AgregarArticuloPage() {
               <input
                 type="date"
                 value={getCurrentFormData().date}
-                onChange={(e) => handleInputChange('date', e.target.value, isEnglishMode)}
+                onChange={(e) => handleInputChange('date', e.target.value)}
                 disabled={isEnglishMode}
                 className={`block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
                   isEnglishMode ? 'bg-gray-100 cursor-not-allowed' : ''
@@ -455,7 +441,7 @@ export default function AgregarArticuloPage() {
             </p>
             <textarea
               value={getCurrentFormData().body_es}
-              onChange={(e) => handleInputChange('body_es', e.target.value, isEnglishMode)}
+              onChange={(e) => handleInputChange('body_es', e.target.value)}
               rows={6}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent resize-none"
               placeholder={translations.descriptionPlaceholder}
@@ -473,7 +459,7 @@ export default function AgregarArticuloPage() {
             <input
               type="url"
               value={getCurrentFormData().linkUrl}
-              onChange={(e) => handleInputChange('linkUrl', e.target.value, isEnglishMode)}
+              onChange={(e) => handleInputChange('linkUrl', e.target.value)}
               placeholder={translations.linkUrlPlaceholder}
               disabled={isEnglishMode}
               className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${

@@ -9,12 +9,7 @@ import { useEventForm } from '@/hooks/useEventForm'
 import { useEventTranslation } from '@/hooks/useEventTranslation'
 import { fileToBase64, getImageSrc } from '@/utils/eventFileUtils'
 import { validateEventForm } from '@/utils/eventValidationUtils'
-import { 
-  createEventInputHandler, 
-  createEventImageHandlers, 
-  createEventDragHandlers, 
-  createEventLanguageToggleHandler 
-} from '@/utils/eventFormHandlers'
+import { createEventFormHandlers } from '@/utils/eventFormHandlers'
 import { 
   createEventCategoryHandlers, 
   createEventTagHandlers 
@@ -60,27 +55,25 @@ export default function AgregarEventoPage() {
   const [isCoverDragOver, setIsCoverDragOver] = useState(false)
 
   // Event handlers using utility functions
-  const handleInputChange = createEventInputHandler(isEnglishMode, setFormData, setFormDataEnglish)
-  
-  const { handleCoverImageUpload, handleImagesUpload } = createEventImageHandlers(setFormData, setFormDataEnglish)
-  
   const {
+    handleInputChange,
+    handleCoverImageUpload,
+    handleImagesUpload,
     handleDragOver,
     handleDragLeave,
     handleDrop,
     handleCoverDragOver,
     handleCoverDragLeave,
     handleCoverDrop
-  } = createEventDragHandlers(setIsDragOver, setIsCoverDragOver, setFormData, setFormDataEnglish)
+  } = createEventFormHandlers(formData, setFormData, formDataEnglish, setFormDataEnglish, isEnglishMode, toast)
   
-  const handleLanguageToggle = createEventLanguageToggleHandler(
-    isEnglishMode,
-    setIsEnglishMode,
-    formData,
-    formDataEnglish,
-    setFormData,
-    setFormDataEnglish
-  )
+  const handleLanguageToggle = async () => {
+    setIsEnglishMode(!isEnglishMode)
+    if (!isEnglishMode) {
+      setTranslationCompleted(false)
+      await translateToEnglish(formData, setFormDataEnglish)
+    }
+  }
   
   const { addCategory, removeCategory } = createEventCategoryHandlers(
     isEnglishMode,
@@ -209,12 +202,12 @@ export default function AgregarEventoPage() {
     publishEvent: isEnglishMode ? 'Publish Event' : 'Publicar Evento',
     publishing: isEnglishMode ? 'Publishing...' : 'Publicando...',
     coverDescription: isEnglishMode 
-      ? 'JPG or PNG, Maximum 300 KB. Drag and drop an image here.'
-      : 'JPG o PNG, Máximo 300 KB. Arrastra y suelta una imagen aquí.',
+      ? 'JPG, JPEG or PNG, Maximum 2MB. Drag and drop an image here.'
+      : 'JPG, JPEG o PNG, Máximo 2MB. Arrastra y suelta una imagen aquí.',
     uploadImage: isEnglishMode ? 'Upload Image' : 'Subir Imagen',
     imagesDescription: isEnglishMode 
-      ? 'JPG or PNG. Maximum 5 photos of 300 KB each.'
-      : 'JPG o PNG. Máximo 5 fotos de 300 KB c/u.',
+      ? 'JPG, JPEG or PNG. Maximum 5 photos of 2MB each.'
+      : 'JPG, JPEG o PNG. Máximo 5 fotos de 2MB c/u.',
     pressToUpload: isEnglishMode ? 'Click here to upload images' : 'Presiona aquí para subir imágenes',
     or: isEnglishMode ? 'or' : 'o',
     dragAndDrop: isEnglishMode ? 'Drag and drop images here' : 'Arrastra y suelta imágenes aquí',

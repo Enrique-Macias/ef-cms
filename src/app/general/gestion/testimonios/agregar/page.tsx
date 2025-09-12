@@ -9,12 +9,7 @@ import { useTestimonialForm } from '@/hooks/useTestimonialForm'
 import { useTestimonialTranslation } from '@/hooks/useTestimonialTranslation'
 import { fileToBase64, getImageSrc } from '@/utils/testimonialFileUtils'
 import { validateTestimonialForm } from '@/utils/testimonialValidationUtils'
-import { 
-  createTestimonialInputHandler, 
-  createTestimonialImageHandlers, 
-  createTestimonialDragHandlers, 
-  createTestimonialLanguageToggleHandler 
-} from '@/utils/testimonialFormHandlers'
+import { createTestimonialFormHandlers } from '@/utils/testimonialFormHandlers'
 
 export default function AgregarTestimonioPage() {
   const router = useRouter()
@@ -43,24 +38,21 @@ export default function AgregarTestimonioPage() {
   const [isDragOver, setIsDragOver] = useState(false)
 
   // Event handlers using utility functions
-  const handleInputChange = createTestimonialInputHandler(isEnglishMode, setFormData, setFormDataEnglish)
-  
-  const { handleImageUpload } = createTestimonialImageHandlers(setFormData, setFormDataEnglish)
-  
   const {
+    handleInputChange,
+    handleImageUpload,
     handleDragOver,
     handleDragLeave,
     handleDrop
-  } = createTestimonialDragHandlers(setIsDragOver, setFormData, setFormDataEnglish)
+  } = createTestimonialFormHandlers(formData, setFormData, formDataEnglish, setFormDataEnglish, isEnglishMode, toast)
   
-  const handleLanguageToggle = createTestimonialLanguageToggleHandler(
-    isEnglishMode,
-    setIsEnglishMode,
-    formData,
-    formDataEnglish,
-    setFormData,
-    setFormDataEnglish
-  )
+  const handleLanguageToggle = async () => {
+    setIsEnglishMode(!isEnglishMode)
+    if (!isEnglishMode) {
+      setTranslationCompleted(false)
+      await translateToEnglish(formData, setFormDataEnglish)
+    }
+  }
 
   // Handle form submission
   const handleSubmit = async () => {
@@ -133,8 +125,8 @@ export default function AgregarTestimonioPage() {
     publishTestimonial: isEnglishMode ? 'Publish Testimonial' : 'Publicar Testimonio',
     publishing: isEnglishMode ? 'Publishing...' : 'Publicando...',
     imageDescription: isEnglishMode 
-      ? 'JPG or PNG, Maximum 300 KB. Drag and drop an image here.'
-      : 'JPG o PNG, Máximo 300 KB. Arrastra y suelta una imagen aquí.',
+      ? 'JPG, JPEG or PNG, Maximum 2MB. Drag and drop an image here.'
+      : 'JPG, JPEG o PNG, Máximo 2MB. Arrastra y suelta una imagen aquí.',
     uploadImage: isEnglishMode ? 'Upload Image' : 'Subir Imagen',
     dragDropImage: isEnglishMode ? 'Drag and drop an image here, or click to select' : 'Arrastra y suelta una imagen aquí, o haz clic para seleccionar',
     englishVersion: 'English',

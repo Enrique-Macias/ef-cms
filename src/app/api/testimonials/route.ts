@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { uploadImageFromBase64 } from '@/lib/cloudinary'
+import { validateServerImagesForContentType } from '@/utils/serverImageValidation'
 
 export async function GET() {
   try {
@@ -38,6 +39,15 @@ export async function POST(request: NextRequest) {
     // Handle image upload to Cloudinary
     let imageUrl = body.imageUrl
     if (body.imageUrl && body.imageUrl.startsWith('data:image')) {
+      // Validate image before upload
+      const imageValidation = validateServerImagesForContentType('testimonials', body.imageUrl, true)
+      if (!imageValidation.isValid) {
+        return NextResponse.json(
+          { error: imageValidation.errorMessage },
+          { status: 400 }
+        )
+      }
+
       try {
         imageUrl = await uploadImageFromBase64(body.imageUrl, 'ef-cms/testimonials')
       } catch (error) {

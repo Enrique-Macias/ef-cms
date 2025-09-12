@@ -5,11 +5,13 @@ import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
+import { validateImagesForContentType } from '@/utils/imageValidationUtils'
 
 export default function EditarNoticiaPage() {
   const params = useParams()
   const router = useRouter()
   const newsId = params.id as string
+  const toast = useToast()
 
   const [formData, setFormData] = useState({
     title: '',
@@ -74,8 +76,6 @@ export default function EditarNoticiaPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isDragOver, setIsDragOver] = useState(false)
   const [isCoverDragOver, setIsCoverDragOver] = useState(false)
-  
-  const toast = useToast()
 
   // Load news data on component mount
   useEffect(() => {
@@ -170,12 +170,12 @@ export default function EditarNoticiaPage() {
     updating: isEnglishMode ? 'Updating...' : 'Actualizando...',
     delete: isEnglishMode ? 'Delete' : 'Eliminar',
     coverDescription: isEnglishMode 
-      ? 'JPG or PNG, Maximum 300 KB. Drag and drop an image here.'
-      : 'JPG o PNG, Máximo 300 KB. Arrastra y suelta una imagen aquí.',
+      ? 'JPG, JPEG or PNG, Maximum 2MB. Drag and drop an image here.'
+      : 'JPG, JPEG o PNG, Máximo 2MB. Arrastra y suelta una imagen aquí.',
     uploadImage: isEnglishMode ? 'Upload Image' : 'Subir Imagen',
     imagesDescription: isEnglishMode 
-      ? 'JPG or PNG. Maximum 5 photos of 300 KB each.'
-      : 'JPG o PNG. Máximo 5 fotos de 300 KB c/u.',
+      ? 'JPG, JPEG or PNG. Maximum 5 photos of 2MB each.'
+      : 'JPG, JPEG o PNG. Máximo 5 fotos de 2MB c/u.',
     pressToUpload: isEnglishMode ? 'Click here to upload images' : 'Presiona aquí para subir imágenes',
     or: isEnglishMode ? 'or' : 'o',
     dragAndDrop: isEnglishMode ? 'Drag and drop images here' : 'Arrastra y suelta imágenes aquí',
@@ -221,6 +221,13 @@ export default function EditarNoticiaPage() {
   const handleCoverImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
+      // Validate image
+      const validation = validateImagesForContentType('news', file, true)
+      if (!validation.isValid) {
+        toast.warning(validation.errorMessage || 'Error de validación de imagen')
+        return
+      }
+      
       // Always update both Spanish and English versions with the same image
       setFormData(prev => ({ ...prev, coverImage: file }))
       setFormDataEnglish(prev => ({ ...prev, coverImage: file }))
@@ -231,6 +238,13 @@ export default function EditarNoticiaPage() {
   const handleImagesUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || [])
     if (files.length > 0) {
+      // Validate images
+      const validation = validateImagesForContentType('news', files, false)
+      if (!validation.isValid) {
+        toast.warning(validation.errorMessage || 'Error de validación de imagen')
+        return
+      }
+      
       // Always update both Spanish and English versions with the same images
       setFormData(prev => ({ ...prev, images: [...prev.images, ...files] }))
       setFormDataEnglish(prev => ({ ...prev, images: [...prev.images, ...files] }))
@@ -259,6 +273,13 @@ export default function EditarNoticiaPage() {
     const imageFiles = files.filter(file => file.type.startsWith('image/'))
     
     if (imageFiles.length > 0) {
+      // Validate images
+      const validation = validateImagesForContentType('news', imageFiles, false)
+      if (!validation.isValid) {
+        toast.warning(validation.errorMessage || 'Error de validación de imagen')
+        return
+      }
+      
       // Always update both Spanish and English versions with the same images
       setFormData(prev => ({ ...prev, images: [...prev.images, ...imageFiles] }))
       setFormDataEnglish(prev => ({ ...prev, images: [...prev.images, ...imageFiles] }))
@@ -287,6 +308,13 @@ export default function EditarNoticiaPage() {
     const imageFile = files.find(file => file.type.startsWith('image/'))
     
     if (imageFile) {
+      // Validate image
+      const validation = validateImagesForContentType('news', imageFile, true)
+      if (!validation.isValid) {
+        toast.warning(validation.errorMessage || 'Error de validación de imagen')
+        return
+      }
+      
       // Always update both Spanish and English versions with the same image
       setFormData(prev => ({ ...prev, coverImage: imageFile }))
       setFormDataEnglish(prev => ({ ...prev, coverImage: imageFile }))

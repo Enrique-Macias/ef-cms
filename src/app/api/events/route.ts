@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { uploadImageFromBase64 } from '@/lib/cloudinary'
+import { validateServerImagesForContentType } from '@/utils/serverImageValidation'
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,6 +26,15 @@ export async function POST(request: NextRequest) {
     // Handle cover image upload to Cloudinary
     let coverImageUrl = body.coverImageUrl
     if (body.coverImageUrl && body.coverImageUrl.startsWith('data:image')) {
+      // Validate cover image before upload
+      const coverValidation = validateServerImagesForContentType('events', body.coverImageUrl, true)
+      if (!coverValidation.isValid) {
+        return NextResponse.json(
+          { error: coverValidation.errorMessage },
+          { status: 400 }
+        )
+      }
+
       try {
         coverImageUrl = await uploadImageFromBase64(body.coverImageUrl, 'ef-cms/events/covers')
       } catch (error) {
@@ -39,6 +49,18 @@ export async function POST(request: NextRequest) {
     // Handle event images upload to Cloudinary
     const eventImages = []
     if (body.images && Array.isArray(body.images)) {
+      // Validate all event images before upload
+      const base64Images = body.images.filter((img: string) => img.startsWith('data:image/'))
+      if (base64Images.length > 0) {
+        const imagesValidation = validateServerImagesForContentType('events', base64Images, false)
+        if (!imagesValidation.isValid) {
+          return NextResponse.json(
+            { error: imagesValidation.errorMessage },
+            { status: 400 }
+          )
+        }
+      }
+
       for (const image of body.images) {
         if (image.startsWith('data:image')) {
           try {

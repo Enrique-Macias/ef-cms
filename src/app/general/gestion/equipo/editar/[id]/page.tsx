@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
 import { useTeamForm } from '@/hooks/useTeamForm'
+import { createTeamFormHandlers } from '@/utils/teamFormHandlers'
 
 interface Team {
   id: string
@@ -31,11 +32,11 @@ export default function EditarEquipoPage() {
   // Custom hooks
   const {
     formData,
-    formDataEnglish,
     setFormData,
+    formDataEnglish,
     setFormDataEnglish,
-    handleInputChange,
-    handleImageUpload
+    handleInputChange: originalHandleInputChange,
+    handleImageUpload: originalHandleImageUpload
   } = useTeamForm()
   
   
@@ -45,6 +46,15 @@ export default function EditarEquipoPage() {
   const [isUpdating, setIsUpdating] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [isDragOver, setIsDragOver] = useState(false)
+
+  // Form handlers with validation
+  const {
+    handleInputChange,
+    handleImageUpload,
+    handleDragOver,
+    handleDragLeave,
+    handleDrop
+  } = createTeamFormHandlers(formData, setFormData, formDataEnglish, setFormDataEnglish, isEnglishMode, toast)
 
   // Load team member data
   useEffect(() => {
@@ -90,24 +100,11 @@ export default function EditarEquipoPage() {
     loadTeamMember()
   }, [memberId, setFormData, setFormDataEnglish]) // Removed toast from dependencies
 
-  // Handle image upload
+  // Handle image upload event
   const handleImageUploadEvent = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      handleImageUpload(file, isEnglishMode)
-    }
-  }
-
-  // Handle drag and drop
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragOver(false)
-    const files = Array.from(e.dataTransfer.files)
-    if (files.length > 0) {
-      const imageFile = files[0]
-      if (imageFile.type.startsWith('image/')) {
-        handleImageUpload(imageFile, isEnglishMode)
-      }
+      handleImageUpload(event)
     }
   }
 
@@ -219,8 +216,8 @@ export default function EditarEquipoPage() {
     x: isEnglishMode ? 'X (Twitter) URL' : 'URL de X (Twitter)',
     image: isEnglishMode ? 'Profile Image' : 'Imagen de Perfil',
     imageDescription: isEnglishMode 
-      ? 'JPG or PNG, Maximum 300 KB. Drag and drop an image here.'
-      : 'JPG o PNG, Máximo 300 KB. Arrastra y suelta una imagen aquí.',
+      ? 'JPG, JPEG or PNG, Maximum 2MB. Drag and drop an image here.'
+      : 'JPG, JPEG o PNG, Máximo 2MB. Arrastra y suelta una imagen aquí.',
     uploadImage: isEnglishMode ? 'Upload Image' : 'Subir Imagen',
     dragDropImage: isEnglishMode ? 'Drag and drop an image here, or click to select' : 'Arrastra y suelta una imagen aquí, o haz clic para seleccionar',
     englishVersion: 'English Version',
@@ -374,7 +371,7 @@ export default function EditarEquipoPage() {
                 <input
                   type="text"
                   value={isEnglishMode ? formData.name : getCurrentFormData().name}
-                  onChange={(e) => handleInputChange('name', e.target.value, isEnglishMode)}
+                  onChange={(e) => handleInputChange('name', e.target.value)}
                   disabled={isEnglishMode}
                   className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
                     isEnglishMode ? 'bg-gray-100 cursor-not-allowed' : ''
@@ -389,7 +386,7 @@ export default function EditarEquipoPage() {
                 <input
                   type="text"
                   value={getCurrentFormData().role}
-                  onChange={(e) => handleInputChange('role', e.target.value, isEnglishMode)}
+                  onChange={(e) => handleInputChange('role', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
                 />
               </div>
@@ -409,7 +406,7 @@ export default function EditarEquipoPage() {
                 <input
                   type="url"
                   value={isEnglishMode ? formData.instagram_url : getCurrentFormData().instagram_url}
-                  onChange={(e) => handleInputChange('instagram_url', e.target.value, isEnglishMode)}
+                  onChange={(e) => handleInputChange('instagram_url', e.target.value)}
                   disabled={isEnglishMode}
                   className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
                     isEnglishMode ? 'bg-gray-100 cursor-not-allowed' : ''
@@ -425,7 +422,7 @@ export default function EditarEquipoPage() {
                 <input
                   type="url"
                   value={isEnglishMode ? formData.facebook_url : getCurrentFormData().facebook_url}
-                  onChange={(e) => handleInputChange('facebook_url', e.target.value, isEnglishMode)}
+                  onChange={(e) => handleInputChange('facebook_url', e.target.value)}
                   disabled={isEnglishMode}
                   className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
                     isEnglishMode ? 'bg-gray-100 cursor-not-allowed' : ''
@@ -441,7 +438,7 @@ export default function EditarEquipoPage() {
                 <input
                   type="url"
                   value={isEnglishMode ? formData.x_url : getCurrentFormData().x_url}
-                  onChange={(e) => handleInputChange('x_url', e.target.value, isEnglishMode)}
+                  onChange={(e) => handleInputChange('x_url', e.target.value)}
                   disabled={isEnglishMode}
                   className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
                     isEnglishMode ? 'bg-gray-100 cursor-not-allowed' : ''
@@ -469,9 +466,8 @@ export default function EditarEquipoPage() {
                     ? 'border-[#5A6F80] bg-[#F0F4F8]' 
                     : 'border-gray-300 hover:border-[#5A6F80] hover:bg-gray-50'
                 }`}
-                onDragOver={(e) => e.preventDefault()}
-                onDragEnter={() => setIsDragOver(true)}
-                onDragLeave={() => setIsDragOver(false)}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
               >
                 {getCurrentFormData().image ? (
@@ -491,7 +487,11 @@ export default function EditarEquipoPage() {
                     <button
                       type="button"
                       onClick={() => {
-                        handleImageUpload(null, isEnglishMode)
+                        // Create a synthetic event to remove the image
+                        const syntheticEvent = {
+                          target: { files: null }
+                        } as React.ChangeEvent<HTMLInputElement>
+                        handleImageUpload(syntheticEvent)
                       }}
                       className="text-sm text-red-600 hover:text-red-800 font-metropolis font-medium"
                     >
