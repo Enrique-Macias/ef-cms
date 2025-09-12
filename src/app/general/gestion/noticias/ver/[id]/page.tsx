@@ -44,7 +44,7 @@ export default function VerNoticiaPage() {
       try {
         const response = await fetch(`/api/news/${newsId}`)
         if (!response.ok) {
-          throw new Error('Failed to fetch news')
+          throw new Error('Error al obtener noticia')
         }
         
         const data = await response.json()
@@ -124,7 +124,7 @@ export default function VerNoticiaPage() {
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || 'Failed to delete news')
+        throw new Error(error.error || 'Error al eliminar noticia')
       }
 
       setIsDeleteModalOpen(false)

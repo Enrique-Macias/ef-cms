@@ -65,7 +65,7 @@ export default function EditarArticuloPage() {
           if (response.status === 404) {
             throw new Error('Article not found')
           }
-          throw new Error('Failed to fetch article')
+          throw new Error('Error al obtener artículo')
         }
         const data = await response.json()
         setOriginalData(data)
@@ -191,7 +191,7 @@ export default function EditarArticuloPage() {
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || 'Failed to update article')
+        throw new Error(error.error || 'Error al actualizar artículo')
       }
 
       // Show success toast and redirect

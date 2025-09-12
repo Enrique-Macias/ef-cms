@@ -43,7 +43,7 @@ export default function VerArticuloPage() {
           if (response.status === 404) {
             throw new Error('Article not found')
           }
-          throw new Error('Failed to fetch article')
+          throw new Error('Error al obtener artículo')
         }
         const data = await response.json()
         setArticle(data)
@@ -71,7 +71,7 @@ export default function VerArticuloPage() {
       
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || 'Failed to delete article')
+        throw new Error(error.error || 'Error al eliminar artículo')
       }
       
       setIsDeleteModalOpen(false)

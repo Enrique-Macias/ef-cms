@@ -49,7 +49,7 @@ export function useStats() {
         ])
 
         if (!newsResponse.ok || !eventsResponse.ok || !usersResponse.ok) {
-          throw new Error('Failed to fetch statistics')
+          throw new Error('Error al obtener estadísticas')
         }
 
         const [newsData, eventsData, usersData] = await Promise.all([
@@ -70,7 +70,7 @@ export function useStats() {
         setStats(prev => ({
           ...prev,
           loading: false,
-          error: 'Failed to load statistics'
+          error: 'Error al obtener estadísticas'
         }))
       }
     }

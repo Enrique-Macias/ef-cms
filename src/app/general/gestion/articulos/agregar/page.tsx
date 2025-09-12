@@ -107,7 +107,7 @@ export default function AgregarArticuloPage() {
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || 'Failed to create article')
+        throw new Error(error.error || 'Error al crear artículo')
       }
 
       // Show success toast

@@ -43,7 +43,7 @@ export default function VerEquipoPage() {
           if (response.status === 404) {
             throw new Error('Team member not found')
           }
-          throw new Error('Failed to fetch team member')
+          throw new Error('Error al obtener miembro del equipo')
         }
         const data = await response.json()
         setTeamMember(data)
@@ -93,7 +93,7 @@ export default function VerEquipoPage() {
       
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || 'Failed to delete team member')
+        throw new Error(error.error || 'Error al eliminar miembro del equipo')
       }
       
       setIsDeleteModalOpen(false)

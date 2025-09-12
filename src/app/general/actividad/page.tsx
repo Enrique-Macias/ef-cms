@@ -42,7 +42,7 @@ export default function ActividadPage() {
       const response = await fetch(`/api/audit-logs?page=${page}&limit=${itemsPerPage}`)
       
       if (!response.ok) {
-        throw new Error('Failed to fetch audit logs')
+        throw new Error('Error al obtener registros')
       }
       
       const data: AuditLogResponse = await response.json()
@@ -50,7 +50,7 @@ export default function ActividadPage() {
       setTotalPages(data.totalPages)
     } catch (err) {
       console.error('Error fetching audit logs:', err)
-      setError(err instanceof Error ? err.message : 'Failed to fetch audit logs')
+      setError(err instanceof Error ? err.message : 'Error al obtener registros')
     } finally {
       setLoading(false)
     }
@@ -167,7 +167,7 @@ export default function ActividadPage() {
       })
       
       if (!response.ok) {
-        throw new Error('Failed to delete audit logs')
+        throw new Error('Error al eliminar registros')
       }
       
       // Refresh the data
@@ -177,7 +177,7 @@ export default function ActividadPage() {
       alert('Todos los registros de actividad han sido eliminados correctamente.')
     } catch (err) {
       console.error('Error deleting audit logs:', err)
-      setError(err instanceof Error ? err.message : 'Failed to delete audit logs')
+      setError(err instanceof Error ? err.message : 'Error al eliminar registros')
       alert('Error al eliminar los registros de actividad. Por favor, inténtalo de nuevo.')
     } finally {
       setDeleting(false)

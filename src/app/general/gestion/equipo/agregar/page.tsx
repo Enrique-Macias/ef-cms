@@ -107,7 +107,7 @@ export default function AgregarEquipoPage() {
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || 'Failed to create team member')
+        throw new Error(error.error || 'Error al crear miembro del equipo')
       }
 
       // Show success toast

@@ -132,7 +132,7 @@ export async function PUT(
   } catch (error) {
     console.error('Error updating testimonial:', error)
     return NextResponse.json(
-      { error: 'Failed to update testimonial' },
+      { error: 'Error al actualizar testimonio' },
       { status: 500 }
     )
   }
@@ -198,7 +198,7 @@ export async function DELETE(
   } catch (error) {
     console.error('Error deleting testimonial:', error)
     return NextResponse.json(
-      { error: 'Failed to delete testimonial' },
+      { error: 'Error al eliminar testimonio' },
       { status: 500 }
     )
   }

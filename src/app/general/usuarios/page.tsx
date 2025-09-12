@@ -86,7 +86,7 @@ export default function UsuariosPage() {
       if (roleFilter) params.append('role', roleFilter)
       
       const response = await fetch(`/api/users?${params}`)
-      if (!response.ok) throw new Error('Failed to fetch users')
+      if (!response.ok) throw new Error('Error al obtener usuarios')
       
       const data = await response.json()
       setUsers(data.users)
@@ -104,7 +104,7 @@ export default function UsuariosPage() {
   const fetchUserStats = async () => {
     try {
       const response = await fetch('/api/users/stats')
-      if (!response.ok) throw new Error('Failed to fetch user stats')
+      if (!response.ok) throw new Error('Error al obtener estadísticas de usuarios')
       
       const stats = await response.json()
       setUserStats(stats)
@@ -641,7 +641,7 @@ export default function UsuariosPage() {
 
                     if (!response.ok) {
                       const error = await response.json()
-                      throw new Error(error.error || 'Failed to update user')
+                      throw new Error(error.error || 'Error al actualizar usuario')
                     }
 
                     toast.success('Usuario actualizado exitosamente')
@@ -784,7 +784,7 @@ export default function UsuariosPage() {
 
                     if (!response.ok) {
                       const error = await response.json()
-                      throw new Error(error.error || 'Failed to create user')
+                      throw new Error(error.error || 'Error al agregar usuario')
                     }
 
                     toast.success('Usuario agregado exitosamente')
@@ -880,7 +880,7 @@ export default function UsuariosPage() {
 
                     if (!response.ok) {
                       const error = await response.json()
-                      throw new Error(error.error || 'Failed to delete user')
+                      throw new Error(error.error || 'Error al eliminar usuario')
                     }
 
                     toast.success('Usuario eliminado exitosamente')

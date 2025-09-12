@@ -24,7 +24,7 @@ export const uploadImageFromBase64 = async (base64Data: string, folder: string =
     return result.secure_url;
   } catch (error) {
     console.error('Cloudinary upload error:', error);
-    throw new Error('Failed to upload image to Cloudinary');
+    throw new Error('Error al subir imagen a Cloudinary');
   }
 };
 
@@ -35,7 +35,7 @@ export const uploadImageFromFile = async (file: File, folder: string = 'ef-cms')
     return await uploadImageFromBase64(base64, folder);
   } catch (error) {
     console.error('File to base64 conversion error:', error);
-    throw new Error('Failed to convert file to base64');
+    throw new Error('Error al convertir archivo a base64');
   }
 };
 
@@ -54,7 +54,7 @@ export const deleteImage = async (publicId: string): Promise<void> => {
     await cloudinary.uploader.destroy(publicId);
   } catch (error) {
     console.error('Cloudinary delete error:', error);
-    throw new Error('Failed to delete image from Cloudinary');
+    throw new Error('Error al eliminar imagen de Cloudinary');
   }
 };
 

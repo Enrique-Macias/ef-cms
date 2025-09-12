@@ -84,7 +84,7 @@ export default function EditarNoticiaPage() {
       try {
         const response = await fetch(`/api/news/${newsId}`)
         if (!response.ok) {
-          throw new Error('Failed to fetch news')
+          throw new Error('Error al obtener noticia')
         }
         
         const data = await response.json()
@@ -513,7 +513,7 @@ export default function EditarNoticiaPage() {
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || 'Failed to update news')
+        throw new Error(error.error || 'Error al actualizar noticia')
       }
 
       // Update original data to reflect changes
@@ -545,7 +545,7 @@ export default function EditarNoticiaPage() {
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || 'Failed to delete news')
+        throw new Error(error.error || 'Error al eliminar noticia')
       }
 
       setIsDeleteModalOpen(false)

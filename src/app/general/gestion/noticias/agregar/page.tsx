@@ -143,7 +143,7 @@ export default function AgregarNoticiaPage() {
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || 'Failed to create news')
+        throw new Error(error.error || 'Error al crear noticia')
       }
 
       // Show success toast

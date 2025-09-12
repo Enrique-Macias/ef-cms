@@ -41,7 +41,7 @@ export default function ArticulosPage() {
       try {
         const response = await fetch('/api/articles')
         if (!response.ok) {
-          throw new Error('Failed to fetch articles')
+          throw new Error('Error al obtener artículos')
         }
         const articlesData = await response.json()
         setArticles(articlesData)

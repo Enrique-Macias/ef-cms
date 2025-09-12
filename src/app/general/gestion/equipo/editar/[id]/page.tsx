@@ -66,7 +66,7 @@ export default function EditarEquipoPage() {
           if (response.status === 404) {
             throw new Error('Team member not found')
           }
-          throw new Error('Failed to fetch team member')
+          throw new Error('Error al obtener miembro del equipo')
         }
         const data = await response.json()
         setOriginalData(data)
@@ -189,7 +189,7 @@ export default function EditarEquipoPage() {
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || 'Failed to update team member')
+        throw new Error(error.error || 'Error al actualizar miembro del equipo')
       }
 
       // Show success toast

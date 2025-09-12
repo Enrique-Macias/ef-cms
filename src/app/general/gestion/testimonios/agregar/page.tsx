@@ -96,7 +96,7 @@ export default function AgregarTestimonioPage() {
       
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to create testimonial')
+        throw new Error(errorData.error || 'Error al crear testimonio')
       }
       
       const result = await response.json()

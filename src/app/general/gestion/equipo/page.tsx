@@ -41,7 +41,7 @@ export default function EquipoPage() {
       try {
         const response = await fetch('/api/team')
         if (!response.ok) {
-          throw new Error('Failed to fetch team members')
+          throw new Error('Error al obtener miembros del equipo')
         }
         const teamData = await response.json()
         setTeam(teamData)

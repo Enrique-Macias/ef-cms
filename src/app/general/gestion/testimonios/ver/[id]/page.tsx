@@ -27,7 +27,7 @@ export default function VerTestimonioPage() {
       try {
         const response = await fetch(`/api/testimonials/${testimonialId}`)
         if (!response.ok) {
-          throw new Error('Failed to fetch testimonial')
+          throw new Error('Error al obtener testimonio')
         }
         const data = await response.json()
         setTestimonial(data)
@@ -78,7 +78,7 @@ export default function VerTestimonioPage() {
       })
       
       if (!response.ok) {
-        throw new Error('Failed to delete testimonial')
+        throw new Error('Error al eliminar testimonio')
       }
       
       toast.success('Testimonio eliminado exitosamente')

@@ -42,7 +42,7 @@ export default function EditarTestimonioPage() {
       try {
         const response = await fetch(`/api/testimonials/${testimonialId}`)
         if (!response.ok) {
-          throw new Error('Failed to fetch testimonial')
+          throw new Error('Error al obtener testimonio')
         }
         const data = await response.json()
         setTestimonial(data)
@@ -149,7 +149,7 @@ export default function EditarTestimonioPage() {
       
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to update testimonial')
+        throw new Error(errorData.error || 'Error al actualizar testimonio')
       }
       
       // Show success toast
@@ -158,7 +158,7 @@ export default function EditarTestimonioPage() {
       router.push('/general/gestion/testimonios')
     } catch (error) {
       console.error('Error updating testimonial:', error)
-      const errorMessage = isEnglishMode ? 'Failed to update testimonial' : 'Error al actualizar el testimonio'
+      const errorMessage = isEnglishMode ? 'Error al actualizar testimonio' : 'Error al actualizar el testimonio'
       toast.error(errorMessage)
     } finally {
       setIsUpdating(false)

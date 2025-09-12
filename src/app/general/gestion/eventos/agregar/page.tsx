@@ -161,7 +161,7 @@ export default function AgregarEventoPage() {
       
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to create event')
+        throw new Error(errorData.error || 'Error al crear evento')
       }
       
       const result = await response.json()

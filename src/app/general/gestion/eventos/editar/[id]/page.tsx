@@ -477,7 +477,7 @@ export default function EditarEventoPage() {
       
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to update event')
+        throw new Error(errorData.error || 'Error al actualizar evento')
       }
       
       const result = await response.json()

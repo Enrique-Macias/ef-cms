@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching user stats:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch user statistics' },
+      { error: 'Error al obtener estadísticas de usuarios' },
       { status: 500 }
     )
   }

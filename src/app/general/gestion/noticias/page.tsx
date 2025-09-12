@@ -32,7 +32,7 @@ export default function NoticiasPage() {
       if (dateFilter) params.append('dateFilter', dateFilter)
       
       const response = await fetch(`/api/news?${params}`)
-      if (!response.ok) throw new Error('Failed to fetch news')
+      if (!response.ok) throw new Error('Error al obtener noticias')
       
       const data = await response.json()
       setNews(data.news)
