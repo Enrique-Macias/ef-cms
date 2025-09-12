@@ -5,10 +5,12 @@ import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
+import { useArticleForm } from '@/hooks/useArticleForm'
 
 interface Article {
   id: number
   title: string
+  title_en: string
   body_es: string
   body_en: string
   imageUrl: string
@@ -23,97 +25,70 @@ export default function EditarArticuloPage() {
   const params = useParams()
   const router = useRouter()
   const articleId = params.id as string
-
-  const [formData, setFormData] = useState({
-    title: '',
-    author: '',
-    coverImage: null as File | null,
-    publicationDate: new Date().toISOString().split('T')[0],
-    description: '',
-    linkUrl: ''
-  })
-
-  const [formDataEnglish, setFormDataEnglish] = useState({
-    title: '',
-    author: '',
-    coverImage: null as File | null,
-    publicationDate: new Date().toISOString().split('T')[0],
-    description: '',
-    linkUrl: ''
-  })
-
+  const toast = useToast()
+  
+  // Custom hooks
+  const {
+    formData,
+    formDataEnglish,
+    setFormData,
+    setFormDataEnglish,
+    handleInputChange,
+    handleImageUpload
+  } = useArticleForm()
+  
+  
+  // State
   const [originalData, setOriginalData] = useState<Article | null>(null)
   const [isEnglishMode, setIsEnglishMode] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [isDragOver, setIsDragOver] = useState(false)
-  
-  const toast = useToast()
-
-  // Mock data for articles
-  const mockArticles: { [key: number]: Article } = {
-    1: {
-      id: 1,
-      title: 'Innovación Tecnológica en el Siglo XXI',
-      body_es: 'Un análisis profundo sobre cómo la tecnología está transformando nuestras vidas y el futuro de la humanidad. Exploramos las tendencias más importantes y sus implicaciones.',
-      body_en: 'A deep analysis of how technology is transforming our lives and the future of humanity. We explore the most important trends and their implications.',
-      imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=250&fit=crop&crop=center',
-      author: 'Dr. Carlos Mendoza',
-      date: '2024-01-15',
-      linkUrl: 'https://example.com/article1',
-      createdAt: '2024-01-15T10:00:00Z',
-      updatedAt: '2024-01-15T10:00:00Z'
-    },
-    2: {
-      id: 2,
-      title: 'Sostenibilidad Ambiental: El Camino Hacia el Futuro',
-      body_es: 'Un artículo que examina las prácticas sostenibles y su importancia para preservar nuestro planeta para las generaciones futuras.',
-      body_en: 'An article examining sustainable practices and their importance for preserving our planet for future generations.',
-      imageUrl: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=250&fit=crop&crop=center',
-      author: 'María Elena Torres',
-      date: '2024-01-14',
-      linkUrl: 'https://example.com/article2',
-      createdAt: '2024-01-14T14:30:00Z',
-      updatedAt: '2024-01-14T14:30:00Z'
-    }
-  }
 
   // Load article data on component mount
   useEffect(() => {
     const loadArticleData = async () => {
       setIsLoading(true)
-      // Simulate API call
-      setTimeout(() => {
-        const articleData = mockArticles[parseInt(articleId)]
-        if (articleData) {
-          setOriginalData(articleData)
-          
-          // Populate Spanish form
-          setFormData({
-            title: articleData.title,
-            author: articleData.author,
-            coverImage: null,
-            publicationDate: articleData.date,
-            description: articleData.body_es,
-            linkUrl: articleData.linkUrl || ''
-          })
-          
-          // Populate English form
-          setFormDataEnglish({
-            title: articleData.title,
-            author: articleData.author,
-            coverImage: null,
-            publicationDate: articleData.date,
-            description: articleData.body_en,
-            linkUrl: articleData.linkUrl || ''
-          })
+      try {
+        const response = await fetch(`/api/articles/${articleId}`)
+        if (!response.ok) {
+          if (response.status === 404) {
+            throw new Error('Article not found')
+          }
+          throw new Error('Failed to fetch article')
         }
+        const data = await response.json()
+        setOriginalData(data)
+        
+        // Populate Spanish form
+        setFormData({
+          title: data.title,
+          body_es: data.body_es,
+          author: data.author,
+          date: data.date.split('T')[0],
+          linkUrl: data.linkUrl || '',
+          image: null
+        })
+        
+        // Populate English form
+        setFormDataEnglish({
+          title: data.title_en,
+          body_es: data.body_en,
+          author: data.author,
+          date: data.date.split('T')[0],
+          linkUrl: data.linkUrl || '',
+          image: null
+        })
+      } catch (error) {
+        console.error('Error loading article:', error)
+        toast.error('Error al cargar el artículo')
+      } finally {
         setIsLoading(false)
-      }, 1000)
+      }
     }
 
     loadArticleData()
-  }, [articleId])
+  }, [articleId, setFormData, setFormDataEnglish]) // Removed toast from dependencies
 
   // Check if there are changes
   const hasChanges = () => {
@@ -122,46 +97,33 @@ export default function EditarArticuloPage() {
     // Check changes in Spanish form
     const spanishChanges = 
       formData.title !== originalData.title ||
+      formData.body_es !== originalData.body_es ||
       formData.author !== originalData.author ||
-      formData.publicationDate !== originalData.date ||
-      formData.description !== originalData.body_es ||
+      formData.date !== originalData.date.split('T')[0] ||
       formData.linkUrl !== (originalData.linkUrl || '') ||
-      formData.coverImage !== null
+      formData.image !== null
     
     // Check changes in English form
     const englishChanges = 
-      formDataEnglish.title !== originalData.title ||
+      formDataEnglish.title !== originalData.title_en ||
+      formDataEnglish.body_es !== originalData.body_en ||
       formDataEnglish.author !== originalData.author ||
-      formDataEnglish.publicationDate !== originalData.date ||
-      formDataEnglish.description !== originalData.body_en ||
+      formDataEnglish.date !== originalData.date.split('T')[0] ||
       formDataEnglish.linkUrl !== (originalData.linkUrl || '') ||
-      formDataEnglish.coverImage !== null
+      formDataEnglish.image !== null
     
     return spanishChanges || englishChanges
   }
 
-  // Handle form input changes
-  const handleInputChange = (field: string, value: string) => {
-    if (isEnglishMode) {
-      setFormDataEnglish(prev => ({ ...prev, [field]: value }))
-    } else {
-      setFormData(prev => ({ ...prev, [field]: value }))
-    }
-  }
-
-  // Handle cover image upload
-  const handleCoverImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle image upload
+  const handleImageUploadEvent = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      if (isEnglishMode) {
-        setFormDataEnglish(prev => ({ ...prev, coverImage: file }))
-      } else {
-        setFormData(prev => ({ ...prev, coverImage: file }))
-      }
+      handleImageUpload(file, isEnglishMode)
     }
   }
 
-  // Handle drag and drop for cover image
+  // Handle drag and drop
   const handleDragOver = (event: React.DragEvent) => {
     event.preventDefault()
     event.stopPropagation()
@@ -174,110 +136,91 @@ export default function EditarArticuloPage() {
     setIsDragOver(false)
   }
 
-  const handleDrop = (event: React.DragEvent) => {
-    event.preventDefault()
-    event.stopPropagation()
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
     setIsDragOver(false)
-    
-    const files = Array.from(event.dataTransfer.files)
-    const imageFile = files.find(file => file.type.startsWith('image/'))
-    
-    if (imageFile) {
-      if (isEnglishMode) {
-        setFormDataEnglish(prev => ({ ...prev, coverImage: imageFile }))
-      } else {
-        setFormData(prev => ({ ...prev, coverImage: imageFile }))
+    const files = Array.from(e.dataTransfer.files)
+    if (files.length > 0) {
+      const imageFile = files[0]
+      if (imageFile.type.startsWith('image/')) {
+        handleImageUpload(imageFile, isEnglishMode)
       }
     }
-  }
-
-  // Handle form submission
-  const handleUpdate = async () => {
-    // Always validate both Spanish and English versions
-    const spanishRequiredFields = {
-      title: formData.title.trim(),
-      author: formData.author.trim(),
-      publicationDate: formData.publicationDate,
-      description: formData.description.trim()
-    }
-    
-    const englishRequiredFields = {
-      title: formDataEnglish.title.trim(),
-      author: formDataEnglish.author.trim(),
-      publicationDate: formDataEnglish.publicationDate,
-      description: formDataEnglish.description.trim()
-    }
-    
-    const spanishMissingFields = Object.entries(spanishRequiredFields)
-      .filter(([key, value]) => !value)
-      .map(([key]) => key)
-    
-    const englishMissingFields = Object.entries(englishRequiredFields)
-      .filter(([key, value]) => !value)
-      .map(([key]) => key)
-    
-    // Field names for both languages
-    const spanishFieldNames = {
-      title: 'Título',
-      author: 'Autor',
-      publicationDate: 'Fecha de publicación',
-      description: 'Descripción'
-    }
-    
-    const englishFieldNames = {
-      title: 'Title',
-      author: 'Author',
-      publicationDate: 'Publication Date',
-      description: 'Description'
-    }
-    
-    // Check if we're in Spanish mode and Spanish fields are missing
-    if (!isEnglishMode && spanishMissingFields.length > 0) {
-      const missingFieldNames = spanishMissingFields.map(field => spanishFieldNames[field as keyof typeof spanishFieldNames])
-      toast.warning(`Debes llenar todos los campos obligatorios: ${missingFieldNames.join(', ')}`)
-      return
-    }
-    
-    // Check if we're in English mode and English fields are missing
-    if (isEnglishMode && englishMissingFields.length > 0) {
-      const missingFieldNames = englishMissingFields.map(field => englishFieldNames[field as keyof typeof englishFieldNames])
-      toast.warning(`You must fill all required fields: ${missingFieldNames.join(', ')}`)
-      return
-    }
-    
-    // If we're in Spanish mode, also check English fields
-    if (!isEnglishMode) {
-      if (englishMissingFields.length > 0) {
-        const missingFieldNames = englishMissingFields.map(field => englishFieldNames[field as keyof typeof englishFieldNames])
-        toast.warning(`También debes llenar todos los campos obligatorios de la versión en inglés: ${missingFieldNames.join(', ')}`)
-        return
-      }
-    }
-    
-    // If we're in English mode, also check Spanish fields
-    if (isEnglishMode) {
-      if (spanishMissingFields.length > 0) {
-        const missingFieldNames = spanishMissingFields.map(field => spanishFieldNames[field as keyof typeof spanishFieldNames])
-        toast.warning(`You must also fill all required fields in the Spanish version: ${missingFieldNames.join(', ')}`)
-        return
-      }
-    }
-    
-    setIsUpdating(true)
-    // Simulate API call
-    setTimeout(() => {
-      setIsUpdating(false)
-      // Show success toast and redirect
-      const successMessage = isEnglishMode ? 'Article updated successfully' : 'Artículo actualizado exitosamente'
-      toast.success(successMessage)
-      router.push('/general/gestion/articulos')
-    }, 2000)
   }
 
   // Get current form data based on language mode
   const getCurrentFormData = () => isEnglishMode ? formDataEnglish : formData
 
-  // English translations
+  // Convert File to base64
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.readAsDataURL(file)
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = error => reject(error)
+    })
+  }
+
+  // Handle form submission
+  const handleUpdate = async () => {
+    // Validate required fields in both languages
+    const spanishRequired = !formData.title || !formData.body_es || !formData.author
+    const englishRequired = !formDataEnglish.title || !formDataEnglish.body_es || !formDataEnglish.author
+    
+    if (spanishRequired || englishRequired) {
+      toast.warning('Debes llenar todos los campos obligatorios tanto en español como en inglés')
+      return
+    }
+
+    setIsUpdating(true)
+    
+    try {
+      // Handle image update
+      let imageUrl = originalData?.imageUrl || ''
+      if (getCurrentFormData().image && typeof getCurrentFormData().image === 'object') {
+        imageUrl = await fileToBase64(getCurrentFormData().image!)
+      }
+
+      // Prepare article data for API
+      const articleData = {
+        title: formData.title.trim(),
+        title_en: formDataEnglish.title.trim(),
+        body_es: formData.body_es.trim(),
+        body_en: formDataEnglish.body_es.trim(),
+        author: formData.author.trim(),
+        date: new Date(formData.date + 'T12:00:00').toISOString(),
+        linkUrl: formData.linkUrl.trim() || null,
+        imageUrl,
+        originalImageUrl: originalData?.imageUrl
+      }
+
+      const response = await fetch(`/api/articles/${articleId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(articleData)
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to update article')
+      }
+
+      // Show success toast and redirect
+      const successMessage = isEnglishMode ? 'Article updated successfully' : 'Artículo actualizado exitosamente'
+      toast.success(successMessage)
+      router.push('/general/gestion/articulos')
+    } catch (error) {
+      console.error('Error updating article:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Error al actualizar artículo'
+      toast.error(errorMessage)
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  // Translations
   const translations = {
     title: isEnglishMode ? 'Article Title' : 'Título del Artículo',
     author: isEnglishMode ? 'Author Name' : 'Nombre del autor',
@@ -367,9 +310,9 @@ export default function EditarArticuloPage() {
         <div className="flex items-center space-x-4 mb-4 lg:mb-0">
           {/* Preview Image */}
           <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden">
-            {getCurrentFormData().coverImage ? (
+            {getCurrentFormData().image ? (
               <Image
-                src={URL.createObjectURL(getCurrentFormData().coverImage!)}
+                src={URL.createObjectURL(getCurrentFormData().image!)}
                 alt="Preview"
                 width={64}
                 height={64}
@@ -392,7 +335,7 @@ export default function EditarArticuloPage() {
               {getCurrentFormData().title || translations.title}
             </h1>
             <p className="font-metropolis font-regular text-sm" style={{ color: '#4A739C' }}>
-              {getCurrentFormData().author} | {new Date(getCurrentFormData().publicationDate).getFullYear()}
+              {getCurrentFormData().author} | {new Date(getCurrentFormData().date).getFullYear()}
             </p>
           </div>
         </div>
@@ -401,7 +344,9 @@ export default function EditarArticuloPage() {
         <div className="flex items-center space-x-3">
           {/* Language Toggle Button */}
           <button
-            onClick={() => setIsEnglishMode(!isEnglishMode)}
+            onClick={() => {
+              setIsEnglishMode(!isEnglishMode)
+            }}
             className={`inline-flex items-center px-4 py-3 border rounded-md shadow-sm text-sm font-medium transition-all duration-200 ${
               isEnglishMode 
                 ? 'border-[#5A6F80] text-[#5A6F80] bg-white hover:bg-gray-50' 
@@ -445,8 +390,8 @@ export default function EditarArticuloPage() {
       )}
 
       {/* Form */}
-      <div className="bg-white border rounded-lg p-6 shadow-lg" style={{ borderColor: '#CFDBE8' }}>
-        <div className="space-y-8">
+      <div className="bg-white border rounded-lg p-6 shadow-lg relative" style={{ borderColor: '#CFDBE8' }}>
+        <form onSubmit={(e) => { e.preventDefault(); handleUpdate(); }} className="space-y-8">
           {/* Basic Information Section */}
           <div>
             <h2 className="font-metropolis font-bold text-xl mb-4" style={{ color: '#0D141C' }}>
@@ -460,7 +405,7 @@ export default function EditarArticuloPage() {
                 <input
                   type="text"
                   value={getCurrentFormData().title}
-                  onChange={(e) => handleInputChange('title', e.target.value)}
+                  onChange={(e) => handleInputChange('title', e.target.value, isEnglishMode)}
                   placeholder={translations.title}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
                 />
@@ -471,10 +416,13 @@ export default function EditarArticuloPage() {
                 </label>
                 <input
                   type="text"
-                  value={getCurrentFormData().author}
-                  onChange={(e) => handleInputChange('author', e.target.value)}
+                  value={isEnglishMode ? formData.author : getCurrentFormData().author}
+                  onChange={(e) => handleInputChange('author', e.target.value, isEnglishMode)}
                   placeholder={translations.author}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
+                  disabled={isEnglishMode}
+                  className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
+                    isEnglishMode ? 'bg-gray-100 cursor-not-allowed' : ''
+                  }`}
                 />
               </div>
             </div>
@@ -502,9 +450,9 @@ export default function EditarArticuloPage() {
                   onDrop={handleDrop}
                   onClick={() => document.getElementById('coverImageInput')?.click()}
                 >
-                  {getCurrentFormData().coverImage ? (
+                  {getCurrentFormData().image ? (
                     <Image
-                      src={URL.createObjectURL(getCurrentFormData().coverImage!)}
+                      src={URL.createObjectURL(getCurrentFormData().image!)}
                       alt="Cover preview"
                       width={128}
                       height={96}
@@ -512,7 +460,7 @@ export default function EditarArticuloPage() {
                     />
                   ) : (
                     <Image
-                      src={originalData.imageUrl}
+                      src={originalData?.imageUrl || ''}
                       alt="Current article image"
                       width={128}
                       height={96}
@@ -531,7 +479,7 @@ export default function EditarArticuloPage() {
                     id="coverImageInput"
                     type="file"
                     accept="image/*"
-                    onChange={handleCoverImageUpload}
+                    onChange={handleImageUploadEvent}
                     className="hidden"
                   />
                 </label>
@@ -552,9 +500,12 @@ export default function EditarArticuloPage() {
               </div>
               <input
                 type="date"
-                value={getCurrentFormData().publicationDate}
-                onChange={(e) => handleInputChange('publicationDate', e.target.value)}
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
+                value={isEnglishMode ? formData.date : getCurrentFormData().date}
+                onChange={(e) => handleInputChange('date', e.target.value, isEnglishMode)}
+                disabled={isEnglishMode}
+                className={`block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
+                  isEnglishMode ? 'bg-gray-100 cursor-not-allowed' : ''
+                }`}
               />
             </div>
           </div>
@@ -568,8 +519,8 @@ export default function EditarArticuloPage() {
               {translations.descriptionHelp}
             </p>
             <textarea
-              value={getCurrentFormData().description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
+              value={getCurrentFormData().body_es}
+              onChange={(e) => handleInputChange('body_es', e.target.value, isEnglishMode)}
               rows={6}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent resize-none"
               placeholder={translations.descriptionPlaceholder}
@@ -586,13 +537,16 @@ export default function EditarArticuloPage() {
             </p>
             <input
               type="url"
-              value={getCurrentFormData().linkUrl}
-              onChange={(e) => handleInputChange('linkUrl', e.target.value)}
+              value={isEnglishMode ? formData.linkUrl : getCurrentFormData().linkUrl}
+              onChange={(e) => handleInputChange('linkUrl', e.target.value, isEnglishMode)}
               placeholder={translations.linkUrlPlaceholder}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
+              disabled={isEnglishMode}
+              className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
+                isEnglishMode ? 'bg-gray-100 cursor-not-allowed' : ''
+              }`}
             />
           </div>
-        </div>
+        </form>
       </div>
     </div>
   )

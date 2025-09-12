@@ -6,105 +6,26 @@ import Image from 'next/image'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
 
-// Mock data for team members
-const mockTeam = [
-  {
-    id: 1,
-    name: 'María González',
-    role: 'CEO & Fundadora',
-    instagram_url: 'https://instagram.com/mariagonzalez',
-    facebook_url: 'https://facebook.com/mariagonzalez',
-    x_url: 'https://x.com/mariagonzalez',
-    imageUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop&crop=face',
-    createdAt: '2024-01-15T10:00:00Z',
-    updatedAt: '2024-01-15T10:00:00Z'
-  },
-  {
-    id: 2,
-    name: 'Carlos Rodríguez',
-    role: 'Director de Tecnología',
-    instagram_url: 'https://instagram.com/carlosrodriguez',
-    facebook_url: null,
-    x_url: 'https://x.com/carlosrodriguez',
-    imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face',
-    createdAt: '2024-01-20T14:30:00Z',
-    updatedAt: '2024-01-20T14:30:00Z'
-  },
-  {
-    id: 3,
-    name: 'Ana Martínez',
-    role: 'Directora de Marketing',
-    instagram_url: 'https://instagram.com/anamartinez',
-    facebook_url: 'https://facebook.com/anamartinez',
-    x_url: null,
-    imageUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face',
-    createdAt: '2024-02-01T09:15:00Z',
-    updatedAt: '2024-02-01T09:15:00Z'
-  },
-  {
-    id: 4,
-    name: 'Luis Fernández',
-    role: 'Director de Operaciones',
-    instagram_url: null,
-    facebook_url: 'https://facebook.com/luisfernandez',
-    x_url: 'https://x.com/luisfernandez',
-    imageUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face',
-    createdAt: '2024-02-10T16:45:00Z',
-    updatedAt: '2024-02-10T16:45:00Z'
-  },
-  {
-    id: 5,
-    name: 'Sofia Herrera',
-    role: 'Diseñadora Senior',
-    instagram_url: 'https://instagram.com/sofiaherrera',
-    facebook_url: null,
-    x_url: null,
-    imageUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop&crop=face',
-    createdAt: '2024-02-15T11:20:00Z',
-    updatedAt: '2024-02-15T11:20:00Z'
-  },
-  {
-    id: 6,
-    name: 'Roberto Silva',
-    role: 'Desarrollador Full Stack',
-    instagram_url: null,
-    facebook_url: null,
-    x_url: 'https://x.com/robertosilva',
-    imageUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=face',
-    createdAt: '2024-02-20T13:10:00Z',
-    updatedAt: '2024-02-20T13:10:00Z'
-  },
-  {
-    id: 7,
-    name: 'Carmen Vega',
-    role: 'Especialista en Recursos Humanos',
-    instagram_url: 'https://instagram.com/carmenvega',
-    facebook_url: 'https://facebook.com/carmenvega',
-    x_url: 'https://x.com/carmenvega',
-    imageUrl: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&h=400&fit=crop&crop=face',
-    createdAt: '2024-03-01T08:30:00Z',
-    updatedAt: '2024-03-01T08:30:00Z'
-  },
-  {
-    id: 8,
-    name: 'Diego Morales',
-    role: 'Analista de Datos',
-    instagram_url: null,
-    facebook_url: null,
-    x_url: null,
-    imageUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&h=400&fit=crop&crop=face',
-    createdAt: '2024-03-05T15:45:00Z',
-    updatedAt: '2024-03-05T15:45:00Z'
-  }
-]
+interface Team {
+  id: number
+  name: string
+  role: string
+  role_en: string
+  instagram_url: string | null
+  facebook_url: string | null
+  x_url: string | null
+  imageUrl: string
+  createdAt: string
+  updatedAt: string
+}
 
 export default function EquipoPage() {
   const router = useRouter()
   const toast = useToast()
   
   // State
-  const [team, setTeam] = useState(mockTeam)
-  const [filteredTeam, setFilteredTeam] = useState(mockTeam)
+  const [team, setTeam] = useState<Team[]>([])
+  const [filteredTeam, setFilteredTeam] = useState<Team[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [dateFilter, setDateFilter] = useState<string | null>(null)
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false)
@@ -117,16 +38,24 @@ export default function EquipoPage() {
   useEffect(() => {
     const loadTeam = async () => {
       setIsInitialLoading(true)
-      // Simulate API call
-      setTimeout(() => {
-        setTeam(mockTeam)
-        setFilteredTeam(mockTeam)
+      try {
+        const response = await fetch('/api/team')
+        if (!response.ok) {
+          throw new Error('Failed to fetch team members')
+        }
+        const teamData = await response.json()
+        setTeam(teamData)
+        setFilteredTeam(teamData)
+      } catch (error) {
+        console.error('Error loading team:', error)
+        toast.error('Error al cargar los miembros del equipo')
+      } finally {
         setIsInitialLoading(false)
-      }, 1000)
+      }
     }
     
     loadTeam()
-  }, [])
+  }, []) // Removed toast from dependencies
 
   // Filter team based on search and date
   useEffect(() => {
@@ -183,17 +112,19 @@ export default function EquipoPage() {
     setDateFilter(filter)
   }
 
-  // Change page
-  const paginate = (pageNumber: number) => setCurrentPage(pageNumber)
 
   // Format date
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
-    return date.toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
+    // Spanish version with English-style format (month day, year)
+    const months = [
+      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ]
+    const month = months[date.getMonth()]
+    const day = date.getDate()
+    const year = date.getFullYear()
+    return `${month} ${day}, ${year}`
   }
 
   // Pagination calculations
@@ -390,21 +321,21 @@ export default function EquipoPage() {
                   {/* Social Media Icons */}
                   <div className="flex items-center space-x-3 mb-3">
                     {member.instagram_url && (
-                      <div className="w-4 h-4 text-gray-600 hover:text-[#0D141C] transition-colors cursor-pointer" onClick={(e) => { e.stopPropagation(); window.open(member.instagram_url, '_blank', 'noopener,noreferrer'); }}>
+                      <div className="w-4 h-4 text-gray-600 hover:text-[#0D141C] transition-colors cursor-pointer" onClick={(e) => { e.stopPropagation(); window.open(member.instagram_url!, '_blank', 'noopener,noreferrer'); }}>
                         <svg className="w-full h-full" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.012-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.058 1.644-.07 4.849-.07zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
                         </svg>
                       </div>
                     )}
                     {member.facebook_url && (
-                      <div className="w-4 h-4 text-gray-600 hover:text-[#0D141C] transition-colors cursor-pointer" onClick={(e) => { e.stopPropagation(); window.open(member.facebook_url, '_blank', 'noopener,noreferrer'); }}>
+                      <div className="w-4 h-4 text-gray-600 hover:text-[#0D141C] transition-colors cursor-pointer" onClick={(e) => { e.stopPropagation(); window.open(member.facebook_url!, '_blank', 'noopener,noreferrer'); }}>
                         <svg className="w-full h-full" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                         </svg>
                       </div>
                     )}
                     {member.x_url && (
-                      <div className="w-4 h-4 text-gray-600 hover:text-[#0D141C] transition-colors cursor-pointer" onClick={(e) => { e.stopPropagation(); window.open(member.x_url, '_blank', 'noopener,noreferrer'); }}>
+                      <div className="w-4 h-4 text-gray-600 hover:text-[#0D141C] transition-colors cursor-pointer" onClick={(e) => { e.stopPropagation(); window.open(member.x_url!, '_blank', 'noopener,noreferrer'); }}>
                         <svg className="w-full h-full" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
                         </svg>

@@ -47,11 +47,23 @@ export default function VerTestimonioPage() {
   // Format date function
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
-    return date.toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
+    if (isEnglishMode) {
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
+    } else {
+      // Spanish version with English-style format (month day, year)
+      const months = [
+        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+      ]
+      const month = months[date.getMonth()]
+      const day = date.getDate()
+      const year = date.getFullYear()
+      return `${month} ${day}, ${year}`
+    }
   }
 
   // Handle delete testimonial

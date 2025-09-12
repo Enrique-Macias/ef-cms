@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/useToast'
 interface Article {
   id: number
   title: string
+  title_en: string
   body_es: string
   body_en: string
   imageUrl: string
@@ -33,116 +34,24 @@ export default function ArticulosPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [articlesPerPage] = useState(6)
 
-  // Mock data for articles
-  const mockArticles: Article[] = [
-    {
-      id: 1,
-      title: 'Innovación Tecnológica en el Siglo XXI',
-      body_es: 'Un análisis profundo sobre cómo la tecnología está transformando nuestras vidas y el futuro de la humanidad. Exploramos las tendencias más importantes y sus implicaciones.',
-      body_en: 'A deep analysis of how technology is transforming our lives and the future of humanity. We explore the most important trends and their implications.',
-      imageUrl: 'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&h=250&fit=crop&crop=center',
-      author: 'Dr. Carlos Mendoza',
-      date: '2024-01-15',
-      linkUrl: 'https://example.com/article1',
-      createdAt: '2024-01-15T10:00:00Z',
-      updatedAt: '2024-01-15T10:00:00Z'
-    },
-    {
-      id: 2,
-      title: 'Sostenibilidad Ambiental: El Camino Hacia el Futuro',
-      body_es: 'Un artículo que examina las prácticas sostenibles y su importancia para preservar nuestro planeta para las generaciones futuras.',
-      body_en: 'An article examining sustainable practices and their importance for preserving our planet for future generations.',
-      imageUrl: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=250&fit=crop&crop=center',
-      author: 'María Elena Torres',
-      date: '2024-01-14',
-      linkUrl: 'https://example.com/article2',
-      createdAt: '2024-01-14T14:30:00Z',
-      updatedAt: '2024-01-14T14:30:00Z'
-    },
-    {
-      id: 3,
-      title: 'El Futuro del Trabajo Remoto',
-      body_es: 'Cómo la pandemia cambió para siempre la forma en que trabajamos y qué podemos esperar en los próximos años.',
-      body_en: 'How the pandemic forever changed the way we work and what we can expect in the coming years.',
-      imageUrl: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=250&fit=crop&crop=center',
-      author: 'Ana García',
-      date: '2024-01-13',
-      linkUrl: 'https://example.com/article3',
-      createdAt: '2024-01-13T09:15:00Z',
-      updatedAt: '2024-01-13T09:15:00Z'
-    },
-    {
-      id: 4,
-      title: 'Inteligencia Artificial: Oportunidades y Desafíos',
-      body_es: 'Un análisis equilibrado sobre los beneficios y riesgos de la IA en nuestra sociedad moderna.',
-      body_en: 'A balanced analysis of the benefits and risks of AI in our modern society.',
-      imageUrl: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=400&h=250&fit=crop&crop=center',
-      author: 'Roberto Silva',
-      date: '2024-01-12',
-      linkUrl: 'https://example.com/article4',
-      createdAt: '2024-01-12T16:45:00Z',
-      updatedAt: '2024-01-12T16:45:00Z'
-    },
-    {
-      id: 5,
-      title: 'Educación Digital: Transformando el Aprendizaje',
-      body_es: 'Cómo las herramientas digitales están revolucionando la educación y creando nuevas oportunidades de aprendizaje.',
-      body_en: 'How digital tools are revolutionizing education and creating new learning opportunities.',
-      imageUrl: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&h=250&fit=crop&crop=center',
-      author: 'Carmen Vega',
-      date: '2024-01-11',
-      linkUrl: 'https://example.com/article5',
-      createdAt: '2024-01-11T11:20:00Z',
-      updatedAt: '2024-01-11T11:20:00Z'
-    },
-    {
-      id: 6,
-      title: 'Emprendimiento en la Era Digital',
-      body_es: 'Guía completa para emprendedores que quieren aprovechar las oportunidades del mundo digital.',
-      body_en: 'Complete guide for entrepreneurs who want to take advantage of digital world opportunities.',
-      imageUrl: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&h=250&fit=crop&crop=center',
-      author: 'Luis Fernández',
-      date: '2024-01-10',
-      linkUrl: 'https://example.com/article6',
-      createdAt: '2024-01-10T13:10:00Z',
-      updatedAt: '2024-01-10T13:10:00Z'
-    },
-    {
-      id: 7,
-      title: 'Salud Mental en Tiempos Modernos',
-      body_es: 'Estrategias prácticas para mantener el bienestar mental en un mundo cada vez más acelerado.',
-      body_en: 'Practical strategies for maintaining mental well-being in an increasingly fast-paced world.',
-      imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=250&fit=crop&crop=center',
-      author: 'Sofia Morales',
-      date: '2024-01-09',
-      linkUrl: 'https://example.com/article7',
-      createdAt: '2024-01-09T15:30:00Z',
-      updatedAt: '2024-01-09T15:30:00Z'
-    },
-    {
-      id: 8,
-      title: 'El Poder de la Creatividad en los Negocios',
-      body_es: 'Cómo fomentar la creatividad en el entorno empresarial puede llevar a innovación y crecimiento.',
-      body_en: 'How fostering creativity in the business environment can lead to innovation and growth.',
-      imageUrl: 'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&h=250&fit=crop&crop=center',
-      author: 'Diego Ramírez',
-      date: '2024-01-08',
-      linkUrl: 'https://example.com/article8',
-      createdAt: '2024-01-08T10:45:00Z',
-      updatedAt: '2024-01-08T10:45:00Z'
-    }
-  ]
-
   // Load articles on component mount
   useEffect(() => {
     const loadArticles = async () => {
       setIsInitialLoading(true)
-      // Simulate API call
-      setTimeout(() => {
-        setArticles(mockArticles)
-        setFilteredArticles(mockArticles)
+      try {
+        const response = await fetch('/api/articles')
+        if (!response.ok) {
+          throw new Error('Failed to fetch articles')
+        }
+        const articlesData = await response.json()
+        setArticles(articlesData)
+        setFilteredArticles(articlesData)
+      } catch (error) {
+        console.error('Error loading articles:', error)
+        toast.error('Error al cargar los artículos')
+      } finally {
         setIsInitialLoading(false)
-      }, 1000)
+      }
     }
 
     loadArticles()
@@ -155,6 +64,7 @@ export default function ArticulosPage() {
     if (searchTerm) {
       filtered = filtered.filter(article => 
         article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        article.title_en.toLowerCase().includes(searchTerm.toLowerCase()) ||
         article.body_es.toLowerCase().includes(searchTerm.toLowerCase()) ||
         article.body_en.toLowerCase().includes(searchTerm.toLowerCase()) ||
         article.author.toLowerCase().includes(searchTerm.toLowerCase())

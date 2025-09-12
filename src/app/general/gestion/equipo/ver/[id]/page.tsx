@@ -6,68 +6,17 @@ import Image from 'next/image'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
 
-// Mock data for team members
-const mockTeamData = {
-  1: {
-    spanish: {
-      name: 'María González',
-      role: 'CEO & Fundadora',
-      instagram_url: 'https://instagram.com/mariagonzalez',
-      facebook_url: 'https://facebook.com/mariagonzalez',
-      x_url: 'https://x.com/mariagonzalez',
-      imageUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop&crop=face'
-    },
-    english: {
-      name: 'María González',
-      role: 'CEO & Founder',
-      instagram_url: 'https://instagram.com/mariagonzalez',
-      facebook_url: 'https://facebook.com/mariagonzalez',
-      x_url: 'https://x.com/mariagonzalez',
-      imageUrl: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face'
-    },
-    createdAt: '2024-01-15T10:00:00Z',
-    updatedAt: '2024-01-15T10:00:00Z'
-  },
-  2: {
-    spanish: {
-      name: 'Carlos Rodríguez',
-      role: 'Director de Tecnología',
-      instagram_url: 'https://instagram.com/carlosrodriguez',
-      facebook_url: null,
-      x_url: 'https://x.com/carlosrodriguez',
-      imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face'
-    },
-    english: {
-      name: 'Carlos Rodríguez',
-      role: 'Technology Director',
-      instagram_url: 'https://instagram.com/carlosrodriguez',
-      facebook_url: null,
-      x_url: 'https://x.com/carlosrodriguez',
-      imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face'
-    },
-    createdAt: '2024-01-20T14:30:00Z',
-    updatedAt: '2024-01-20T14:30:00Z'
-  },
-  3: {
-    spanish: {
-      name: 'Ana Martínez',
-      role: 'Directora de Marketing',
-      instagram_url: 'https://instagram.com/anamartinez',
-      facebook_url: 'https://facebook.com/anamartinez',
-      x_url: null,
-      imageUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face'
-    },
-    english: {
-      name: 'Ana Martínez',
-      role: 'Marketing Director',
-      instagram_url: 'https://instagram.com/anamartinez',
-      facebook_url: 'https://facebook.com/anamartinez',
-      x_url: null,
-      imageUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face'
-    },
-    createdAt: '2024-02-01T09:15:00Z',
-    updatedAt: '2024-02-01T09:15:00Z'
-  }
+interface Team {
+  id: number
+  name: string
+  role: string
+  role_en: string
+  instagram_url: string | null
+  facebook_url: string | null
+  x_url: string | null
+  imageUrl: string
+  createdAt: string
+  updatedAt: string
 }
 
 export default function VerEquipoPage() {
@@ -78,7 +27,7 @@ export default function VerEquipoPage() {
   const memberId = params.id as string
   
   // State
-  const [teamMember, setTeamMember] = useState<typeof mockTeamData[keyof typeof mockTeamData] | null>(null)
+  const [teamMember, setTeamMember] = useState<Team | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -88,43 +37,86 @@ export default function VerEquipoPage() {
   useEffect(() => {
     const loadTeamMember = async () => {
       setIsLoading(true)
-      // Simulate API call
-      setTimeout(() => {
-        const data = mockTeamData[memberId as '1' | '2' | '3']
-        if (data) {
-          setTeamMember(data)
+      try {
+        const response = await fetch(`/api/team/${memberId}`)
+        if (!response.ok) {
+          if (response.status === 404) {
+            throw new Error('Team member not found')
+          }
+          throw new Error('Failed to fetch team member')
         }
+        const data = await response.json()
+        setTeamMember(data)
+      } catch (error) {
+        console.error('Error loading team member:', error)
+        toast.error('Error al cargar el miembro del equipo')
+      } finally {
         setIsLoading(false)
-      }, 1000)
+      }
     }
     
     loadTeamMember()
-  }, [memberId])
+  }, [memberId]) // Removed toast from dependencies
 
   // Format date function
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
-    return date.toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
+    if (isEnglishMode) {
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
+    } else {
+      // Spanish version with English-style format (month day, year)
+      const months = [
+        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+      ]
+      const month = months[date.getMonth()]
+      const day = date.getDate()
+      const year = date.getFullYear()
+      return `${month} ${day}, ${year}`
+    }
   }
 
   // Handle delete team member
   const handleDelete = async () => {
     setIsDeleting(true)
-    // Simulate API call
-    setTimeout(() => {
-      setIsDeleting(false)
+    try {
+      const response = await fetch(`/api/team/${memberId}`, {
+        method: 'DELETE',
+      })
+      
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to delete team member')
+      }
+      
       setIsDeleteModalOpen(false)
       toast.success('Miembro del equipo eliminado exitosamente')
       router.push('/general/gestion/equipo')
-    }, 2000)
+    } catch (error) {
+      console.error('Error deleting team member:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Error al eliminar miembro del equipo'
+      toast.error(errorMessage)
+    } finally {
+      setIsDeleting(false)
+    }
   }
 
   // Get current team member data based on language mode
-  const getCurrentTeamMemberData = () => isEnglishMode ? teamMember?.english : teamMember?.spanish
+  const getCurrentTeamMemberData = () => {
+    if (!teamMember) return null
+    return {
+      name: teamMember.name,
+      role: isEnglishMode ? teamMember.role_en : teamMember.role,
+      instagram_url: teamMember.instagram_url,
+      facebook_url: teamMember.facebook_url,
+      x_url: teamMember.x_url,
+      imageUrl: teamMember.imageUrl
+    }
+  }
 
   if (isLoading) {
     return (
@@ -157,7 +149,25 @@ export default function VerEquipoPage() {
     )
   }
 
-  const currentMember = getCurrentTeamMemberData()!
+  const currentMember = getCurrentTeamMemberData()
+  
+  if (!currentMember) {
+    return (
+      <div className="p-6">
+        <div className="text-center py-12">
+          <h3 className="text-lg font-metropolis font-medium text-[#0D141C] mb-2">
+            Miembro del equipo no encontrado
+          </h3>
+          <button
+            onClick={() => router.push('/general/gestion/equipo')}
+            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#5A6F80] hover:bg-[#4A739C]"
+          >
+            Volver a Equipo
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="p-6">

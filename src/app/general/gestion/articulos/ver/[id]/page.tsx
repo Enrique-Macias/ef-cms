@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/useToast'
 interface Article {
   id: number
   title: string
+  title_en: string
   body_es: string
   body_en: string
   imageUrl: string
@@ -32,46 +33,26 @@ export default function VerArticuloPage() {
   
   const toast = useToast()
 
-  // Mock data for articles
-  const mockArticles: { [key: number]: Article } = {
-    1: {
-      id: 1,
-      title: 'Innovación Tecnológica en el Siglo XXI',
-      body_es: 'Un análisis profundo sobre cómo la tecnología está transformando nuestras vidas y el futuro de la humanidad. Exploramos las tendencias más importantes y sus implicaciones.\n\nEn este artículo, examinamos:\n• El impacto de la inteligencia artificial en la sociedad\n• La evolución del trabajo remoto y la digitalización\n• Los desafíos de la privacidad en la era digital\n• Las oportunidades para el desarrollo sostenible\n• El futuro de la educación y el aprendizaje',
-      body_en: 'A deep analysis of how technology is transforming our lives and the future of humanity. We explore the most important trends and their implications.\n\nIn this article, we examine:\n• The impact of artificial intelligence on society\n• The evolution of remote work and digitalization\n• The challenges of privacy in the digital age\n• Opportunities for sustainable development\n• The future of education and learning',
-      imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=250&fit=crop&crop=center',
-      author: 'Dr. Carlos Mendoza',
-      date: '2024-01-15',
-      linkUrl: 'https://example.com/article1',
-      createdAt: '2024-01-15T10:00:00Z',
-      updatedAt: '2024-01-15T10:00:00Z'
-    },
-    2: {
-      id: 2,
-      title: 'Sostenibilidad Ambiental: El Camino Hacia el Futuro',
-      body_es: 'Un artículo que examina las prácticas sostenibles y su importancia para preservar nuestro planeta para las generaciones futuras.\n\nTemas principales:\n• Cambio climático y sus efectos globales\n• Energías renovables y transición energética\n• Economía circular y desarrollo sostenible\n• Conservación de biodiversidad\n• Políticas públicas ambientales',
-      body_en: 'An article examining sustainable practices and their importance for preserving our planet for future generations.\n\nMain topics:\n• Climate change and its global effects\n• Renewable energies and energy transition\n• Circular economy and sustainable development\n• Biodiversity conservation\n• Environmental public policies',
-      imageUrl: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=250&fit=crop&crop=center',
-      author: 'María Elena Torres',
-      date: '2024-01-14',
-      linkUrl: 'https://example.com/article2',
-      createdAt: '2024-01-14T14:30:00Z',
-      updatedAt: '2024-01-14T14:30:00Z'
-    }
-  }
-
   // Load article data on component mount
   useEffect(() => {
     const loadArticleData = async () => {
       setIsLoading(true)
-      // Simulate API call
-      setTimeout(() => {
-        const articleData = mockArticles[parseInt(articleId)]
-        if (articleData) {
-          setArticle(articleData)
+      try {
+        const response = await fetch(`/api/articles/${articleId}`)
+        if (!response.ok) {
+          if (response.status === 404) {
+            throw new Error('Article not found')
+          }
+          throw new Error('Failed to fetch article')
         }
+        const data = await response.json()
+        setArticle(data)
+      } catch (error) {
+        console.error('Error loading article:', error)
+        toast.error('Error al cargar el artículo')
+      } finally {
         setIsLoading(false)
-      }, 1000)
+      }
     }
 
     loadArticleData()
@@ -80,24 +61,48 @@ export default function VerArticuloPage() {
   // Handle delete
   const handleDelete = async () => {
     setIsDeleting(true)
-    // Simulate API call
-    setTimeout(() => {
-      setIsDeleting(false)
+    try {
+      const response = await fetch(`/api/articles/${articleId}`, {
+        method: 'DELETE'
+      })
+      
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to delete article')
+      }
+      
       setIsDeleteModalOpen(false)
-      // Show success toast and redirect
       toast.success('Artículo eliminado exitosamente')
       router.push('/general/gestion/articulos')
-    }, 2000)
+    } catch (error) {
+      console.error('Error deleting article:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Error al eliminar artículo'
+      toast.error(errorMessage)
+    } finally {
+      setIsDeleting(false)
+    }
   }
 
   // Format date
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
-    return date.toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
+    if (isEnglishMode) {
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
+    } else {
+      // Spanish version with English-style format (month day, year)
+      const months = [
+        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+      ]
+      const month = months[date.getMonth()]
+      const day = date.getDate()
+      const year = date.getFullYear()
+      return `${month} ${day}, ${year}`
+    }
   }
 
   if (isLoading) {
@@ -169,7 +174,7 @@ export default function VerArticuloPage() {
           {/* Article Info */}
           <div>
             <h1 className="font-metropolis font-bold text-3xl mb-2" style={{ color: '#0D141C' }}>
-              {isEnglishMode ? article.title : article.title}
+              {isEnglishMode ? article.title_en : article.title}
             </h1>
             <div className="flex items-center space-x-4 text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
               <span>{isEnglishMode ? 'By ' : 'Por '}{article.author}</span>

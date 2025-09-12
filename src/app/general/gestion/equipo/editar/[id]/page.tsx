@@ -5,88 +5,21 @@ import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
+import { useTeamForm } from '@/hooks/useTeamForm'
 
-// Mock data for team members
-const mockTeamData = {
-  1: {
-    spanish: {
-      name: 'María González',
-      role: 'CEO & Fundadora',
-      instagram_url: 'https://instagram.com/mariagonzalez',
-      facebook_url: 'https://facebook.com/mariagonzalez',
-      x_url: 'https://x.com/mariagonzalez',
-      imageUrl: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face'
-    },
-    english: {
-      name: 'María González',
-      role: 'CEO & Founder',
-      instagram_url: 'https://instagram.com/mariagonzalez',
-      facebook_url: 'https://facebook.com/mariagonzalez',
-      x_url: 'https://x.com/mariagonzalez',
-      imageUrl: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face'
-    },
-    createdAt: '2024-01-15T10:00:00Z',
-    updatedAt: '2024-01-15T10:00:00Z'
-  },
-  2: {
-    spanish: {
-      name: 'Carlos Rodríguez',
-      role: 'Director de Tecnología',
-      instagram_url: 'https://instagram.com/carlosrodriguez',
-      facebook_url: null,
-      x_url: 'https://x.com/carlosrodriguez',
-      imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face'
-    },
-    english: {
-      name: 'Carlos Rodríguez',
-      role: 'Technology Director',
-      instagram_url: 'https://instagram.com/carlosrodriguez',
-      facebook_url: null,
-      x_url: 'https://x.com/carlosrodriguez',
-      imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face'
-    },
-    createdAt: '2024-01-20T14:30:00Z',
-    updatedAt: '2024-01-20T14:30:00Z'
-  },
-  3: {
-    spanish: {
-      name: 'Ana Martínez',
-      role: 'Directora de Marketing',
-      instagram_url: 'https://instagram.com/anamartinez',
-      facebook_url: 'https://facebook.com/anamartinez',
-      x_url: null,
-      imageUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face'
-    },
-    english: {
-      name: 'Ana Martínez',
-      role: 'Marketing Director',
-      instagram_url: 'https://instagram.com/anamartinez',
-      facebook_url: 'https://facebook.com/anamartinez',
-      x_url: null,
-      imageUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face'
-    },
-    createdAt: '2024-02-01T09:15:00Z',
-    updatedAt: '2024-02-01T09:15:00Z'
-  }
-}
-
-interface FormData {
+interface Team {
+  id: number
   name: string
   role: string
-  instagram_url: string
-  facebook_url: string
-  x_url: string
-  image: File | null
+  role_en: string
+  instagram_url: string | null
+  facebook_url: string | null
+  x_url: string | null
+  imageUrl: string
+  createdAt: string
+  updatedAt: string
 }
 
-interface FormDataEnglish {
-  name: string
-  role: string
-  instagram_url: string
-  facebook_url: string
-  x_url: string
-  image: File | null
-}
 
 export default function EditarEquipoPage() {
   const params = useParams()
@@ -95,28 +28,19 @@ export default function EditarEquipoPage() {
   
   const memberId = params.id as string
   
+  // Custom hooks
+  const {
+    formData,
+    formDataEnglish,
+    setFormData,
+    setFormDataEnglish,
+    handleInputChange,
+    handleImageUpload
+  } = useTeamForm()
+  
+  
   // State
-  const [formData, setFormData] = useState<FormData>({
-    name: '',
-    role: '',
-    instagram_url: '',
-    facebook_url: '',
-    x_url: '',
-    image: null
-  })
-  
-  const [formDataEnglish, setFormDataEnglish] = useState<FormDataEnglish>({
-    name: '',
-    role: '',
-    instagram_url: '',
-    facebook_url: '',
-    x_url: '',
-    image: null
-  })
-  
-  const [originalData, setOriginalData] = useState<typeof mockTeamData[keyof typeof mockTeamData] | null>(null)
-  const [originalDataEnglish, setOriginalDataEnglish] = useState<typeof mockTeamData[keyof typeof mockTeamData]['english'] | null>(null)
-  
+  const [originalData, setOriginalData] = useState<Team | null>(null)
   const [isEnglishMode, setIsEnglishMode] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -126,57 +50,51 @@ export default function EditarEquipoPage() {
   useEffect(() => {
     const loadTeamMember = async () => {
       setIsLoading(true)
-      // Simulate API call
-      setTimeout(() => {
-        const data = mockTeamData[memberId as '1' | '2' | '3']
-        if (data) {
-          setOriginalData(data)
-          setOriginalDataEnglish(data.english)
-          
-          // Set form data
-          setFormData({
-            name: data.spanish.name,
-            role: data.spanish.role,
-            instagram_url: data.spanish.instagram_url || '',
-            facebook_url: data.spanish.facebook_url || '',
-            x_url: data.spanish.x_url || '',
-            image: null
-          })
-          
-          setFormDataEnglish({
-            name: data.english.name,
-            role: data.english.role,
-            instagram_url: data.english.instagram_url || '',
-            facebook_url: data.english.facebook_url || '',
-            x_url: data.english.x_url || '',
-            image: null
-          })
+      try {
+        const response = await fetch(`/api/team/${memberId}`)
+        if (!response.ok) {
+          if (response.status === 404) {
+            throw new Error('Team member not found')
+          }
+          throw new Error('Failed to fetch team member')
         }
+        const data = await response.json()
+        setOriginalData(data)
+        
+        // Set form data
+        setFormData({
+          name: data.name,
+          role: data.role,
+          instagram_url: data.instagram_url || '',
+          facebook_url: data.facebook_url || '',
+          x_url: data.x_url || '',
+          image: null
+        })
+        
+        setFormDataEnglish({
+          name: data.name,
+          role: data.role_en,
+          instagram_url: data.instagram_url || '',
+          facebook_url: data.facebook_url || '',
+          x_url: data.x_url || '',
+          image: null
+        })
+      } catch (error) {
+        console.error('Error loading team member:', error)
+        toast.error('Error al cargar el miembro del equipo')
+      } finally {
         setIsLoading(false)
-      }, 1000)
+      }
     }
     
     loadTeamMember()
-  }, [memberId])
-
-  // Handle input changes
-  const handleInputChange = (field: keyof FormData, value: string) => {
-    if (isEnglishMode) {
-      setFormDataEnglish(prev => ({ ...prev, [field]: value }))
-    } else {
-      setFormData(prev => ({ ...prev, [field]: value }))
-    }
-  }
+  }, [memberId, setFormData, setFormDataEnglish]) // Removed toast from dependencies
 
   // Handle image upload
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUploadEvent = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      if (isEnglishMode) {
-        setFormDataEnglish(prev => ({ ...prev, image: file }))
-      } else {
-        setFormData(prev => ({ ...prev, image: file }))
-      }
+      handleImageUpload(file, isEnglishMode)
     }
   }
 
@@ -188,11 +106,7 @@ export default function EditarEquipoPage() {
     if (files.length > 0) {
       const imageFile = files[0]
       if (imageFile.type.startsWith('image/')) {
-        if (isEnglishMode) {
-          setFormDataEnglish(prev => ({ ...prev, image: imageFile }))
-        } else {
-          setFormData(prev => ({ ...prev, image: imageFile }))
-        }
+        handleImageUpload(imageFile, isEnglishMode)
       }
     }
   }
@@ -206,23 +120,33 @@ export default function EditarEquipoPage() {
     
     // Check changes in Spanish form
     const spanishChanges = 
-      formData.name !== originalData.spanish.name ||
-      formData.role !== originalData.spanish.role ||
-      formData.instagram_url !== (originalData.spanish.instagram_url || '') ||
-      formData.facebook_url !== (originalData.spanish.facebook_url || '') ||
-      formData.x_url !== (originalData.spanish.x_url || '') ||
+      formData.name !== originalData.name ||
+      formData.role !== originalData.role ||
+      formData.instagram_url !== (originalData.instagram_url || '') ||
+      formData.facebook_url !== (originalData.facebook_url || '') ||
+      formData.x_url !== (originalData.x_url || '') ||
       formData.image !== null
     
     // Check changes in English form
     const englishChanges = 
-      formDataEnglish.name !== originalData.english.name ||
-      formDataEnglish.role !== originalData.english.role ||
-      formDataEnglish.instagram_url !== (originalData.english.instagram_url || '') ||
-      formDataEnglish.facebook_url !== (originalData.english.facebook_url || '') ||
-      formDataEnglish.x_url !== (originalData.english.x_url || '') ||
+      formDataEnglish.name !== originalData.name ||
+      formDataEnglish.role !== originalData.role_en ||
+      formDataEnglish.instagram_url !== (originalData.instagram_url || '') ||
+      formDataEnglish.facebook_url !== (originalData.facebook_url || '') ||
+      formDataEnglish.x_url !== (originalData.x_url || '') ||
       formDataEnglish.image !== null
     
     return spanishChanges || englishChanges
+  }
+
+  // Convert File to base64
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.readAsDataURL(file)
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = error => reject(error)
+    })
   }
 
   // Handle form submission
@@ -238,13 +162,49 @@ export default function EditarEquipoPage() {
 
     setIsUpdating(true)
     
-    // Simulate API call
-    setTimeout(() => {
-      setIsUpdating(false)
+    try {
+      // Convert image to base64 if it's a File
+      let imageUrl = originalData?.imageUrl || ''
+      if (getCurrentFormData().image && typeof getCurrentFormData().image === 'object') {
+        imageUrl = await fileToBase64(getCurrentFormData().image!)
+      }
+
+      // Prepare team data for API
+      const teamData = {
+        name: formData.name.trim(),
+        role: formData.role.trim(),
+        role_en: formDataEnglish.role.trim(),
+        instagram_url: formData.instagram_url.trim() || null,
+        facebook_url: formData.facebook_url.trim() || null,
+        x_url: formData.x_url.trim() || null,
+        imageUrl,
+        originalImageUrl: originalData?.imageUrl
+      }
+
+      const response = await fetch(`/api/team/${memberId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(teamData)
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to update team member')
+      }
+
+      // Show success toast
       const successMessage = isEnglishMode ? 'Team member updated successfully' : 'Miembro del equipo actualizado exitosamente'
       toast.success(successMessage)
       router.push('/general/gestion/equipo')
-    }, 2000)
+    } catch (error) {
+      console.error('Error updating team member:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Error al actualizar miembro del equipo'
+      toast.error(errorMessage)
+    } finally {
+      setIsUpdating(false)
+    }
   }
 
   // Translations
@@ -331,7 +291,7 @@ export default function EditarEquipoPage() {
               />
             ) : (
               <Image
-                src={isEnglishMode ? originalData.english.imageUrl : originalData.spanish.imageUrl}
+                src={originalData?.imageUrl || ''}
                 alt="Current team member image"
                 width={80}
                 height={80}
@@ -346,7 +306,7 @@ export default function EditarEquipoPage() {
               {translations.editTeamMember}
             </h1>
             <p className="font-metropolis font-regular text-lg" style={{ color: '#4A739C' }}>
-              {isEnglishMode ? originalData.english.name : originalData.spanish.name}
+              {originalData?.name}
             </p>
           </div>
         </div>
@@ -354,7 +314,9 @@ export default function EditarEquipoPage() {
         {/* Language Toggle and Update Buttons */}
         <div className="flex items-center space-x-3">
           <button
-            onClick={() => setIsEnglishMode(!isEnglishMode)}
+            onClick={() => {
+              setIsEnglishMode(!isEnglishMode)
+            }}
             className={`inline-flex items-center px-4 py-3 border rounded-md shadow-sm text-sm font-medium transition-all duration-200 ${
               isEnglishMode 
                 ? 'border-[#5A6F80] text-[#5A6F80] bg-white hover:bg-gray-50' 
@@ -397,7 +359,7 @@ export default function EditarEquipoPage() {
       )}
 
       {/* Form */}
-      <div className="bg-white border rounded-lg p-6 shadow-lg" style={{ borderColor: '#CFDBE8' }}>
+      <div className="bg-white border rounded-lg p-6 shadow-lg relative" style={{ borderColor: '#CFDBE8' }}>
         <div className="space-y-8">
           {/* Basic Information */}
           <div>
@@ -411,9 +373,12 @@ export default function EditarEquipoPage() {
                 </label>
                 <input
                   type="text"
-                  value={getCurrentFormData().name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
+                  value={isEnglishMode ? formData.name : getCurrentFormData().name}
+                  onChange={(e) => handleInputChange('name', e.target.value, isEnglishMode)}
+                  disabled={isEnglishMode}
+                  className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
+                    isEnglishMode ? 'bg-gray-100 cursor-not-allowed' : ''
+                  }`}
                 />
               </div>
               
@@ -424,7 +389,7 @@ export default function EditarEquipoPage() {
                 <input
                   type="text"
                   value={getCurrentFormData().role}
-                  onChange={(e) => handleInputChange('role', e.target.value)}
+                  onChange={(e) => handleInputChange('role', e.target.value, isEnglishMode)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
                 />
               </div>
@@ -443,9 +408,12 @@ export default function EditarEquipoPage() {
                 </label>
                 <input
                   type="url"
-                  value={getCurrentFormData().instagram_url}
-                  onChange={(e) => handleInputChange('instagram_url', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
+                  value={isEnglishMode ? formData.instagram_url : getCurrentFormData().instagram_url}
+                  onChange={(e) => handleInputChange('instagram_url', e.target.value, isEnglishMode)}
+                  disabled={isEnglishMode}
+                  className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
+                    isEnglishMode ? 'bg-gray-100 cursor-not-allowed' : ''
+                  }`}
                   placeholder="https://instagram.com/username"
                 />
               </div>
@@ -456,9 +424,12 @@ export default function EditarEquipoPage() {
                 </label>
                 <input
                   type="url"
-                  value={getCurrentFormData().facebook_url}
-                  onChange={(e) => handleInputChange('facebook_url', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
+                  value={isEnglishMode ? formData.facebook_url : getCurrentFormData().facebook_url}
+                  onChange={(e) => handleInputChange('facebook_url', e.target.value, isEnglishMode)}
+                  disabled={isEnglishMode}
+                  className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
+                    isEnglishMode ? 'bg-gray-100 cursor-not-allowed' : ''
+                  }`}
                   placeholder="https://facebook.com/username"
                 />
               </div>
@@ -469,9 +440,12 @@ export default function EditarEquipoPage() {
                 </label>
                 <input
                   type="url"
-                  value={getCurrentFormData().x_url}
-                  onChange={(e) => handleInputChange('x_url', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
+                  value={isEnglishMode ? formData.x_url : getCurrentFormData().x_url}
+                  onChange={(e) => handleInputChange('x_url', e.target.value, isEnglishMode)}
+                  disabled={isEnglishMode}
+                  className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
+                    isEnglishMode ? 'bg-gray-100 cursor-not-allowed' : ''
+                  }`}
                   placeholder="https://x.com/username"
                 />
               </div>
@@ -517,16 +491,27 @@ export default function EditarEquipoPage() {
                     <button
                       type="button"
                       onClick={() => {
-                        if (isEnglishMode) {
-                          setFormDataEnglish(prev => ({ ...prev, image: null }))
-                        } else {
-                          setFormData(prev => ({ ...prev, image: null }))
-                        }
+                        handleImageUpload(null, isEnglishMode)
                       }}
                       className="text-sm text-red-600 hover:text-red-800 font-metropolis font-medium"
                     >
                       {isEnglishMode ? 'Remove' : 'Eliminar'}
                     </button>
+                  </div>
+                ) : originalData?.imageUrl ? (
+                  <div className="space-y-3">
+                    <div className="w-24 h-24 mx-auto bg-gray-200 rounded-full overflow-hidden">
+                      <Image
+                        src={originalData.imageUrl}
+                        alt="Current profile"
+                        width={96}
+                        height={96}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <p className="text-sm font-metropolis font-medium text-[#0D141C]">
+                      Imagen actual
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -544,7 +529,7 @@ export default function EditarEquipoPage() {
               <input
                 type="file"
                 accept="image/*"
-                onChange={handleImageUpload}
+                onChange={handleImageUploadEvent}
                 className="hidden"
                 id="image-upload"
               />

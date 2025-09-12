@@ -332,9 +332,12 @@ export default function EditarTestimonioPage() {
                 </label>
                 <input
                   type="text"
-                  value={getCurrentFormData().author}
+                  value={isEnglishMode ? formData.author : getCurrentFormData().author}
                   onChange={(e) => handleInputChange('author', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
+                  disabled={isEnglishMode}
+                  className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
+                    isEnglishMode ? 'bg-gray-100 cursor-not-allowed' : ''
+                  }`}
                 />
               </div>
               

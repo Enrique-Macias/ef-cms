@@ -5,55 +5,43 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
+import { useArticleForm } from '@/hooks/useArticleForm'
+import { useArticleTranslation } from '@/hooks/useArticleTranslation'
 
 export default function AgregarArticuloPage() {
   const router = useRouter()
-  const [formData, setFormData] = useState({
-    title: '',
-    author: '',
-    coverImage: null as File | null,
-    publicationDate: new Date().toISOString().split('T')[0],
-    description: '',
-    linkUrl: ''
-  })
-
-  const [formDataEnglish, setFormDataEnglish] = useState({
-    title: '',
-    author: '',
-    coverImage: null as File | null,
-    publicationDate: new Date().toISOString().split('T')[0],
-    description: '',
-    linkUrl: ''
-  })
-
+  const toast = useToast()
+  
+  // Custom hooks
+  const {
+    formData,
+    formDataEnglish,
+    setFormDataEnglish,
+    handleInputChange,
+    handleImageUpload,
+    resetForm
+  } = useArticleForm()
+  
+  const {
+    isTranslating,
+    translateToEnglish,
+    setTranslationCompleted
+  } = useArticleTranslation()
+  
+  // State
   const [isEnglishMode, setIsEnglishMode] = useState(false)
   const [isPublishing, setIsPublishing] = useState(false)
   const [isDragOver, setIsDragOver] = useState(false)
-  
-  const toast = useToast()
 
-  // Handle form input changes
-  const handleInputChange = (field: string, value: string) => {
-    if (isEnglishMode) {
-      setFormDataEnglish(prev => ({ ...prev, [field]: value }))
-    } else {
-      setFormData(prev => ({ ...prev, [field]: value }))
-    }
-  }
-
-  // Handle cover image upload
-  const handleCoverImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle image upload
+  const handleImageUploadEvent = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      if (isEnglishMode) {
-        setFormDataEnglish(prev => ({ ...prev, coverImage: file }))
-      } else {
-        setFormData(prev => ({ ...prev, coverImage: file }))
-      }
+      handleImageUpload(file, isEnglishMode)
     }
   }
 
-  // Handle drag and drop for cover image
+  // Handle drag and drop
   const handleDragOver = (event: React.DragEvent) => {
     event.preventDefault()
     event.stopPropagation()
@@ -66,115 +54,92 @@ export default function AgregarArticuloPage() {
     setIsDragOver(false)
   }
 
-  const handleDrop = (event: React.DragEvent) => {
-    event.preventDefault()
-    event.stopPropagation()
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
     setIsDragOver(false)
-    
-    const files = Array.from(event.dataTransfer.files)
-    const imageFile = files.find(file => file.type.startsWith('image/'))
-    
-    if (imageFile) {
-      if (isEnglishMode) {
-        setFormDataEnglish(prev => ({ ...prev, coverImage: imageFile }))
-      } else {
-        setFormData(prev => ({ ...prev, coverImage: imageFile }))
+    const files = Array.from(e.dataTransfer.files)
+    if (files.length > 0) {
+      const imageFile = files[0]
+      if (imageFile.type.startsWith('image/')) {
+        handleImageUpload(imageFile, isEnglishMode)
       }
     }
-  }
-
-  // Handle form submission
-  const handleSubmit = async () => {
-    // Always validate both Spanish and English versions
-    const spanishRequiredFields = {
-      title: formData.title.trim(),
-      author: formData.author.trim(),
-      coverImage: formData.coverImage,
-      publicationDate: formData.publicationDate,
-      description: formData.description.trim()
-    }
-    
-    const englishRequiredFields = {
-      title: formDataEnglish.title.trim(),
-      author: formDataEnglish.author.trim(),
-      coverImage: formDataEnglish.coverImage,
-      publicationDate: formDataEnglish.publicationDate,
-      description: formDataEnglish.description.trim()
-    }
-    
-    const spanishMissingFields = Object.entries(spanishRequiredFields)
-      .filter(([key, value]) => !value)
-      .map(([key]) => key)
-    
-    const englishMissingFields = Object.entries(englishRequiredFields)
-      .filter(([key, value]) => !value)
-      .map(([key]) => key)
-    
-    // Field names for both languages
-    const spanishFieldNames = {
-      title: 'Título',
-      author: 'Autor',
-      coverImage: 'Imagen de Portada',
-      publicationDate: 'Fecha de publicación',
-      description: 'Descripción'
-    }
-    
-    const englishFieldNames = {
-      title: 'Title',
-      author: 'Author',
-      coverImage: 'Cover Image',
-      publicationDate: 'Publication Date',
-      description: 'Description'
-    }
-    
-    // Check if we're in Spanish mode and Spanish fields are missing
-    if (!isEnglishMode && spanishMissingFields.length > 0) {
-      const missingFieldNames = spanishMissingFields.map(field => spanishFieldNames[field as keyof typeof spanishFieldNames])
-      toast.warning(`Debes llenar todos los campos obligatorios: ${missingFieldNames.join(', ')}`)
-      return
-    }
-    
-    // Check if we're in English mode and English fields are missing
-    if (isEnglishMode && englishMissingFields.length > 0) {
-      const missingFieldNames = englishMissingFields.map(field => englishFieldNames[field as keyof typeof englishFieldNames])
-      toast.warning(`You must fill all required fields: ${missingFieldNames.join(', ')}`)
-      return
-    }
-    
-    // If we're in Spanish mode, also check English fields
-    if (!isEnglishMode) {
-      if (englishMissingFields.length > 0) {
-        const missingFieldNames = englishMissingFields.map(field => englishFieldNames[field as keyof typeof englishFieldNames])
-        toast.warning(`También debes llenar todos los campos obligatorios de la versión en inglés: ${missingFieldNames.join(', ')}`)
-        return
-      }
-    }
-    
-    // If we're in English mode, also check Spanish fields
-    if (isEnglishMode) {
-      if (spanishMissingFields.length > 0) {
-        const missingFieldNames = spanishMissingFields.map(field => spanishFieldNames[field as keyof typeof spanishFieldNames])
-        toast.warning(`You must also fill all required fields in the Spanish version: ${missingFieldNames.join(', ')}`)
-        return
-      }
-    }
-    
-    setIsPublishing(true)
-    // Simulate API call
-    setTimeout(() => {
-      setIsPublishing(false)
-      // Show success toast
-      const successMessage = isEnglishMode ? 'Article published successfully' : 'Artículo publicado exitosamente'
-      toast.success(successMessage)
-      // Redirect to articles listing page
-      router.push('/general/gestion/articulos')
-    }, 2000)
   }
 
   // Get current form data based on language mode
   const getCurrentFormData = () => isEnglishMode ? formDataEnglish : formData
 
-  // English translations
+  // Convert File to base64
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.readAsDataURL(file)
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = error => reject(error)
+    })
+  }
+
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    // Validate required fields in both languages
+    const spanishRequired = !formData.title || !formData.body_es || !formData.author || !formData.image
+    const englishRequired = !formDataEnglish.title || !formDataEnglish.body_es || !formDataEnglish.author || !formDataEnglish.image
+    
+    if (spanishRequired || englishRequired) {
+      toast.warning('Debes llenar todos los campos obligatorios tanto en español como en inglés')
+      return
+    }
+
+    setIsPublishing(true)
+    
+    try {
+      // Convert image to base64
+      const imageBase64 = await fileToBase64(formData.image!)
+
+      // Prepare article data for API
+      const articleData = {
+        title: formData.title.trim(),
+        title_en: formDataEnglish.title.trim(),
+        body_es: formData.body_es.trim(),
+        body_en: formDataEnglish.body_es.trim(),
+        author: formData.author.trim(),
+        date: new Date(formData.date + 'T12:00:00').toISOString(),
+        linkUrl: formData.linkUrl.trim() || null,
+        imageUrl: imageBase64
+      }
+
+      const response = await fetch('/api/articles', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(articleData)
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to create article')
+      }
+
+      // Show success toast
+      const successMessage = isEnglishMode ? 'Article published successfully' : 'Artículo publicado exitosamente'
+      toast.success(successMessage)
+      
+      // Reset form and redirect
+      resetForm()
+      router.push('/general/gestion/articulos')
+    } catch (error) {
+      console.error('Error creating article:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Error al crear artículo'
+      toast.error(errorMessage)
+    } finally {
+      setIsPublishing(false)
+    }
+  }
+
+  // Translations
   const translations = {
     title: isEnglishMode ? 'Article Title' : 'Título del Artículo',
     author: isEnglishMode ? 'Author Name' : 'Nombre del autor',
@@ -227,9 +192,9 @@ export default function AgregarArticuloPage() {
         <div className="flex items-center space-x-4 mb-4 lg:mb-0">
           {/* Preview Image */}
           <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden">
-            {getCurrentFormData().coverImage ? (
+            {getCurrentFormData().image ? (
               <Image
-                src={URL.createObjectURL(getCurrentFormData().coverImage!)}
+                src={URL.createObjectURL(getCurrentFormData().image!)}
                 alt="Preview"
                 width={64}
                 height={64}
@@ -250,7 +215,7 @@ export default function AgregarArticuloPage() {
               {getCurrentFormData().title || translations.title}
             </h1>
             <p className="font-metropolis font-regular text-sm" style={{ color: '#4A739C' }}>
-              {getCurrentFormData().author} | {new Date(getCurrentFormData().publicationDate).getFullYear()}
+              {getCurrentFormData().author} | {new Date(getCurrentFormData().date).getFullYear()}
             </p>
           </div>
         </div>
@@ -259,14 +224,56 @@ export default function AgregarArticuloPage() {
         <div className="flex items-center space-x-3">
           {/* Language Toggle Button */}
           <button
-            onClick={() => setIsEnglishMode(!isEnglishMode)}
-            className={`inline-flex items-center px-4 py-3 border rounded-md shadow-sm text-sm font-medium transition-all duration-200 ${
+            onClick={async () => {
+              if (!isEnglishMode) {
+                // Switch to English mode and trigger translation
+                setIsEnglishMode(true)
+                setTranslationCompleted(false)
+                
+                // Copy all fields from Spanish to English form
+                setFormDataEnglish(prev => ({
+                  ...prev,
+                  author: formData.author,
+                  date: formData.date,
+                  linkUrl: formData.linkUrl,
+                  image: formData.image
+                }))
+                
+                // Translate title and body if they exist
+                if (formData.title.trim() || formData.body_es.trim()) {
+                  const translated = await translateToEnglish({
+                    title: formData.title,
+                    body: formData.body_es
+                  })
+                  if (translated) {
+                    setFormDataEnglish(prev => ({
+                      ...prev,
+                      title: translated.title,
+                      body_es: translated.body
+                    }))
+                  }
+                }
+              } else {
+                // Switching back to Spanish mode
+                setIsEnglishMode(false)
+                setTranslationCompleted(false)
+              }
+            }}
+            disabled={isTranslating}
+            className={`inline-flex items-center px-4 py-3 border rounded-md shadow-sm text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${
               isEnglishMode 
                 ? 'border-[#5A6F80] text-[#5A6F80] bg-white hover:bg-gray-50' 
                 : 'border-[#5A6F80] text-white bg-[#5A6F80] hover:bg-[#4A739C]'
             }`}
           >
-            {isEnglishMode ? translations.spanishVersion : translations.englishVersion}
+            {isTranslating ? (
+              <div className="flex items-center space-x-2">
+                <Spinner size="sm" />
+                <span>Traduciendo...</span>
+              </div>
+            ) : (
+              isEnglishMode ? translations.spanishVersion : translations.englishVersion
+            )}
           </button>
 
           {/* Publish Button */}
@@ -303,8 +310,18 @@ export default function AgregarArticuloPage() {
       )}
 
       {/* Form */}
-      <div className="bg-white border rounded-lg p-6 shadow-lg" style={{ borderColor: '#CFDBE8' }}>
-        <div className="space-y-8">
+      <div className="bg-white border rounded-lg p-6 shadow-lg relative" style={{ borderColor: '#CFDBE8' }}>
+        {/* Translation Loading Overlay */}
+        {isTranslating && (
+          <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center z-10 rounded-lg">
+            <div className="text-center">
+              <Spinner size="lg" />
+              <p className="mt-4 text-lg font-medium text-gray-700">Traduciendo contenido...</p>
+              <p className="mt-2 text-sm text-gray-500">Por favor espera mientras se traduce el contenido al inglés</p>
+            </div>
+          </div>
+        )}
+        <form onSubmit={handleSubmit} className="space-y-8">
           {/* Basic Information Section */}
           <div>
             <h2 className="font-metropolis font-bold text-xl mb-4" style={{ color: '#0D141C' }}>
@@ -318,7 +335,7 @@ export default function AgregarArticuloPage() {
                 <input
                   type="text"
                   value={getCurrentFormData().title}
-                  onChange={(e) => handleInputChange('title', e.target.value)}
+                  onChange={(e) => handleInputChange('title', e.target.value, isEnglishMode)}
                   placeholder={translations.title}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
                 />
@@ -330,7 +347,7 @@ export default function AgregarArticuloPage() {
                 <input
                   type="text"
                   value={getCurrentFormData().author}
-                  onChange={(e) => handleInputChange('author', e.target.value)}
+                  onChange={(e) => handleInputChange('author', e.target.value, isEnglishMode)}
                   placeholder={translations.author}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
                 />
@@ -360,9 +377,9 @@ export default function AgregarArticuloPage() {
                   onDrop={handleDrop}
                   onClick={() => document.getElementById('coverImageInput')?.click()}
                 >
-                  {getCurrentFormData().coverImage ? (
+                  {getCurrentFormData().image ? (
                     <Image
-                      src={URL.createObjectURL(getCurrentFormData().coverImage!)}
+                      src={URL.createObjectURL(getCurrentFormData().image!)}
                       alt="Cover preview"
                       width={128}
                       height={96}
@@ -387,7 +404,7 @@ export default function AgregarArticuloPage() {
                     id="coverImageInput"
                     type="file"
                     accept="image/*"
-                    onChange={handleCoverImageUpload}
+                    onChange={handleImageUploadEvent}
                     className="hidden"
                   />
                 </label>
@@ -408,8 +425,8 @@ export default function AgregarArticuloPage() {
               </div>
               <input
                 type="date"
-                value={getCurrentFormData().publicationDate}
-                onChange={(e) => handleInputChange('publicationDate', e.target.value)}
+                value={getCurrentFormData().date}
+                onChange={(e) => handleInputChange('date', e.target.value, isEnglishMode)}
                 className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
               />
             </div>
@@ -424,8 +441,8 @@ export default function AgregarArticuloPage() {
               {translations.descriptionHelp}
             </p>
             <textarea
-              value={getCurrentFormData().description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
+              value={getCurrentFormData().body_es}
+              onChange={(e) => handleInputChange('body_es', e.target.value, isEnglishMode)}
               rows={6}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent resize-none"
               placeholder={translations.descriptionPlaceholder}
@@ -443,12 +460,12 @@ export default function AgregarArticuloPage() {
             <input
               type="url"
               value={getCurrentFormData().linkUrl}
-              onChange={(e) => handleInputChange('linkUrl', e.target.value)}
+              onChange={(e) => handleInputChange('linkUrl', e.target.value, isEnglishMode)}
               placeholder={translations.linkUrlPlaceholder}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
             />
           </div>
-        </div>
+        </form>
       </div>
     </div>
   )

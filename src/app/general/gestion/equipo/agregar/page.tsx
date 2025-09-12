@@ -5,70 +5,40 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
+import { useTeamForm } from '@/hooks/useTeamForm'
+import { useTeamTranslation } from '@/hooks/useTeamTranslation'
 
-interface FormData {
-  name: string
-  role: string
-  instagram_url: string
-  facebook_url: string
-  x_url: string
-  image: File | null
-}
-
-interface FormDataEnglish {
-  name: string
-  role: string
-  instagram_url: string
-  facebook_url: string
-  x_url: string
-  image: File | null
-}
 
 export default function AgregarEquipoPage() {
   const router = useRouter()
   const toast = useToast()
   
+  // Custom hooks
+  const {
+    formData,
+    formDataEnglish,
+    setFormDataEnglish,
+    handleInputChange,
+    handleImageUpload,
+    resetForm
+  } = useTeamForm()
+  
+  const {
+    isTranslating,
+    translateRoleToEnglish,
+    setTranslationCompleted
+  } = useTeamTranslation()
+  
   // State
-  const [formData, setFormData] = useState<FormData>({
-    name: '',
-    role: '',
-    instagram_url: '',
-    facebook_url: '',
-    x_url: '',
-    image: null
-  })
-  
-  const [formDataEnglish, setFormDataEnglish] = useState<FormDataEnglish>({
-    name: '',
-    role: '',
-    instagram_url: '',
-    facebook_url: '',
-    x_url: '',
-    image: null
-  })
-  
   const [isEnglishMode, setIsEnglishMode] = useState(false)
   const [isPublishing, setIsPublishing] = useState(false)
   const [isDragOver, setIsDragOver] = useState(false)
 
-  // Handle input changes
-  const handleInputChange = (field: keyof FormData, value: string) => {
-    if (isEnglishMode) {
-      setFormDataEnglish(prev => ({ ...prev, [field]: value }))
-    } else {
-      setFormData(prev => ({ ...prev, [field]: value }))
-    }
-  }
-
   // Handle image upload
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUploadEvent = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      if (isEnglishMode) {
-        setFormDataEnglish(prev => ({ ...prev, image: file }))
-      } else {
-        setFormData(prev => ({ ...prev, image: file }))
-      }
+      handleImageUpload(file, isEnglishMode)
     }
   }
 
@@ -80,17 +50,23 @@ export default function AgregarEquipoPage() {
     if (files.length > 0) {
       const imageFile = files[0]
       if (imageFile.type.startsWith('image/')) {
-        if (isEnglishMode) {
-          setFormDataEnglish(prev => ({ ...prev, image: imageFile }))
-        } else {
-          setFormData(prev => ({ ...prev, image: imageFile }))
-        }
+        handleImageUpload(imageFile, isEnglishMode)
       }
     }
   }
 
   // Get current form data based on language mode
   const getCurrentFormData = () => isEnglishMode ? formDataEnglish : formData
+
+  // Convert File to base64
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.readAsDataURL(file)
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = error => reject(error)
+    })
+  }
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
@@ -107,12 +83,48 @@ export default function AgregarEquipoPage() {
 
     setIsPublishing(true)
     
-    // Simulate API call
-    setTimeout(() => {
-      setIsPublishing(false)
-      toast.success('Miembro del equipo agregado exitosamente')
+    try {
+      // Convert image to base64
+      const imageBase64 = await fileToBase64(formData.image!)
+
+      // Prepare team data for API
+      const teamData = {
+        name: formData.name.trim(),
+        role: formData.role.trim(),
+        role_en: formDataEnglish.role.trim(),
+        instagram_url: formData.instagram_url.trim() || null,
+        facebook_url: formData.facebook_url.trim() || null,
+        x_url: formData.x_url.trim() || null,
+        imageUrl: imageBase64
+      }
+
+      const response = await fetch('/api/team', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(teamData)
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to create team member')
+      }
+
+      // Show success toast
+      const successMessage = isEnglishMode ? 'Team member added successfully' : 'Miembro del equipo agregado exitosamente'
+      toast.success(successMessage)
+      
+      // Reset form and redirect
+      resetForm()
       router.push('/general/gestion/equipo')
-    }, 2000)
+    } catch (error) {
+      console.error('Error creating team member:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Error al crear miembro del equipo'
+      toast.error(errorMessage)
+    } finally {
+      setIsPublishing(false)
+    }
   }
 
   // Translations
@@ -167,14 +179,50 @@ export default function AgregarEquipoPage() {
         {/* Language Toggle and Publish Buttons */}
         <div className="flex items-center space-x-3">
           <button
-            onClick={() => setIsEnglishMode(!isEnglishMode)}
-            className={`inline-flex items-center px-4 py-3 border rounded-md shadow-sm text-sm font-medium transition-all duration-200 ${
+            onClick={async () => {
+              if (!isEnglishMode) {
+                // Switch to English mode and trigger translation
+                setIsEnglishMode(true)
+                setTranslationCompleted(false)
+                
+                // Copy all fields from Spanish to English form
+                setFormDataEnglish(prev => ({
+                  ...prev,
+                  name: formData.name,
+                  instagram_url: formData.instagram_url,
+                  facebook_url: formData.facebook_url,
+                  x_url: formData.x_url,
+                  image: formData.image
+                }))
+                
+                // Translate role if it exists
+                if (formData.role.trim()) {
+                  const translatedRole = await translateRoleToEnglish(formData.role)
+                  if (translatedRole) {
+                    setFormDataEnglish(prev => ({ ...prev, role: translatedRole }))
+                  }
+                }
+              } else {
+                // Switching back to Spanish mode
+                setIsEnglishMode(false)
+                setTranslationCompleted(false)
+              }
+            }}
+            disabled={isTranslating}
+            className={`inline-flex items-center px-4 py-3 border rounded-md shadow-sm text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${
               isEnglishMode 
                 ? 'border-[#5A6F80] text-[#5A6F80] bg-white hover:bg-gray-50' 
                 : 'border-[#5A6F80] text-white bg-[#5A6F80] hover:bg-[#4A739C]'
             }`}
           >
-            {isEnglishMode ? translations.spanishVersion : translations.englishVersion}
+            {isTranslating ? (
+              <div className="flex items-center space-x-2">
+                <Spinner size="sm" />
+                <span>Traduciendo...</span>
+              </div>
+            ) : (
+              isEnglishMode ? translations.spanishVersion : translations.englishVersion
+            )}
           </button>
 
           <button
@@ -210,7 +258,17 @@ export default function AgregarEquipoPage() {
       )}
 
       {/* Form */}
-      <div className="bg-white border rounded-lg p-6 shadow-lg" style={{ borderColor: '#CFDBE8' }}>
+      <div className="bg-white border rounded-lg p-6 shadow-lg relative" style={{ borderColor: '#CFDBE8' }}>
+        {/* Translation Loading Overlay */}
+        {isTranslating && (
+          <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center z-10 rounded-lg">
+            <div className="text-center">
+              <Spinner size="lg" />
+              <p className="mt-4 text-lg font-medium text-gray-700">Traduciendo contenido...</p>
+              <p className="mt-2 text-sm text-gray-500">Por favor espera mientras se traduce el contenido al inglés</p>
+            </div>
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Basic Information */}
           <div>
@@ -225,7 +283,7 @@ export default function AgregarEquipoPage() {
                 <input
                   type="text"
                   value={getCurrentFormData().name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  onChange={(e) => handleInputChange('name', e.target.value, isEnglishMode)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
                   placeholder={isEnglishMode ? 'Enter member name' : 'Ingresa el nombre del miembro'}
                 />
@@ -238,7 +296,7 @@ export default function AgregarEquipoPage() {
                 <input
                   type="text"
                   value={getCurrentFormData().role}
-                  onChange={(e) => handleInputChange('role', e.target.value)}
+                  onChange={(e) => handleInputChange('role', e.target.value, isEnglishMode)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
                   placeholder={isEnglishMode ? 'Enter role/position' : 'Ingresa el cargo o puesto'}
                 />
@@ -259,7 +317,7 @@ export default function AgregarEquipoPage() {
                 <input
                   type="url"
                   value={getCurrentFormData().instagram_url}
-                  onChange={(e) => handleInputChange('instagram_url', e.target.value)}
+                  onChange={(e) => handleInputChange('instagram_url', e.target.value, isEnglishMode)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
                   placeholder="https://instagram.com/username"
                 />
@@ -272,7 +330,7 @@ export default function AgregarEquipoPage() {
                 <input
                   type="url"
                   value={getCurrentFormData().facebook_url}
-                  onChange={(e) => handleInputChange('facebook_url', e.target.value)}
+                  onChange={(e) => handleInputChange('facebook_url', e.target.value, isEnglishMode)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
                   placeholder="https://facebook.com/username"
                 />
@@ -285,7 +343,7 @@ export default function AgregarEquipoPage() {
                 <input
                   type="url"
                   value={getCurrentFormData().x_url}
-                  onChange={(e) => handleInputChange('x_url', e.target.value)}
+                  onChange={(e) => handleInputChange('x_url', e.target.value, isEnglishMode)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent"
                   placeholder="https://x.com/username"
                 />
@@ -332,11 +390,7 @@ export default function AgregarEquipoPage() {
                     <button
                       type="button"
                       onClick={() => {
-                        if (isEnglishMode) {
-                          setFormDataEnglish(prev => ({ ...prev, image: null }))
-                        } else {
-                          setFormData(prev => ({ ...prev, image: null }))
-                        }
+                        handleImageUpload(null, isEnglishMode)
                       }}
                       className="text-sm text-red-600 hover:text-red-800 font-metropolis font-medium"
                     >
@@ -359,7 +413,7 @@ export default function AgregarEquipoPage() {
               <input
                 type="file"
                 accept="image/*"
-                onChange={handleImageUpload}
+                onChange={handleImageUploadEvent}
                 className="hidden"
                 id="image-upload"
               />
