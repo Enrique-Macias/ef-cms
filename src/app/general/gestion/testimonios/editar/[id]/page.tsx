@@ -120,7 +120,7 @@ export default function EditarTestimonioPage() {
   // Handle form submission
   const handleUpdate = async () => {
     // Validate form using utility function
-    const validation = validateTestimonialForm(formData, formDataEnglish)
+    const validation = validateTestimonialForm(formData, formDataEnglish, currentImageUrl)
     
     if (!validation.isValid) {
       toast.warning(validation.errorMessage!)
@@ -130,8 +130,8 @@ export default function EditarTestimonioPage() {
     setIsUpdating(true)
     
     try {
-      // Convert image to base64 if it's a File
-      let imageUrl = testimonial?.imageUrl // Keep existing image by default
+      // Convert image to base64 if it's a File, otherwise keep existing image
+      let imageUrl = currentImageUrl // Use the stored current image URL
       if (formData.image instanceof File) {
         imageUrl = await fileToBase64(formData.image)
       }
@@ -143,7 +143,7 @@ export default function EditarTestimonioPage() {
         role_en: formDataEnglish.role_en,
         body_es: formData.body,
         body_en: formDataEnglish.body,
-        imageUrl
+        imageUrl: imageUrl || currentImageUrl // Ensure we always send an image URL
       }
       
       // Make API call

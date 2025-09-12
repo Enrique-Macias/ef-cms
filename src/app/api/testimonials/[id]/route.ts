@@ -89,9 +89,12 @@ export async function PUT(
           )
         }
       } else {
-        // Existing image URL - keep it
+        // Existing image URL - keep it (even if it's the same)
         updateData.imageUrl = body.imageUrl
       }
+    } else {
+      // If no imageUrl is provided, keep the existing one
+      updateData.imageUrl = existingTestimonial.imageUrl
     }
 
     // Update testimonial

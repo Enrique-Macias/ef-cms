@@ -2,7 +2,8 @@ import { TestimonialFormData, TestimonialFormDataEnglish } from '@/hooks/useTest
 
 export function validateTestimonialForm(
   formData: TestimonialFormData,
-  formDataEnglish: TestimonialFormDataEnglish
+  formDataEnglish: TestimonialFormDataEnglish,
+  existingImageUrl?: string | null
 ): { isValid: boolean; errorMessage?: string } {
   // Validate Spanish version
   if (!formData.author.trim()) {
@@ -14,7 +15,7 @@ export function validateTestimonialForm(
   if (!formData.body.trim()) {
     return { isValid: false, errorMessage: 'El contenido del testimonio es obligatorio' }
   }
-  if (!formData.image) {
+  if (!formData.image && !existingImageUrl) {
     return { isValid: false, errorMessage: 'La imagen de perfil es obligatoria' }
   }
 
@@ -28,7 +29,7 @@ export function validateTestimonialForm(
   if (!formDataEnglish.body.trim()) {
     return { isValid: false, errorMessage: 'Testimonial content is required' }
   }
-  if (!formDataEnglish.image) {
+  if (!formDataEnglish.image && !existingImageUrl) {
     return { isValid: false, errorMessage: 'Profile image is required' }
   }
 
