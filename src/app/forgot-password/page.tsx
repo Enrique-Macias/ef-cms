@@ -9,14 +9,46 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
+import { toast } from 'sonner'
 
 export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState('alejandro@admin.com')
+  const [email, setEmail] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Implement password reset logic
-    console.log('Password reset requested for:', email)
+    
+    if (!email) {
+      toast.error('Por favor ingresa tu correo electrónico')
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setIsSuccess(true)
+        toast.success(data.message)
+      } else {
+        toast.error(data.error || 'Error al enviar el correo')
+      }
+    } catch (error) {
+      console.error('Error:', error)
+      toast.error('Error de conexión. Inténtalo de nuevo.')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -55,38 +87,65 @@ export default function ForgotPasswordPage() {
         </CardHeader>
 
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email Field */}
-            <div className="space-y-2">
-              <Label 
-                htmlFor="email" 
-                className="font-metropolis font-semibold text-title text-sm"
-              >
-                Correo Electrónico
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="alejandro@admin.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="font-metropolis font-normal border-stroke focus:border-button focus:ring-button/20"
-                required
-              />
-            </div>
+          {!isSuccess ? (
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Email Field */}
+              <div className="space-y-2">
+                <Label 
+                  htmlFor="email" 
+                  className="font-metropolis font-semibold text-title text-sm"
+                >
+                  Correo Electrónico
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="tu@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="font-metropolis font-normal border-stroke focus:border-button focus:ring-button/20"
+                  required
+                  disabled={isLoading}
+                />
+              </div>
 
-            {/* Submit Button */}
-            <Button 
-              type="submit" 
-              className="w-full font-metropolis font-semibold transition-colors"
-              style={{
-                backgroundColor: '#5A6F80',
-                color: '#FFFDF6'
-              }}
-            >
-              Enviar
-            </Button>
-          </form>
+              {/* Submit Button */}
+              <Button 
+                type="submit" 
+                disabled={isLoading}
+                className="w-full font-metropolis font-semibold transition-colors disabled:opacity-50"
+                style={{
+                  backgroundColor: '#5A6F80',
+                  color: '#FFFDF6'
+                }}
+              >
+                {isLoading ? 'Enviando...' : 'Enviar'}
+              </Button>
+            </form>
+          ) : (
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center">
+                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h3 className="font-metropolis font-semibold text-lg" style={{ color: '#0D141C' }}>
+                ¡Correo Enviado!
+              </h3>
+              <p className="font-metropolis font-normal text-sm" style={{ color: '#4A739C' }}>
+                Si el correo electrónico existe en nuestro sistema, recibirás un enlace para restablecer tu contraseña.
+              </p>
+              <div className="pt-4">
+                <Link 
+                  href="/login"
+                  className="inline-flex items-center font-metropolis font-normal text-text text-sm hover:text-button transition-colors"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Volver a Iniciar Sesión
+                </Link>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </AuthBackground>

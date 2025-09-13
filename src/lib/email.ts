@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { sendEmailViaResend } from './resend';
 
 // Create transporter
 const transporter = nodemailer.createTransport({
@@ -25,21 +26,15 @@ export const verifyEmailConnection = async (): Promise<boolean> => {
 // Email templates
 export const emailTemplates = {
   passwordReset: (resetLink: string, userName: string) => ({
-    subject: 'Password Reset Request',
+    subject: 'Restablecimiento de Contraseña - EF CMS',
     html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #333;">Password Reset Request</h2>
-        <p>Hello ${userName},</p>
-        <p>You have requested to reset your password. Click the link below to proceed:</p>
-        <p style="margin: 20px 0;">
-          <a href="${resetLink}" style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
-            Reset Password
-          </a>
-        </p>
-        <p>If you didn't request this, please ignore this email.</p>
-        <p>This link will expire in 1 hour.</p>
-        <p>Best regards,<br>EF CMS Team</p>
-      </div>
+      <h1>Restablecimiento de Contraseña - EF CMS</h1>
+      <p>Hola ${userName},</p>
+      <p>Has solicitado restablecer tu contraseña. Haz clic en el enlace de abajo para proceder:</p>
+      <p><a href="${resetLink}">Restablecer Contraseña</a></p>
+      <p>Si no solicitaste este cambio, por favor ignora este correo electrónico.</p>
+      <p>Este enlace expirará en 1 hora por seguridad.</p>
+      <p>Saludos cordiales,<br>Equipo EF CMS</p>
     `,
   }),
   
@@ -84,14 +79,37 @@ export const sendEmail = async (
   try {
     const emailContent = (emailTemplates[template] as (...args: unknown[]) => { subject: string; html: string })(...args);
     
+    // Try Resend API first (more reliable) - but only if sending to verified email
+    if (process.env.RESEND_API_KEY && to === 'a01641402@tec.mx') {
+      console.log('Trying Resend API...');
+      const success = await sendEmailViaResend(to, emailContent.subject, emailContent.html);
+      if (success) {
+        return true;
+      }
+      console.log('Resend API failed, falling back to SMTP...');
+    }
+
+    // Fallback to SMTP
     const mailOptions = {
       from: process.env.SMTP_FROM,
       to,
       subject: emailContent.subject,
       html: emailContent.html,
+      // Add these headers to help with deliverability
+      headers: {
+        'X-Mailer': 'EF CMS',
+        'Content-Type': 'text/html; charset=UTF-8'
+      }
     };
 
-    await transporter.sendMail(mailOptions);
+    console.log('Sending email with SMTP options:', {
+      from: mailOptions.from,
+      to: mailOptions.to,
+      subject: mailOptions.subject,
+    });
+
+    const result = await transporter.sendMail(mailOptions);
+    console.log('Email sent successfully via SMTP:', result.messageId);
     return true;
   } catch (error) {
     console.error('Failed to send email:', error);
