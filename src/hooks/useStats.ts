@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface NewsStats {
   total: number
@@ -29,6 +30,7 @@ interface StatsData {
 }
 
 export function useStats() {
+  const { user } = useAuth()
   const [stats, setStats] = useState<StatsData>({
     news: null,
     events: null,
@@ -42,21 +44,40 @@ export function useStats() {
       try {
         setStats(prev => ({ ...prev, loading: true, error: null }))
 
-        const [newsResponse, eventsResponse, usersResponse] = await Promise.all([
-          fetch('/api/news/stats'),
-          fetch('/api/events/stats'),
-          fetch('/api/users/stats')
+        const token = localStorage.getItem('accessToken')
+        const headers: Record<string, string> = {}
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`
+        }
+
+        // Always fetch news and events stats (no auth required)
+        const [newsResponse, eventsResponse] = await Promise.all([
+          fetch('/api/news/stats', { headers }),
+          fetch('/api/events/stats', { headers })
         ])
 
-        if (!newsResponse.ok || !eventsResponse.ok || !usersResponse.ok) {
+        if (!newsResponse.ok || !eventsResponse.ok) {
           throw new Error('Error al obtener estadísticas')
         }
 
-        const [newsData, eventsData, usersData] = await Promise.all([
+        const [newsData, eventsData] = await Promise.all([
           newsResponse.json(),
-          eventsResponse.json(),
-          usersResponse.json()
+          eventsResponse.json()
         ])
+
+        // Only fetch user stats if user is admin
+        let usersData = null
+        if (user?.role === 'ADMIN') {
+          try {
+            const usersResponse = await fetch('/api/users/stats', { headers })
+            if (usersResponse.ok) {
+              usersData = await usersResponse.json()
+            }
+          } catch (error) {
+            console.warn('Could not fetch user stats:', error)
+            // Continue without user stats rather than failing completely
+          }
+        }
 
         setStats({
           news: newsData,
@@ -75,8 +96,10 @@ export function useStats() {
       }
     }
 
-    fetchStats()
-  }, [])
+    if (user) {
+      fetchStats()
+    }
+  }, [user])
 
   return stats
 }

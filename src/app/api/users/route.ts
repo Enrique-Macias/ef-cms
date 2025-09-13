@@ -1,9 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getUsers, createUser, getUserStats, generateAvatarUrl } from '@/lib/userService'
 import { hash } from 'bcryptjs'
+import { getAuthenticatedUser } from '@/utils/authUtils'
+import { userCreateSchema } from '@/lib/validations'
 
 export async function GET(request: NextRequest) {
   try {
+    const user = await getAuthenticatedUser(request);
+    
+    // Check if user is authenticated
+    if (!user) {
+      return NextResponse.json({ error: 'Autenticación requerida' }, { status: 401 });
+    }
+
+    // Check if user is admin
+    if (user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Solo los administradores pueden ver la lista de usuarios' }, { status: 403 });
+    }
+
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '10')
@@ -37,25 +51,40 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { email, password, role, fullName, avatarUrl } = body
+    const user = await getAuthenticatedUser(request);
+    
+    // Check if user is authenticated
+    if (!user) {
+      return NextResponse.json({ error: 'Autenticación requerida' }, { status: 401 });
+    }
 
-    // Validate required fields
-    if (!email || !password || !role || !fullName) {
+    // Check if user is admin
+    if (user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Solo los administradores pueden crear usuarios' }, { status: 403 });
+    }
+
+    const body = await request.json()
+    
+    // Validate request body with Zod
+    const validationResult = userCreateSchema.safeParse(body)
+    if (!validationResult.success) {
+      const errors = validationResult.error.issues.map(err => err.message).join(', ')
       return NextResponse.json(
-        { error: 'Campos requeridos faltantes' },
+        { error: `Error de validación: ${errors}` },
         { status: 400 }
       )
     }
 
+    const { email, password, role, fullName } = validationResult.data
+
     // Hash password
     const passwordHash = await hash(password, 12)
 
-    // Generate default avatar URL if not provided
-    const defaultAvatarUrl = avatarUrl || generateAvatarUrl(fullName)
+    // Generate default avatar URL
+    const defaultAvatarUrl = generateAvatarUrl(fullName)
 
     // Create user
-    const user = await createUser({
+    const newUser = await createUser({
       email,
       passwordHash,
       role,
@@ -63,7 +92,7 @@ export async function POST(request: NextRequest) {
       avatarUrl: defaultAvatarUrl
     })
 
-    return NextResponse.json(user, { status: 201 })
+    return NextResponse.json(newUser, { status: 201 })
   } catch (error: unknown) {
     console.error('Error creating user:', error)
     

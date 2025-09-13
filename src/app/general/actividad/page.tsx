@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useToast } from '@/hooks/useToast'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface AuditLog {
   id: number
@@ -36,6 +37,7 @@ export default function ActividadPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const itemsPerPage = 8
   const toast = useToast()
+  const { user } = useAuth()
 
   // Fetch audit logs from API
   const fetchAuditLogs = async (page: number = 1) => {
@@ -163,8 +165,12 @@ export default function ActividadPage() {
       setDeleting(true)
       setError(null)
       
+      const token = localStorage.getItem('accessToken')
       const response = await fetch('/api/audit-logs', {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       })
       
       if (!response.ok) {
@@ -355,7 +361,7 @@ export default function ActividadPage() {
           <div className="ml-auto">
             <button 
               onClick={openDeleteModal}
-              disabled={deleting || loading}
+              disabled={deleting || loading || user?.role !== 'ADMIN'}
               className="inline-flex items-center px-4 py-2 border border-red-300 rounded-md shadow-sm text-sm font-medium text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
               {deleting ? (
@@ -701,7 +707,7 @@ export default function ActividadPage() {
               </button>
               <button 
                 onClick={deleteAllAuditLogs}
-                disabled={deleting}
+                disabled={deleting || user?.role !== 'ADMIN'}
                 className="px-4 py-2 text-sm font-metropolis font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {deleting ? (

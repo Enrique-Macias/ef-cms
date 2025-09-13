@@ -348,26 +348,150 @@ export default function TestimoniosPage() {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="mt-6 flex items-center justify-center">
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
             <button 
               onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
               disabled={currentPage === 1}
-              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:cursor-not-allowed"
+              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
             
-            {/* Page Indicator */}
-            <span className="text-sm font-metropolis font-regular" style={{ color: '#0D141C' }}>
-              Página {currentPage} de {totalPages}
-            </span>
+            {/* Page numbers with ellipsis */}
+            {(() => {
+              const pages = []
+              const maxVisiblePages = 7 // Show max 7 page numbers
+              
+              if (totalPages <= maxVisiblePages) {
+                // Show all pages if total is small
+                for (let i = 1; i <= totalPages; i++) {
+                  pages.push(
+                    <button
+                      key={i}
+                      onClick={() => setCurrentPage(i)}
+                      className={`px-3 py-2 text-sm font-medium rounded-md ${
+                        currentPage === i
+                          ? 'bg-[#5A6F80] text-white border border-[#5A6F80]'
+                          : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      {i}
+                    </button>
+                  )
+                }
+              } else {
+                // Smart pagination with ellipsis for large numbers
+                if (currentPage <= 4) {
+                  // Show first 5 pages + ellipsis + last page
+                  for (let i = 1; i <= 5; i++) {
+                    pages.push(
+                      <button
+                        key={i}
+                        onClick={() => setCurrentPage(i)}
+                        className={`px-3 py-2 text-sm font-medium rounded-md ${
+                          currentPage === i
+                            ? 'bg-[#5A6F80] text-white border border-[#5A6F80]'
+                            : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {i}
+                      </button>
+                    )
+                  }
+                  pages.push(
+                    <span key="ellipsis1" className="px-2 py-2 text-gray-500">...</span>
+                  )
+                  pages.push(
+                    <button
+                      key={totalPages}
+                      onClick={() => setCurrentPage(totalPages)}
+                      className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                    >
+                      {totalPages}
+                    </button>
+                  )
+                } else if (currentPage >= totalPages - 3) {
+                  // Show first page + ellipsis + last 5 pages
+                  pages.push(
+                    <button
+                      key={1}
+                      onClick={() => setCurrentPage(1)}
+                      className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                    >
+                      1
+                    </button>
+                  )
+                  pages.push(
+                    <span key="ellipsis2" className="px-2 py-2 text-gray-500">...</span>
+                  )
+                  for (let i = totalPages - 4; i <= totalPages; i++) {
+                    pages.push(
+                      <button
+                        key={i}
+                        onClick={() => setCurrentPage(i)}
+                        className={`px-3 py-2 text-sm font-medium rounded-md ${
+                          currentPage === i
+                            ? 'bg-[#5A6F80] text-white border border-[#5A6F80]'
+                            : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {i}
+                      </button>
+                    )
+                  }
+                } else {
+                  // Show first page + ellipsis + current-2 to current+2 + ellipsis + last page
+                  pages.push(
+                    <button
+                      key={1}
+                      onClick={() => setCurrentPage(1)}
+                      className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                    >
+                      1
+                    </button>
+                  )
+                  pages.push(
+                    <span key="ellipsis3" className="px-2 py-2 text-gray-500">...</span>
+                  )
+                  for (let i = currentPage - 2; i <= currentPage + 2; i++) {
+                    pages.push(
+                      <button
+                        key={i}
+                        onClick={() => setCurrentPage(i)}
+                        className={`px-3 py-2 text-sm font-medium rounded-md ${
+                          currentPage === i
+                            ? 'bg-[#5A6F80] text-white border border-[#5A6F80]'
+                            : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {i}
+                      </button>
+                    )
+                  }
+                  pages.push(
+                    <span key="ellipsis4" className="px-2 py-2 text-gray-500">...</span>
+                  )
+                  pages.push(
+                    <button
+                      key={totalPages}
+                      onClick={() => setCurrentPage(totalPages)}
+                      className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                    >
+                      {totalPages}
+                    </button>
+                  )
+                }
+              }
+              
+              return pages
+            })()}
             
             <button 
               onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
               disabled={currentPage === totalPages}
-              className="px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

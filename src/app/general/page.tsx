@@ -125,7 +125,7 @@ export default function GeneralPage() {
         <h2 className="font-metropolis font-bold text-xl mb-4" style={{ color: '#0D141C' }}>
           Datos Generales
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className={`grid grid-cols-1 gap-6 ${user?.role === 'ADMIN' ? 'md:grid-cols-3' : 'md:grid-cols-2'}`}>
           <div className="bg-white border rounded-lg p-6" style={{ borderColor: '#CFDBE8' }}>
             <h3 className="font-metropolis font-regular text-text text-base mb-2">Noticias Totales</h3>
             <p className="font-metropolis font-bold text-title text-3xl">
@@ -138,12 +138,14 @@ export default function GeneralPage() {
               {loading ? '...' : error ? 'Error' : events?.total || 0}
             </p>
           </div>
-          <div className="bg-white border rounded-lg p-6" style={{ borderColor: '#CFDBE8' }}>
-            <h3 className="font-metropolis font-regular text-text text-base mb-2">Miembros Totales</h3>
-            <p className="font-metropolis font-bold text-title text-3xl">
-              {loading ? '...' : error ? 'Error' : users?.total || 0}
-            </p>
-          </div>
+          {user?.role === 'ADMIN' && (
+            <div className="bg-white border rounded-lg p-6" style={{ borderColor: '#CFDBE8' }}>
+              <h3 className="font-metropolis font-regular text-text text-base mb-2">Miembros Totales</h3>
+              <p className="font-metropolis font-bold text-title text-3xl">
+                {loading ? '...' : error ? 'Error' : users?.total || 0}
+              </p>
+            </div>
+          )}
         </div>
       </div>
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuditLogsForActividad } from '@/lib/audit'
 import { prisma } from '@/lib/prisma'
+import { getAuthenticatedUser } from '@/utils/authUtils'
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,8 +21,20 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function DELETE() {
+export async function DELETE(request: NextRequest) {
   try {
+    const user = await getAuthenticatedUser(request);
+    
+    // Check if user is authenticated
+    if (!user) {
+      return NextResponse.json({ error: 'Autenticación requerida' }, { status: 401 });
+    }
+
+    // Check if user is admin
+    if (user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Solo los administradores pueden eliminar todos los registros de auditoría' }, { status: 403 });
+    }
+
     // Delete all audit logs
     await prisma.auditLog.deleteMany({})
 

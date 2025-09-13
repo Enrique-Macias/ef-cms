@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { useAuth } from '@/contexts/AuthContext'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
+import { userCreateSchema, userUpdateSchema } from '@/lib/validations'
 
 export default function UsuariosPage() {
   const { user } = useAuth()
@@ -28,6 +29,11 @@ export default function UsuariosPage() {
   
   const toast = useToast()
 
+  // Helper function to check if user is the last admin
+  const isLastAdmin = (user: Record<string, unknown>) => {
+    return user.role === 'ADMIN' && userStats.admins <= 1
+  }
+
   // Fetch users from API
   const fetchUsers = async () => {
     setIsLoading(true)
@@ -40,7 +46,13 @@ export default function UsuariosPage() {
       if (searchText) params.append('search', searchText)
       if (roleFilter) params.append('role', roleFilter)
       
-      const response = await fetch(`/api/users?${params}`)
+      const token = localStorage.getItem('accessToken')
+      const headers: Record<string, string> = {}
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+      
+      const response = await fetch(`/api/users?${params}`, { headers })
       if (!response.ok) throw new Error('Error al obtener usuarios')
       
       const data = await response.json()
@@ -58,7 +70,13 @@ export default function UsuariosPage() {
   // Fetch user statistics
   const fetchUserStats = async () => {
     try {
-      const response = await fetch('/api/users/stats')
+      const token = localStorage.getItem('accessToken')
+      const headers: Record<string, string> = {}
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+      
+      const response = await fetch('/api/users/stats', { headers })
       if (!response.ok) throw new Error('Error al obtener estadísticas de usuarios')
       
       const stats = await response.json()
@@ -713,10 +731,30 @@ export default function UsuariosPage() {
                       role: formData.get('role') as string
                     }
 
+                    // Check if trying to change the last admin's role
+                    if (editingUser && isLastAdmin(editingUser) && updateData.role && updateData.role !== 'ADMIN') {
+                      toast.error('No se puede cambiar el rol del último administrador del sistema')
+                      return
+                    }
+
+                    // Validate data with Zod
+                    const validationResult = userUpdateSchema.safeParse(updateData)
+                    if (!validationResult.success) {
+                      const errors = validationResult.error.issues.map(err => err.message).join(', ')
+                      toast.error(`Error de validación: ${errors}`)
+                      return
+                    }
+
+                    const token = localStorage.getItem('accessToken')
+                    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+                    if (token) {
+                      headers['Authorization'] = `Bearer ${token}`
+                    }
+
                     const response = await fetch(`/api/users/${editingUser.id}`, {
                       method: 'PUT',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify(updateData)
+                      headers,
+                      body: JSON.stringify(validationResult.data)
                     })
 
                     if (!response.ok) {
@@ -828,11 +866,22 @@ export default function UsuariosPage() {
                 <label className="block text-sm font-metropolis font-medium text-[#0D141C] mb-2">
                   Rol
                 </label>
-                <select name="role" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent">
+                <select 
+                  name="role" 
+                  disabled={editingUser ? isLastAdmin(editingUser) : false}
+                  className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] focus:border-transparent ${
+                    editingUser && isLastAdmin(editingUser) ? 'bg-gray-100 cursor-not-allowed opacity-60' : ''
+                  }`}
+                >
                   <option value="">Seleccionar rol</option>
                   <option value="ADMIN">Admin</option>
                   <option value="EDITOR">Editor</option>
                 </select>
+                {editingUser && isLastAdmin(editingUser) && (
+                  <p className="mt-1 text-xs text-red-600">
+                    No se puede cambiar el rol del último administrador
+                  </p>
+                )}
               </div>
             </form>
 
@@ -856,10 +905,24 @@ export default function UsuariosPage() {
                       role: formData.get('role') as string
                     }
 
+                    // Validate data with Zod
+                    const validationResult = userCreateSchema.safeParse(userData)
+                    if (!validationResult.success) {
+                      const errors = validationResult.error.issues.map(err => err.message).join(', ')
+                      toast.error(`Error de validación: ${errors}`)
+                      return
+                    }
+
+                    const token = localStorage.getItem('accessToken')
+                    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+                    if (token) {
+                      headers['Authorization'] = `Bearer ${token}`
+                    }
+
                     const response = await fetch('/api/users', {
                       method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify(userData)
+                      headers,
+                      body: JSON.stringify(validationResult.data)
                     })
 
                     if (!response.ok) {
@@ -953,9 +1016,23 @@ export default function UsuariosPage() {
                 onClick={async () => {
                   setIsDeleting(true)
                   try {
+                    // Check if trying to delete the last admin
+                    if (isLastAdmin(deletingUser)) {
+                      toast.error('No se puede eliminar el último administrador del sistema')
+                      setIsDeleteModalOpen(false)
+                      setDeletingUser(null)
+                      return
+                    }
+
+                    const token = localStorage.getItem('accessToken')
+                    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+                    if (token) {
+                      headers['Authorization'] = `Bearer ${token}`
+                    }
+
                     const response = await fetch(`/api/users/${deletingUser.id}`, {
                       method: 'DELETE',
-                      headers: { 'Content-Type': 'application/json' }
+                      headers
                     })
 
                     if (!response.ok) {

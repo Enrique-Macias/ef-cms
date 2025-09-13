@@ -8,7 +8,9 @@ export const userCreateSchema = z.object({
   role: z.enum(['ADMIN', 'EDITOR']).default('EDITOR'),
 });
 
-export const userUpdateSchema = userCreateSchema.partial().omit({ password: true });
+export const userUpdateSchema = userCreateSchema.partial().omit({ password: true }).extend({
+  avatarUrl: z.string().optional(),
+});
 
 export const userLoginSchema = z.object({
   email: z.string().email('Invalid email address'),
