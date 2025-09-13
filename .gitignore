@@ -44,3 +44,10 @@ next-env.d.ts
 
 # prisma migrations
 prisma/migrations/
+
+# Email testing
+/src/app/api/test-email/
+
+# Temporary files
+*.tmp
+*.temp
