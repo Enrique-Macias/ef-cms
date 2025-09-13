@@ -1,6 +1,6 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 export const sendEmailViaResend = async (
   to: string,
@@ -8,6 +8,11 @@ export const sendEmailViaResend = async (
   html: string
 ): Promise<boolean> => {
   try {
+    if (!resend) {
+      console.log('Resend not initialized - no API key provided');
+      return false;
+    }
+
     const { data, error } = await resend.emails.send({
       from: process.env.SMTP_FROM || 'noreply@resend.dev',
       to: [to],
