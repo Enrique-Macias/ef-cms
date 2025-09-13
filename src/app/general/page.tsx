@@ -60,7 +60,7 @@ export default function GeneralPage() {
 
 
   return (
-    <div className="p-6">
+    <div className="p-6 pt-20 md:pt-6">
       {/* Breadcrumbs */}
       <div className="mb-6">
         <nav className="text-base font-metropolis font-regular" style={{ color: '#4A739C' }}>
@@ -155,7 +155,8 @@ export default function GeneralPage() {
           Actividad Reciente
         </h2>
         <div className="bg-white border rounded-lg overflow-hidden" style={{ borderColor: '#CFDBE8' }}>
-          <table className="min-w-full divide-y" style={{ borderColor: '#CFDBE8' }}>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y" style={{ borderColor: '#CFDBE8' }}>
             <thead className="bg-stroke/20">
               <tr>
                 <th className="px-6 py-3 text-left text-sm font-metropolis font-regular" style={{ color: '#0D141C' }}>
@@ -213,6 +214,7 @@ export default function GeneralPage() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
     </div>

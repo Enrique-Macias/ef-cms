@@ -259,7 +259,7 @@ export default function ConfiguracionPage() {
   }
 
   return (
-    <div>
+    <div className="pt-20 md:pt-0">
       {/* Gradient Banner */}
       <div className="h-42 bg-gradient-to-r from-[#F7FAFC] to-[#5A6F80] relative">
         {/* Breadcrumbs - Overlapping the banner */}
@@ -273,7 +273,7 @@ export default function ConfiguracionPage() {
       </div>
 
       {/* Main Content */}
-      <div className="px-6 -mt-8 relative z-10">
+      <div className="px-6 -mt-8 relative z-10 pb-20 md:pb-6">
 
         {/* Profile Overview and Form Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 -mt-16">
@@ -313,11 +313,11 @@ export default function ConfiguracionPage() {
             </div>
 
             {/* Personal Information Section Header */}
-            <div className="mb-6 pl-6">
-              <h2 className="font-metropolis font-bold text-base mb-2" style={{ color: '#0D141C' }}>
+            <div className="mb-2 md:mb-6 pl-6">
+              <h2 className="font-metropolis font-bold text-base mb-1" style={{ color: '#0D141C' }}>
                 Información Personal
               </h2>
-              <p className="font-metropolis font-regular text-sm" style={{ color: '#4A739C' }}>
+              <p className="font-metropolis font-regular text-sm mb-0" style={{ color: '#4A739C' }}>
                 Puedes cambiar tu información personal aquí.
               </p>
             </div>
@@ -326,7 +326,7 @@ export default function ConfiguracionPage() {
           {/* Right Column - Editable Form */}
           <div className="lg:col-span-2">
 
-            <div className="bg-white border rounded-lg p-6 shadow-lg mt-60" style={{ borderColor: '#CFDBE8' }}>
+            <div className="bg-white border rounded-lg p-6 shadow-lg mt-8 md:mt-60" style={{ borderColor: '#CFDBE8' }}>
               <div className="space-y-6">
                 {/* First Row - Name and Email */}
                 <div className="grid grid-cols-2 gap-4">

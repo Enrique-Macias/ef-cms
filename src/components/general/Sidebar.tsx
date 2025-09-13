@@ -102,9 +102,9 @@ export function Sidebar() {
         </button>
       </div>
 
-      {/* Mobile sidebar overlay */}
+      {/* Mobile sidebar overlay - removed black background */}
       {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-40 bg-black bg-opacity-50" onClick={() => setMobileMenuOpen(false)} />
+        <div className="md:hidden fixed inset-0 z-40" onClick={() => setMobileMenuOpen(false)} />
       )}
 
       {/* Sidebar */}
@@ -214,6 +214,7 @@ export function Sidebar() {
                             : 'hover:bg-[#E8EDF5]'
                         }`}
                         style={{ color: '#0D141C' }}
+                        onClick={() => setMobileMenuOpen(false)}
                       >
                         {(isActive || hasActiveSubmenu) && item.iconSolid ? (
                           <item.iconSolid
@@ -247,6 +248,7 @@ export function Sidebar() {
                                   : 'hover:bg-[#E8EDF5]'
                               }`}
                               style={{ color: isSubActive ? '#FFFDF6' : '#0D141C' }}
+                              onClick={() => setMobileMenuOpen(false)}
                             >
                               {isSubActive && subItem.iconSolid ? (
                                 <subItem.iconSolid

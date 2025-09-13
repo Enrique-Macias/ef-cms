@@ -146,7 +146,7 @@ export default function TestimoniosPage() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 pt-20 md:pt-6">
       {/* Breadcrumbs */}
       <div className="mb-6">
         <nav className="text-base font-metropolis font-regular" style={{ color: '#4A739C' }}>
