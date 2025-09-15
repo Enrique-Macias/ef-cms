@@ -16,8 +16,16 @@ app.use(helmet());
 
 // CORS configuration
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: [
+    'http://localhost:3000', // CMS development
+    'http://localhost:3001', // Alternative local port
+    'https://escalando-fronteras-website.vercel.app', // Your Vercel deployment
+    'https://escalando-fronteras-website.vercel.app/index.html', // Your Vercel deployment
+    process.env.FRONTEND_URL || 'http://localhost:3000'
+  ],
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'X-Requested-With'],
 }));
 
 // Rate limiting
