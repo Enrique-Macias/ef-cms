@@ -488,11 +488,11 @@ export default function EditarEquipoPage() {
                     <button
                       type="button"
                       onClick={() => {
-                        // Create a synthetic event to remove the image
-                        const syntheticEvent = {
-                          target: { files: null }
-                        } as React.ChangeEvent<HTMLInputElement>
-                        handleImageUpload(syntheticEvent)
+                        if (isEnglishMode) {
+                          setFormDataEnglish(prev => ({ ...prev, image: null }))
+                        } else {
+                          setFormData(prev => ({ ...prev, image: null }))
+                        }
                       }}
                       className="text-sm text-red-600 hover:text-red-800 font-metropolis font-medium"
                     >
