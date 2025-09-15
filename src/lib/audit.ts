@@ -152,7 +152,12 @@ export const getAuditLogsForActividad = async (page: number = 1, limit: number =
           type: getResourceTypeInSpanish(log.resource),
           action: getActionInSpanish(log.action),
           author: log.user?.fullName || 'Sistema',
-          date: log.createdAt.toISOString().split('T')[0],
+          date: log.createdAt.toLocaleDateString('es-ES', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            timeZone: 'America/Mexico_City'
+          }),
           createdAt: log.createdAt,
         };
       }),
