@@ -53,10 +53,9 @@ import authRoutes from './routes/auth';
 
 // API routes
 app.use('/api/auth', authRoutes);
-// app.use('/api/users', userRoutes);
-// app.use('/api/events', eventRoutes);
-// app.use('/api/news', newsRoutes);
-// app.use('/api/testimonials', testimonialRoutes);
+
+// Note: Other API routes are handled by Next.js API routes in /src/app/api/
+// The Express server is mainly for authentication and middleware
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response) => {
