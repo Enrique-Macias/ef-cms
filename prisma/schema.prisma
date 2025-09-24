@@ -142,6 +142,17 @@ model Article {
   @@map("article")
 }
 
+model Sponsor {
+  id        String   @id @default(uuid())
+  name      String
+  imageUrl  String
+  linkUrl   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("sponsor")
+}
+
 model AuditLog {
   id        Int      @id @default(autoincrement())
   userId    Int?
