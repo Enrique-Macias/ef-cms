@@ -21,7 +21,8 @@ import {
   ChatBubbleLeftRightIcon,
   UserGroupIcon,
   DocumentTextIcon,
-  BuildingOfficeIcon
+  BuildingOfficeIcon,
+  HeartIcon
 } from '@heroicons/react/24/outline'
 import {
   HomeIcon as HomeIconSolid,
@@ -34,7 +35,8 @@ import {
   ChatBubbleLeftRightIcon as ChatBubbleLeftRightIconSolid,
   UserGroupIcon as UserGroupIconSolid,
   DocumentTextIcon as DocumentTextIconSolid,
-  BuildingOfficeIcon as BuildingOfficeIconSolid
+  BuildingOfficeIcon as BuildingOfficeIconSolid,
+  HeartIcon as HeartIconSolid
 } from '@heroicons/react/24/solid'
 
 interface NavigationItem {
@@ -62,6 +64,7 @@ const navigation: NavigationItem[] = [
       { name: 'Equipo', href: '/general/gestion/equipo', icon: UserGroupIcon, iconSolid: UserGroupIconSolid },
       { name: 'Artículos', href: '/general/gestion/articulos', icon: DocumentTextIcon, iconSolid: DocumentTextIconSolid },
       { name: 'Patrocinadores', href: '/general/gestion/patrocinadores', icon: BuildingOfficeIcon, iconSolid: BuildingOfficeIconSolid },
+      { name: 'Apoyo', href: '/general/gestion/apoyo', icon: HeartIcon, iconSolid: HeartIconSolid },
     ]
   },
   { name: 'Usuarios', href: '/general/usuarios', icon: UsersIcon, iconSolid: UsersIconSolid, adminOnly: true },

@@ -175,6 +175,18 @@ model PasswordResetToken {
   @@map("password_reset_token")
 }
 
+model Apoyo {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  widgetCode  String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("apoyo")
+}
+
 enum Role {
   ADMIN
   EDITOR

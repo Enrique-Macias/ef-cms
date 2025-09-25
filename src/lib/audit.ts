@@ -46,6 +46,7 @@ export const auditResources = {
   TESTIMONIALS: 'testimonials',
   TEAM: 'team',
   ARTICLES: 'articles',
+  APOYO: 'apoyo',
 };
 
 // Convenience functions for common operations
@@ -94,6 +95,8 @@ export const getResourceTypeInSpanish = (resource: string): string => {
       return 'Equipo';
     case 'articles':
       return 'Artículo';
+    case 'apoyo':
+      return 'Apoyo';
     default:
       return resource;
   }
@@ -142,6 +145,8 @@ export const getAuditLogsForActividad = async (page: number = 1, limit: number =
           title = changes?.name || 'Sin título';
         } else if (log.resource === 'testimonials') {
           title = changes?.author || 'Sin título';
+        } else if (log.resource === 'apoyo') {
+          title = changes?.title || 'Sin título';
         } else {
           title = changes?.title || changes?.title_es || 'Sin título';
         }
