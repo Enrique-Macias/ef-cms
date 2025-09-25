@@ -31,14 +31,14 @@ export const auditActions = {
   DELETE: 'DELETE',
   LOGIN: 'LOGIN',
   LOGOUT: 'LOGOUT',
-  PASSWORD_CHANGE: 'PASSWORD_CHANGE',
+  PASSWORD_CHANGE: 'Cambio de contraseña',
   PASSWORD_RESET: 'PASSWORD_RESET',
   ACCOUNT_DEACTIVATED: 'ACCOUNT_DEACTIVATED',
   ROLE_CHANGED: 'ROLE_CHANGED',
 };
 
 export const auditResources = {
-  USERS: 'users',
+  USERS: 'Usuarios',
   EVENTS: 'events',
   EVENT_IMAGES: 'event_images',
   NEWS: 'news',
@@ -47,6 +47,7 @@ export const auditResources = {
   TEAM: 'team',
   ARTICLES: 'articles',
   APOYO: 'apoyo',
+  SPONSORS: 'sponsors',
 };
 
 // Convenience functions for common operations
@@ -97,8 +98,32 @@ export const getResourceTypeInSpanish = (resource: string): string => {
       return 'Artículo';
     case 'apoyo':
       return 'Apoyo';
+    case 'sponsors':
+      return 'Patrocinador';
     default:
       return resource;
+  }
+};
+
+// Helper function to convert Spanish resource type back to English database value
+export const getResourceTypeFromSpanish = (spanishType: string): string => {
+  switch (spanishType) {
+    case 'Noticia':
+      return 'news';
+    case 'Evento':
+      return 'events';
+    case 'Testimonio':
+      return 'testimonials';
+    case 'Equipo':
+      return 'team';
+    case 'Artículo':
+      return 'articles';
+    case 'Apoyo':
+      return 'apoyo';
+    case 'Patrocinador':
+      return 'sponsors';
+    default:
+      return spanishType.toLowerCase();
   }
 };
 
@@ -117,11 +142,64 @@ export const getActionInSpanish = (action: string): string => {
 };
 
 // Function to get audit logs for actividad page
-export const getAuditLogsForActividad = async (page: number = 1, limit: number = 10) => {
+export const getAuditLogsForActividad = async (
+  page: number = 1, 
+  limit: number = 10, 
+  search: string = '', 
+  typeFilter: string = '', 
+  dateFilter: string = ''
+) => {
   try {
     const skip = (page - 1) * limit;
     
+    // Build where clause for filtering
+    const whereClause: any = {};
+    
+    // Add search filter (search in title or author)
+    if (search) {
+      whereClause.OR = [
+        {
+          user: {
+            fullName: {
+              contains: search,
+              mode: 'insensitive'
+            }
+          }
+        }
+      ];
+    }
+    
+    // Add type filter
+    if (typeFilter) {
+      whereClause.resource = getResourceTypeFromSpanish(typeFilter);
+    }
+    
+    // Add date filter
+    if (dateFilter) {
+      const now = new Date();
+      let startDate: Date;
+      
+      switch (dateFilter) {
+        case 'today':
+          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          break;
+        case 'week':
+          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          break;
+        case 'month':
+          startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          break;
+        default:
+          startDate = new Date(0); // All time
+      }
+      
+      whereClause.createdAt = {
+        gte: startDate
+      };
+    }
+    
     const auditLogs = await prisma.auditLog.findMany({
+      where: whereClause,
       skip,
       take: limit,
       orderBy: { createdAt: 'desc' },
@@ -134,7 +212,9 @@ export const getAuditLogsForActividad = async (page: number = 1, limit: number =
       },
     });
 
-    const total = await prisma.auditLog.count();
+    const total = await prisma.auditLog.count({
+      where: whereClause
+    });
 
     return {
       auditLogs: auditLogs.map(log => {
@@ -147,6 +227,8 @@ export const getAuditLogsForActividad = async (page: number = 1, limit: number =
           title = changes?.author || 'Sin título';
         } else if (log.resource === 'apoyo') {
           title = changes?.title || 'Sin título';
+        } else if (log.resource === 'sponsors') {
+          title = changes?.name || 'Sin título';
         } else {
           title = changes?.title || changes?.title_es || 'Sin título';
         }

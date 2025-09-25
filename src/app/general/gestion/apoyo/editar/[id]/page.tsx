@@ -5,7 +5,6 @@ import { useState, useEffect } from 'react'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
 import { useApoyoForm } from '@/hooks/useApoyoForm'
-import { GoFundMeWidgetPreview } from '@/components/ui/GoFundMeWidgetPreview'
 
 interface AgregarApoyoPageProps {
   params: Promise<{
@@ -54,7 +53,7 @@ export default function EditarApoyoPage({ params }: AgregarApoyoPageProps) {
     }
 
     fetchApoyo()
-  }, [params, router, toast, updateFormData])
+  }, [])
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
@@ -118,14 +117,57 @@ export default function EditarApoyoPage({ params }: AgregarApoyoPageProps) {
         </nav>
       </div>
 
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="font-metropolis font-bold text-3xl mb-2" style={{ color: '#0D141C' }}>
-          Editar Elemento de Apoyo
-        </h1>
-        <p className="font-metropolis font-regular text-lg" style={{ color: '#4A739C' }}>
-          Modifica el widget de GoFundMe existente
-        </p>
+      {/* Header Section */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8">
+        <div>
+          <h1 className="font-metropolis font-bold text-3xl mb-2" style={{ color: '#0D141C' }}>
+            Editar Elemento de Apoyo
+          </h1>
+          <p className="font-metropolis font-regular text-lg" style={{ color: '#4A739C' }}>
+            Modifica el widget de GoFundMe existente
+          </p>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex space-x-3 mt-4 lg:mt-0">
+          {/* Delete Button */}
+          <button
+            onClick={() => {
+              if (confirm('¿Estás seguro de que quieres eliminar este elemento de apoyo?')) {
+                // Handle delete - you can implement this if needed
+                console.log('Delete functionality not implemented yet')
+              }
+            }}
+            className="inline-flex items-center px-4 py-3 border border-red-300 rounded-md shadow-sm text-sm font-medium text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200"
+          >
+            <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            Eliminar
+          </button>
+
+          {/* Update Button */}
+          <button
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            className="inline-flex items-center px-6 py-3 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 hover:bg-[#4A739C] disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ backgroundColor: '#5A6F80', '--tw-ring-color': '#5A6F80' } as React.CSSProperties}
+          >
+            {isSubmitting ? (
+              <div className="flex items-center space-x-2">
+                <Spinner size="sm" />
+                <span>Actualizando...</span>
+              </div>
+            ) : (
+              <>
+                <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                Actualizar Elemento
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Form */}
@@ -205,53 +247,6 @@ export default function EditarApoyoPage({ params }: AgregarApoyoPageProps) {
             </label>
           </div>
 
-          {/* Preview Section */}
-          {formData.widgetCode && (
-            <div className="border-t pt-6">
-              <h3 className="text-lg font-metropolis font-semibold mb-4" style={{ color: '#0D141C' }}>
-                Vista Previa del Widget
-              </h3>
-              <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                <GoFundMeWidgetPreview widgetCode={formData.widgetCode} />
-              </div>
-              <p className="mt-2 text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
-                Esta es una vista previa de cómo se verá el widget en la página principal.
-              </p>
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="flex justify-end space-x-4 pt-6 border-t">
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-metropolis font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5A6F80]"
-            >
-              Cancelar
-            </button>
-            <button
-              type="button"
-              onClick={() => router.push('/general/gestion/apoyo')}
-              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-metropolis font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5A6F80]"
-            >
-              Volver a Lista
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="inline-flex items-center px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-metropolis font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 hover:bg-[#4A739C] disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ backgroundColor: '#5A6F80', '--tw-ring-color': '#5A6F80' } as React.CSSProperties}
-            >
-              {isSubmitting ? (
-                <>
-                  <Spinner className="mr-2 h-4 w-4" />
-                  Actualizando...
-                </>
-              ) : (
-                'Actualizar Elemento de Apoyo'
-              )}
-            </button>
-          </div>
         </form>
       </div>
     </div>

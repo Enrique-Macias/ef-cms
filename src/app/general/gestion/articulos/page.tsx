@@ -113,11 +113,8 @@ export default function ArticulosPage() {
 
   // Handle search changes
   const handleSearch = (text: string) => {
-    setIsLoading(true)
     setSearchTerm(text)
     setCurrentPage(1)
-    // Simulate API call delay
-    setTimeout(() => setIsLoading(false), 500)
   }
 
   // Change page
@@ -133,7 +130,7 @@ export default function ArticulosPage() {
     })
   }
 
-  if (isLoading) {
+  if (isInitialLoading) {
     return (
       <div className="p-6">
         <div className="flex items-center justify-center py-12">
@@ -289,7 +286,7 @@ export default function ArticulosPage() {
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
               <Spinner size="lg" />
-              <p className="mt-4 text-[#4A739C] font-metropolis font-regular">Buscando artículos...</p>
+              <p className="mt-4 text-[#4A739C] font-metropolis font-regular">Filtrando artículos...</p>
             </div>
           </div>
         ) : filteredArticles.length === 0 ? (

@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
 import Image from 'next/image'
+import { Eye, EyeOff } from 'lucide-react'
 
 export default function ConfiguracionPage() {
   const { user, updateUser } = useAuth()
@@ -12,6 +13,18 @@ export default function ConfiguracionPage() {
   const [isDeletingAvatar, setIsDeletingAvatar] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
   const [showAvatarModal, setShowAvatarModal] = useState(false)
+  
+  // Password change states
+  const [showPasswordChange, setShowPasswordChange] = useState(false)
+  const [isChangingPassword, setIsChangingPassword] = useState(false)
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  })
   
   const toast = useToast()
 
@@ -249,6 +262,68 @@ export default function ConfiguracionPage() {
     setShowAvatarModal(false)
   }
 
+  // Password change handlers
+  const handlePasswordChange = (field: string, value: string) => {
+    setPasswordData(prev => ({ ...prev, [field]: value }))
+  }
+
+  const handleChangePassword = async () => {
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error('Las contraseñas nuevas no coinciden')
+      return
+    }
+
+    if (passwordData.newPassword.length < 8) {
+      toast.error('La nueva contraseña debe tener al menos 8 caracteres')
+      return
+    }
+
+    setIsChangingPassword(true)
+
+    try {
+      const token = localStorage.getItem('accessToken')
+      const response = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword
+        })
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        toast.success(data.message)
+        setShowPasswordChange(false)
+        setPasswordData({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        })
+      } else {
+        toast.error(data.error || 'Error al cambiar la contraseña')
+      }
+    } catch (error) {
+      console.error('Change password error:', error)
+      toast.error('Error de conexión al cambiar contraseña')
+    } finally {
+      setIsChangingPassword(false)
+    }
+  }
+
+  const handleCancelPasswordChange = () => {
+    setShowPasswordChange(false)
+    setPasswordData({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    })
+  }
+
   // Show loading state if user is not loaded
   if (!user) {
     return (
@@ -374,7 +449,7 @@ export default function ConfiguracionPage() {
 
                 {/* Second Row - Password and Role */}
                 <div className="grid grid-cols-2 gap-4">
-                  {/* Password Field - Read Only */}
+                  {/* Password Field */}
                   <div>
                     <label className="block text-sm font-metropolis font-medium text-[#0D141C] mb-2">
                       Contraseña
@@ -391,6 +466,12 @@ export default function ConfiguracionPage() {
                         disabled
                         className="w-full pl-10 pr-3 py-2 border border-gray-200 bg-gray-50 text-gray-500 rounded-md cursor-not-allowed"
                       />
+                      <button
+                        onClick={() => setShowPasswordChange(true)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-metropolis font-medium text-[#5A6F80] hover:text-[#4A739C] transition-colors"
+                      >
+                        Cambiar
+                      </button>
                     </div>
                   </div>
 
@@ -409,6 +490,133 @@ export default function ConfiguracionPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Password Change Form */}
+                {showPasswordChange && (
+                  <div className="border-t border-gray-200 pt-6">
+                    <h3 className="text-lg font-metropolis font-semibold text-[#0D141C] mb-4">
+                      Cambiar Contraseña
+                    </h3>
+                    <div className="space-y-4">
+                      {/* Current Password */}
+                      <div>
+                        <label className="block text-sm font-metropolis font-medium text-[#0D141C] mb-2">
+                          Contraseña Actual
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                          </div>
+                          <input
+                            type={showCurrentPassword ? 'text' : 'password'}
+                            value={passwordData.currentPassword}
+                            onChange={(e) => handlePasswordChange('currentPassword', e.target.value)}
+                            className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] transition-colors"
+                            placeholder="Ingresa tu contraseña actual"
+                            disabled={isChangingPassword}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                            disabled={isChangingPassword}
+                          >
+                            {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* New Password */}
+                      <div>
+                        <label className="block text-sm font-metropolis font-medium text-[#0D141C] mb-2">
+                          Nueva Contraseña
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                          </div>
+                          <input
+                            type={showNewPassword ? 'text' : 'password'}
+                            value={passwordData.newPassword}
+                            onChange={(e) => handlePasswordChange('newPassword', e.target.value)}
+                            className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] transition-colors"
+                            placeholder="Ingresa tu nueva contraseña"
+                            disabled={isChangingPassword}
+                            minLength={8}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowNewPassword(!showNewPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                            disabled={isChangingPassword}
+                          >
+                            {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Confirm New Password */}
+                      <div>
+                        <label className="block text-sm font-metropolis font-medium text-[#0D141C] mb-2">
+                          Confirmar Nueva Contraseña
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                          </div>
+                          <input
+                            type={showConfirmPassword ? 'text' : 'password'}
+                            value={passwordData.confirmPassword}
+                            onChange={(e) => handlePasswordChange('confirmPassword', e.target.value)}
+                            className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5A6F80] transition-colors"
+                            placeholder="Confirma tu nueva contraseña"
+                            disabled={isChangingPassword}
+                            minLength={8}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                            disabled={isChangingPassword}
+                          >
+                            {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Password Change Actions */}
+                      <div className="flex justify-end space-x-3 pt-4">
+                        <button
+                          onClick={handleCancelPasswordChange}
+                          disabled={isChangingPassword}
+                          className="px-4 py-2 text-sm font-metropolis font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5A6F80] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          onClick={handleChangePassword}
+                          disabled={isChangingPassword || !passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword}
+                          className="px-4 py-2 text-sm font-metropolis font-medium text-white bg-[#5A6F80] border border-transparent rounded-md hover:bg-[#4A739C] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5A6F80] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {isChangingPassword ? (
+                            <div className="flex items-center space-x-2">
+                              <Spinner size="sm" />
+                              <span>Cambiando...</span>
+                            </div>
+                          ) : (
+                            'Cambiar Contraseña'
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Avatar Management */}
                 <div>
@@ -443,8 +651,6 @@ export default function ConfiguracionPage() {
                 </div>
               </div>
             </div>
-
-            {/* Action Buttons */}
             {hasChanges && (
               <>
                 {/* Divider */}

@@ -45,7 +45,17 @@ export default function ActividadPage() {
       setLoading(true)
       setError(null)
       
-      const response = await fetch(`/api/audit-logs?page=${page}&limit=${itemsPerPage}`)
+      // Build query parameters
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: itemsPerPage.toString()
+      })
+      
+      if (searchText) params.append('search', searchText)
+      if (typeFilter) params.append('type', typeFilter)
+      if (dateFilter) params.append('date', dateFilter)
+      
+      const response = await fetch(`/api/audit-logs?${params}`)
       
       if (!response.ok) {
         throw new Error('Error al obtener registros')
@@ -75,10 +85,10 @@ export default function ActividadPage() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [isFilterMenuOpen])
 
-  // Fetch audit logs on component mount and when page changes
+  // Fetch audit logs on component mount and when page or filters change
   useEffect(() => {
     fetchAuditLogs(currentPage)
-  }, [currentPage])
+  }, [currentPage, searchText, typeFilter, dateFilter])
 
   // Auto-refresh audit logs every 30 seconds when page is visible
   useEffect(() => {
@@ -101,54 +111,20 @@ export default function ActividadPage() {
     return () => window.removeEventListener('auditLogsUpdated', handleAuditRefresh)
   }, [currentPage])
 
-  // Filter audit logs based on search and filters
-  const filteredActivity = auditLogs.filter(item => {
-    const matchesSearch = !searchText || 
-      item.title.toLowerCase().includes(searchText.toLowerCase()) ||
-      item.author.toLowerCase().includes(searchText.toLowerCase())
-    
-    const matchesType = !typeFilter || item.type === typeFilter
-    
-    let matchesDate = true
-    if (dateFilter) {
-      const itemDate = new Date(item.createdAt)
-      const today = new Date()
-      
-      switch (dateFilter) {
-        case 'today':
-          matchesDate = itemDate.toDateString() === today.toDateString()
-          break
-        case 'week':
-          const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
-          matchesDate = itemDate >= weekAgo
-          break
-        case 'month':
-          const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000)
-          matchesDate = itemDate >= monthAgo
-          break
-      }
-    }
-    
-    return matchesSearch && matchesType && matchesDate
-  })
-
   // Search and filter functions with pagination reset
   const handleSearch = (text: string) => {
     setSearchText(text)
     setCurrentPage(1)
-    fetchAuditLogs(1)
   }
 
   const handleTypeFilter = (type: string | null) => {
     setTypeFilter(type)
     setCurrentPage(1)
-    fetchAuditLogs(1)
   }
 
   const handleDateFilter = (date: string | null) => {
     setDateFilter(date)
     setCurrentPage(1)
-    fetchAuditLogs(1)
   }
 
   const clearAllFilters = () => {
@@ -156,7 +132,6 @@ export default function ActividadPage() {
     setTypeFilter(null)
     setDateFilter(null)
     setCurrentPage(1)
-    fetchAuditLogs(1)
   }
 
   // Delete all audit logs
@@ -300,6 +275,30 @@ export default function ActividadPage() {
                         >
                           Equipo
                         </button>
+                        <button
+                          className={`block w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${
+                            typeFilter === 'Artículo' ? 'bg-[#E8EDF5] text-[#0D141C]' : 'text-gray-700 hover:bg-gray-100'
+                          }`}
+                          onClick={() => handleTypeFilter('Artículo')}
+                        >
+                          Artículo
+                        </button>
+                        <button
+                          className={`block w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${
+                            typeFilter === 'Apoyo' ? 'bg-[#E8EDF5] text-[#0D141C]' : 'text-gray-700 hover:bg-gray-100'
+                          }`}
+                          onClick={() => handleTypeFilter('Apoyo')}
+                        >
+                          Apoyo
+                        </button>
+                        <button
+                          className={`block w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${
+                            typeFilter === 'Patrocinador' ? 'bg-[#E8EDF5] text-[#0D141C]' : 'text-gray-700 hover:bg-gray-100'
+                          }`}
+                          onClick={() => handleTypeFilter('Patrocinador')}
+                        >
+                          Patrocinador
+                        </button>
                       </div>
                     </div>
 
@@ -429,14 +428,14 @@ export default function ActividadPage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y" style={{ borderColor: '#CFDBE8' }}>
-              {filteredActivity.length === 0 ? (
+              {auditLogs.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-8 text-center text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
                     No se encontraron registros de actividad
                   </td>
                 </tr>
               ) : (
-                filteredActivity.map((item) => (
+                auditLogs.map((item) => (
                   <tr key={item.id}>
                     <td className="px-6 py-4 whitespace-nowrap text-base font-metropolis font-regular" style={{ color: '#0D141C' }}>
                       {item.title}

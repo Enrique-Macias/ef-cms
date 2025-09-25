@@ -8,8 +8,11 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '10')
+    const search = searchParams.get('search') || ''
+    const typeFilter = searchParams.get('type') || ''
+    const dateFilter = searchParams.get('date') || ''
 
-    const result = await getAuditLogsForActividad(page, limit)
+    const result = await getAuditLogsForActividad(page, limit, search, typeFilter, dateFilter)
 
     return NextResponse.json(result)
   } catch (error) {

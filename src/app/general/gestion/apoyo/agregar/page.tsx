@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/useToast'
 import { useApoyoForm } from '@/hooks/useApoyoForm'
-import { GoFundMeWidgetPreview } from '@/components/ui/GoFundMeWidgetPreview'
 
 export default function AgregarApoyoPage() {
   const router = useRouter()
@@ -158,20 +157,6 @@ export default function AgregarApoyoPage() {
             </label>
           </div>
 
-          {/* Preview Section */}
-          {formData.widgetCode && (
-            <div className="border-t pt-6">
-              <h3 className="text-lg font-metropolis font-semibold mb-4" style={{ color: '#0D141C' }}>
-                Vista Previa del Widget
-              </h3>
-              <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                <GoFundMeWidgetPreview widgetCode={formData.widgetCode} />
-              </div>
-              <p className="mt-2 text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
-                Esta es una vista previa de cómo se verá el widget en la página principal.
-              </p>
-            </div>
-          )}
 
           {/* Action Buttons */}
           <div className="flex justify-end space-x-4 pt-6 border-t">

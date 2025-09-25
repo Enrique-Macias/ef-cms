@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAllSponsors, createSponsor, getSponsorStats } from '@/lib/sponsorService'
 import { getAuthenticatedUser } from '@/utils/authUtils'
+import { createAuditLog, auditActions, auditResources } from '@/lib/audit'
 
 export async function GET(request: NextRequest) {
   try {
@@ -55,6 +56,17 @@ export async function POST(request: NextRequest) {
       name: name.trim(),
       imageUrl,
       linkUrl
+    })
+
+    // Create audit log
+    await createAuditLog({
+      userId: user.userId,
+      resource: auditResources.SPONSORS,
+      action: auditActions.CREATE,
+      changes: {
+        name: sponsor.name,
+        sponsorId: sponsor.id
+      }
     })
 
     return NextResponse.json(sponsor, { status: 201 })

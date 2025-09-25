@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 
 export interface ApoyoFormData {
   title: string
@@ -45,7 +45,7 @@ export const useApoyoForm = () => {
     setErrors({})
   }
 
-  const updateFormData = (updates: Partial<ApoyoFormData>) => {
+  const updateFormData = useCallback((updates: Partial<ApoyoFormData>) => {
     setFormData(prev => ({ ...prev, ...updates }))
     // Clear errors for updated fields
     if (updates.title !== undefined) {
@@ -54,7 +54,7 @@ export const useApoyoForm = () => {
     if (updates.widgetCode !== undefined) {
       setErrors(prev => ({ ...prev, widgetCode: undefined }))
     }
-  }
+  }, [])
 
   return {
     formData,
