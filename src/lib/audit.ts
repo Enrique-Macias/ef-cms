@@ -45,6 +45,7 @@ export const auditResources = {
   NEWS_IMAGES: 'news_images',
   TESTIMONIALS: 'testimonials',
   TEAM: 'team',
+  FUNDADORES: 'fundadores',
   ARTICLES: 'articles',
   APOYO: 'apoyo',
   SPONSORS: 'sponsors',
@@ -94,6 +95,8 @@ export const getResourceTypeInSpanish = (resource: string): string => {
       return 'Testimonio';
     case 'team':
       return 'Equipo';
+    case 'fundadores':
+      return 'Fundador';
     case 'articles':
       return 'Artículo';
     case 'apoyo':
@@ -116,6 +119,8 @@ export const getResourceTypeFromSpanish = (spanishType: string): string => {
       return 'testimonials';
     case 'Equipo':
       return 'team';
+    case 'Fundador':
+      return 'fundadores';
     case 'Artículo':
       return 'articles';
     case 'Apoyo':
@@ -225,6 +230,8 @@ export const getAuditLogsForActividad = async (
           title = changes?.name || 'Sin título';
         } else if (log.resource === 'testimonials') {
           title = changes?.author || 'Sin título';
+        } else if (log.resource === 'fundadores') {
+          title = changes?.name || 'Sin título';
         } else if (log.resource === 'apoyo') {
           title = changes?.title || 'Sin título';
         } else if (log.resource === 'sponsors') {
