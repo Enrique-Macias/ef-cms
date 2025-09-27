@@ -225,7 +225,7 @@ export default function NoticiasPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {news.map((item: Record<string, unknown>) => (
               <Link key={String(item.id)} href={`/general/gestion/noticias/ver/${item.id}`}>
-                <div className="bg-white border rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow cursor-pointer" style={{ borderColor: '#CFDBE8' }}>
+                <div className="bg-white border rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow cursor-pointer h-full flex flex-col" style={{ borderColor: '#CFDBE8' }}>
                   {/* News Image */}
                   <div className="relative">
                     <Image
@@ -238,16 +238,16 @@ export default function NoticiasPage() {
                   </div>
                   
                   {/* News Content */}
-                  <div className="p-4">
-                    <h3 className="font-metropolis font-bold text-lg mb-2" style={{ color: '#0D141C' }}>
+                  <div className="p-4 flex flex-col flex-grow">
+                    <h3 className="font-metropolis font-bold text-lg mb-2 line-clamp-2" style={{ color: '#0D141C' }}>
                       {String(item.title_es)}
                     </h3>
-                    <p className="font-metropolis font-regular text-sm mb-3" style={{ color: '#4A739C' }}>
+                    <p className="font-metropolis font-regular text-sm mb-3 flex-grow line-clamp-3" style={{ color: '#4A739C' }}>
                       {String(item.body_es).length > 150 ? `${String(item.body_es).substring(0, 150)}...` : String(item.body_es)}
                     </p>
                     
                     {/* News Meta */}
-                    <div className="flex items-center justify-between text-xs" style={{ color: '#4A739C' }}>
+                    <div className="flex items-center justify-between text-xs mt-auto" style={{ color: '#4A739C' }}>
                       <span className="font-metropolis font-regular">{(() => {
                         const categories = item.category ? String(item.category).split(', ') : []
                         if (categories.length <= 2) {

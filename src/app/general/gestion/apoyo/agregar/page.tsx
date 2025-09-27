@@ -70,14 +70,36 @@ export default function AgregarApoyoPage() {
         </nav>
       </div>
 
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="font-metropolis font-bold text-3xl mb-2" style={{ color: '#0D141C' }}>
-          Agregar Elemento de Apoyo
-        </h1>
-        <p className="font-metropolis font-regular text-lg" style={{ color: '#4A739C' }}>
-          Crea un nuevo widget de GoFundMe para recaudación de fondos
-        </p>
+      {/* Header Section */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8">
+        <div>
+          <h1 className="font-metropolis font-bold text-3xl mb-2" style={{ color: '#0D141C' }}>
+            Agregar Elemento de Apoyo
+          </h1>
+          <p className="font-metropolis font-regular text-lg" style={{ color: '#4A739C' }}>
+            Crea un nuevo widget de GoFundMe para recaudación de fondos
+          </p>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex items-center space-x-3">
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            className="inline-flex items-center px-6 py-3 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 hover:bg-[#4A739C] disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ backgroundColor: '#5A6F80', '--tw-ring-color': '#5A6F80' } as React.CSSProperties}
+          >
+            {isSubmitting ? (
+              <div className="flex items-center space-x-2">
+                <Spinner size="sm" />
+                <span>Creando...</span>
+              </div>
+            ) : (
+              'Crear Elemento de Apoyo'
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Form */}
@@ -143,53 +165,8 @@ export default function AgregarApoyoPage() {
             </p>
           </div>
 
-          {/* Active Status */}
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              id="isActive"
-              checked={formData.isActive}
-              onChange={(e) => updateFormData({ isActive: e.target.checked })}
-              className="h-4 w-4 text-[#5A6F80] focus:ring-[#5A6F80] border-gray-300 rounded"
-            />
-            <label htmlFor="isActive" className="ml-2 block text-sm font-metropolis font-medium" style={{ color: '#0D141C' }}>
-              Activar elemento de apoyo
-            </label>
-          </div>
 
 
-          {/* Action Buttons */}
-          <div className="flex justify-end space-x-4 pt-6 border-t">
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-metropolis font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5A6F80]"
-            >
-              Cancelar
-            </button>
-            <button
-              type="button"
-              onClick={resetForm}
-              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-metropolis font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5A6F80]"
-            >
-              Limpiar
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="inline-flex items-center px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-metropolis font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 hover:bg-[#4A739C] disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ backgroundColor: '#5A6F80', '--tw-ring-color': '#5A6F80' } as React.CSSProperties}
-            >
-              {isSubmitting ? (
-                <>
-                  <Spinner className="mr-2 h-4 w-4" />
-                  Creando...
-                </>
-              ) : (
-                'Crear Elemento de Apoyo'
-              )}
-            </button>
-          </div>
         </form>
       </div>
     </div>

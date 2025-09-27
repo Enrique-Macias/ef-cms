@@ -16,6 +16,11 @@ export default function EditarApoyoPage({ params }: AgregarApoyoPageProps) {
   const router = useRouter()
   const toast = useToast()
   const [isLoading, setIsLoading] = useState(true)
+  const [originalData, setOriginalData] = useState<{
+    title: string
+    description: string
+    widgetCode: string
+  } | null>(null)
 
   const {
     formData,
@@ -37,12 +42,13 @@ export default function EditarApoyoPage({ params }: AgregarApoyoPageProps) {
         }
         
         const data = await response.json()
-        updateFormData({
+        const apoyoData = {
           title: data.title,
           description: data.description || '',
-          widgetCode: data.widgetCode,
-          isActive: data.isActive
-        })
+          widgetCode: data.widgetCode
+        }
+        setOriginalData(apoyoData)
+        updateFormData(apoyoData)
       } catch (error) {
         console.error('Error fetching apoyo:', error)
         toast.error('Error al cargar elemento de apoyo')
@@ -54,6 +60,17 @@ export default function EditarApoyoPage({ params }: AgregarApoyoPageProps) {
 
     fetchApoyo()
   }, [])
+
+  // Check if there are changes
+  const hasChanges = () => {
+    if (!originalData) return false
+    
+    return (
+      formData.title !== originalData.title ||
+      formData.description !== originalData.description ||
+      formData.widgetCode !== originalData.widgetCode
+    )
+  }
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
@@ -129,27 +146,11 @@ export default function EditarApoyoPage({ params }: AgregarApoyoPageProps) {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex space-x-3 mt-4 lg:mt-0">
-          {/* Delete Button */}
+        <div className="flex items-center space-x-3">
           <button
-            onClick={() => {
-              if (confirm('¿Estás seguro de que quieres eliminar este elemento de apoyo?')) {
-                // Handle delete - you can implement this if needed
-                console.log('Delete functionality not implemented yet')
-              }
-            }}
-            className="inline-flex items-center px-4 py-3 border border-red-300 rounded-md shadow-sm text-sm font-medium text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200"
-          >
-            <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-            Eliminar
-          </button>
-
-          {/* Update Button */}
-          <button
+            type="button"
             onClick={handleSubmit}
-            disabled={isSubmitting}
+            disabled={isSubmitting || !hasChanges()}
             className="inline-flex items-center px-6 py-3 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 hover:bg-[#4A739C] disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ backgroundColor: '#5A6F80', '--tw-ring-color': '#5A6F80' } as React.CSSProperties}
           >
@@ -159,12 +160,7 @@ export default function EditarApoyoPage({ params }: AgregarApoyoPageProps) {
                 <span>Actualizando...</span>
               </div>
             ) : (
-              <>
-                <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                Actualizar Elemento
-              </>
+              'Actualizar Elemento'
             )}
           </button>
         </div>
@@ -233,19 +229,6 @@ export default function EditarApoyoPage({ params }: AgregarApoyoPageProps) {
             </p>
           </div>
 
-          {/* Active Status */}
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              id="isActive"
-              checked={formData.isActive}
-              onChange={(e) => updateFormData({ isActive: e.target.checked })}
-              className="h-4 w-4 text-[#5A6F80] focus:ring-[#5A6F80] border-gray-300 rounded"
-            />
-            <label htmlFor="isActive" className="ml-2 block text-sm font-metropolis font-medium" style={{ color: '#0D141C' }}>
-              Activar elemento de apoyo
-            </label>
-          </div>
 
         </form>
       </div>

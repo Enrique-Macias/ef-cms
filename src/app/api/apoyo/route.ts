@@ -9,12 +9,14 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '10')
     const search = searchParams.get('search') || undefined
+    const dateFilter = searchParams.get('dateFilter') || undefined
     const isActive = searchParams.get('isActive') === 'true' ? true : searchParams.get('isActive') === 'false' ? false : undefined
 
     const result = await getApoyoList({
       page,
       limit,
       search,
+      dateFilter,
       isActive
     })
 

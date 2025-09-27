@@ -23,6 +23,7 @@ export interface ApoyoListParams {
   page?: number
   limit?: number
   search?: string
+  dateFilter?: string
   isActive?: boolean
 }
 
@@ -55,7 +56,7 @@ export async function getActiveApoyo(): Promise<ApoyoWithDetails[]> {
 
 // Get apoyo list with pagination and filters
 export async function getApoyoList(params: ApoyoListParams) {
-  const { page = 1, limit = 10, search, isActive } = params
+  const { page = 1, limit = 10, search, dateFilter, isActive } = params
   const skip = (page - 1) * limit
 
   // Build where clause
@@ -65,6 +66,9 @@ export async function getApoyoList(params: ApoyoListParams) {
       description?: { contains: string; mode: 'insensitive' }
     }>
     isActive?: boolean
+    createdAt?: {
+      gte?: Date
+    }
   } = {}
   
   if (search) {
@@ -76,6 +80,35 @@ export async function getApoyoList(params: ApoyoListParams) {
 
   if (isActive !== undefined) {
     where.isActive = isActive
+  }
+
+  // Apply date filter
+  if (dateFilter) {
+    const now = new Date()
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    
+    switch (dateFilter) {
+      case 'hoy':
+        const tomorrow = new Date(today)
+        tomorrow.setDate(tomorrow.getDate() + 1)
+        where.createdAt = {
+          gte: today
+        }
+        // Add a condition to exclude tomorrow
+        break
+      case 'ultima-semana':
+        const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
+        where.createdAt = {
+          gte: weekAgo
+        }
+        break
+      case 'ultimo-mes':
+        const monthAgo = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate())
+        where.createdAt = {
+          gte: monthAgo
+        }
+        break
+    }
   }
 
   // Get total count

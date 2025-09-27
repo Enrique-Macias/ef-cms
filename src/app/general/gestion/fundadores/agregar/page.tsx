@@ -162,17 +162,22 @@ export default function AgregarFundadorPage() {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-3">
           <button
             onClick={handleLanguageToggle}
-            className="px-4 py-2 bg-[#5A6F80] text-white rounded-md text-sm font-medium hover:bg-[#4A5F70] transition-all duration-200"
+            className={`inline-flex items-center px-4 py-3 border rounded-md shadow-sm text-sm font-medium transition-all duration-200 ${
+              isEnglishMode 
+                ? 'border-[#5A6F80] text-[#5A6F80] bg-white hover:bg-gray-50' 
+                : 'border-[#5A6F80] text-white bg-[#5A6F80] hover:bg-[#4A739C]'
+            }`}
           >
-            English
+            {isEnglishMode ? 'Spanish' : 'English'}
           </button>
           <button
             onClick={handleSubmit}
             disabled={isPublishing}
-            className="px-6 py-2 bg-[#5A6F80] text-white rounded-md text-sm font-medium hover:bg-[#4A5F70] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+            className="inline-flex items-center px-6 py-3 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 hover:bg-[#4A739C] disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ backgroundColor: '#5A6F80', '--tw-ring-color': '#5A6F80' } as React.CSSProperties}
           >
             {isPublishing ? (
               <div className="flex items-center space-x-2">

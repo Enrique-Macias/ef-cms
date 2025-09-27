@@ -7,6 +7,8 @@ import { useToast } from '@/hooks/useToast'
 
 export default function ApoyoPage() {
   const [searchText, setSearchText] = useState('')
+  const [dateFilter, setDateFilter] = useState<string | null>(null)
+  const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [apoyo, setApoyo] = useState<Array<{
@@ -31,7 +33,8 @@ export default function ApoyoPage() {
         limit: itemsPerPage.toString()
       })
       
-          if (searchText) params.append('search', searchText)
+      if (searchText) params.append('search', searchText)
+      if (dateFilter) params.append('dateFilter', dateFilter)
       
       const response = await fetch(`/api/apoyo?${params}`)
       if (!response.ok) throw new Error('Error al obtener elementos de apoyo')
@@ -50,11 +53,17 @@ export default function ApoyoPage() {
   // Load data on component mount and when filters change
   useEffect(() => {
     fetchApoyo()
-  }, [currentPage, searchText])
+  }, [currentPage, searchText, dateFilter])
 
   // Reset to first page when filters change
   const handleSearch = (text: string) => {
     setSearchText(text)
+    setCurrentPage(1)
+  }
+
+  // Handle date filter changes
+  const handleDateFilter = (filter: string | null) => {
+    setDateFilter(filter)
     setCurrentPage(1)
   }
 
@@ -117,6 +126,74 @@ export default function ApoyoPage() {
               />
             </div>
 
+            {/* Filter Button */}
+            <div className="relative">
+              <button 
+                className={`inline-flex items-center justify-center w-10 h-10 border rounded-full shadow-sm text-sm font-medium transition-colors ${
+                  dateFilter 
+                    ? 'border-[#5A6F80] bg-[#E8EDF5] text-[#0D141C]' 
+                    : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                }`}
+                style={{ '--tw-ring-color': '#5A6F80' } as React.CSSProperties}
+                onClick={() => setIsFilterMenuOpen(!isFilterMenuOpen)}
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+              </button>
+
+              {/* Filter Dropdown Menu */}
+              {isFilterMenuOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 border border-gray-200">
+                  <div className="py-1">
+                    <button
+                      className={`block w-full text-left px-4 py-2 text-sm transition-colors ${
+                        dateFilter === null ? 'bg-[#E8EDF5] text-[#0D141C]' : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                      onClick={() => {
+                        handleDateFilter(null)
+                        setIsFilterMenuOpen(false)
+                      }}
+                    >
+                      Todas las fechas
+                    </button>
+                    <button
+                      className={`block w-full text-left px-4 py-2 text-sm transition-colors ${
+                        dateFilter === 'hoy' ? 'bg-[#E8EDF5] text-[#0D141C]' : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                      onClick={() => {
+                        handleDateFilter('hoy')
+                        setIsFilterMenuOpen(false)
+                      }}
+                    >
+                      Hoy
+                    </button>
+                    <button
+                      className={`block w-full text-left px-4 py-2 text-sm transition-colors ${
+                        dateFilter === 'ultima-semana' ? 'bg-[#E8EDF5] text-[#0D141C]' : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                      onClick={() => {
+                        handleDateFilter('ultima-semana')
+                        setIsFilterMenuOpen(false)
+                      }}
+                    >
+                      Última semana
+                    </button>
+                    <button
+                      className={`block w-full text-left px-4 py-2 text-sm transition-colors ${
+                        dateFilter === 'ultimo-mes' ? 'bg-[#E8EDF5] text-[#0D141C]' : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                      onClick={() => {
+                        handleDateFilter('ultimo-mes')
+                        setIsFilterMenuOpen(false)
+                      }}
+                    >
+                      Último mes
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -184,11 +261,17 @@ export default function ApoyoPage() {
                     
                     {/* Apoyo Meta */}
                     <div className="text-xs font-metropolis font-regular" style={{ color: '#4A739C' }}>
-                      Creado: {new Date(item.createdAt).toLocaleDateString('es-ES', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
+                      Creado: {(() => {
+                        const formatted = new Date(item.createdAt).toLocaleDateString('es-ES', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })
+                        // Convert "2 de septiembre de 2025" to "Septiembre 2, 2025"
+                        return formatted.replace(/^(\d+)\s+de\s+(\w+)\s+de\s+(\d+)$/, (match, day, month, year) => {
+                          return month.charAt(0).toUpperCase() + month.slice(1) + ' ' + day + ', ' + year
+                        })
+                      })()}
                     </div>
                   </div>
                 </div>

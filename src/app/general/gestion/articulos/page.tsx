@@ -26,7 +26,6 @@ export default function ArticulosPage() {
   
   const [articles, setArticles] = useState<Article[]>([])
   const [filteredArticles, setFilteredArticles] = useState<Article[]>([])
-  const [isLoading, setIsLoading] = useState(false)
   const [isInitialLoading, setIsInitialLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [dateFilter, setDateFilter] = useState<string | null>(null)
@@ -73,20 +72,22 @@ export default function ArticulosPage() {
 
     // Apply date filter
     if (dateFilter) {
-      const today = new Date()
-      const oneWeekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
-      const oneMonthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000)
+      const now = new Date()
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
       
       filtered = filtered.filter(article => {
-        const articleDate = new Date(article.date)
-        
+        const articleCreatedAt = new Date(article.createdAt)
+        const articleDay = new Date(articleCreatedAt.getFullYear(), articleCreatedAt.getMonth(), articleCreatedAt.getDate())
+
         switch (dateFilter) {
           case 'hoy':
-            return articleDate.toDateString() === today.toDateString()
+            return articleDay.getTime() === today.getTime()
           case 'ultima-semana':
-            return articleDate >= oneWeekAgo
+            const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
+            return articleDay >= weekAgo
           case 'ultimo-mes':
-            return articleDate >= oneMonthAgo
+            const monthAgo = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate())
+            return articleDay >= monthAgo
           default:
             return true
         }
@@ -104,11 +105,8 @@ export default function ArticulosPage() {
 
   // Handle date filter changes
   const handleDateFilter = (filter: string | null) => {
-    setIsLoading(true)
     setDateFilter(filter)
     setCurrentPage(1)
-    // Simulate API call delay
-    setTimeout(() => setIsLoading(false), 500)
   }
 
   // Handle search changes
@@ -123,10 +121,14 @@ export default function ArticulosPage() {
   // Format date
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
-    return date.toLocaleDateString('es-ES', {
+    const formatted = date.toLocaleDateString('es-ES', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
+    })
+    // Convert "2 de septiembre de 2025" to "Septiembre 2, 2025"
+    return formatted.replace(/^(\d+)\s+de\s+(\w+)\s+de\s+(\d+)$/, (match, day, month, year) => {
+      return month.charAt(0).toUpperCase() + month.slice(1) + ' ' + day + ', ' + year
     })
   }
 
@@ -280,13 +282,6 @@ export default function ArticulosPage() {
             <div className="text-center">
               <Spinner size="lg" />
               <p className="mt-4 text-[#4A739C] font-metropolis font-regular">Cargando artículos...</p>
-            </div>
-          </div>
-        ) : isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <Spinner size="lg" />
-              <p className="mt-4 text-[#4A739C] font-metropolis font-regular">Filtrando artículos...</p>
             </div>
           </div>
         ) : filteredArticles.length === 0 ? (

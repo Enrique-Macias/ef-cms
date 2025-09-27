@@ -11,6 +11,7 @@ export default function EditarPatrocinadorPage({ params }: { params: Promise<{ i
   const router = useRouter()
   const toast = useToast()
   const [sponsor, setSponsor] = useState<Sponsor | null>(null)
+  const [originalData, setOriginalData] = useState<SponsorFormData | null>(null)
   const [loading, setLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState<SponsorFormData>({
@@ -32,11 +33,13 @@ export default function EditarPatrocinadorPage({ params }: { params: Promise<{ i
         if (response.ok) {
           const sponsorData = await response.json()
           setSponsor(sponsorData)
-          setFormData({
+          const sponsorFormData = {
             name: sponsorData.name,
             imageUrl: sponsorData.imageUrl,
             linkUrl: sponsorData.linkUrl || ''
-          })
+          }
+          setOriginalData(sponsorFormData)
+          setFormData(sponsorFormData)
           setCurrentImageUrl(sponsorData.imageUrl)
         } else {
           toast.error('Error al cargar patrocinador')
@@ -53,6 +56,17 @@ export default function EditarPatrocinadorPage({ params }: { params: Promise<{ i
 
     fetchSponsor()
   }, [params, router])
+
+  // Check if there are changes
+  const hasChanges = () => {
+    if (!originalData) return false
+    
+    return (
+      formData.name !== originalData.name ||
+      formData.linkUrl !== originalData.linkUrl ||
+      (formData.imageUrl instanceof File ? true : formData.imageUrl !== originalData.imageUrl)
+    )
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -171,14 +185,36 @@ export default function EditarPatrocinadorPage({ params }: { params: Promise<{ i
         </nav>
       </div>
 
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="font-metropolis font-bold text-3xl mb-2" style={{ color: '#0D141C' }}>
-          Editar Patrocinador
-        </h1>
-        <p className="font-metropolis font-regular text-lg" style={{ color: '#4A739C' }}>
-          Modifica la información del patrocinador
-        </p>
+      {/* Header Section */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8">
+        <div>
+          <h1 className="font-metropolis font-bold text-3xl mb-2" style={{ color: '#0D141C' }}>
+            Editar Patrocinador
+          </h1>
+          <p className="font-metropolis font-regular text-lg" style={{ color: '#4A739C' }}>
+            Modifica la información del patrocinador
+          </p>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex items-center space-x-3">
+          <button
+            type="button"
+            onClick={() => router.push('/general/gestion/patrocinadores')}
+            className="inline-flex items-center px-4 py-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5A6F80] transition-all duration-200"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={isSubmitting || !hasChanges()}
+            className="inline-flex items-center px-6 py-3 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 hover:bg-[#4A739C] disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ backgroundColor: '#5A6F80', '--tw-ring-color': '#5A6F80' } as React.CSSProperties}
+          >
+            {isSubmitting ? 'Actualizando...' : 'Actualizar Patrocinador'}
+          </button>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
@@ -295,24 +331,6 @@ export default function EditarPatrocinadorPage({ params }: { params: Promise<{ i
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex justify-end space-x-4">
-          <button
-            type="button"
-            onClick={() => router.push('/general/gestion/patrocinadores')}
-            className="px-6 py-2 border border-gray-300 rounded-md text-sm font-metropolis font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5A6F80]"
-          >
-            Cancelar
-          </button>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-metropolis font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5A6F80] disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ backgroundColor: '#5A6F80' }}
-          >
-            {isSubmitting ? 'Actualizando...' : 'Actualizar Patrocinador'}
-          </button>
-        </div>
       </form>
     </div>
   )

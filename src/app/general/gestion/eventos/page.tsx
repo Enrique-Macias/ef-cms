@@ -162,10 +162,14 @@ export default function EventosPage() {
 
     if (diffDays < 0) {
       return { status: 'Completado', color: 'bg-gray-500' }
+    } else if (diffDays === 0) {
+      return { status: 'Hoy', color: 'bg-red-500' }
+    } else if (diffDays === 1) {
+      return { status: 'Mañana', color: 'bg-red-500' }
     } else if (diffDays <= 7) {
-      return { status: 'Próximo', color: 'bg-red-500' }
+      return { status: `En ${diffDays} días`, color: 'bg-red-500' }
     } else if (diffDays <= 30) {
-      return { status: 'En 30 días', color: 'bg-yellow-500' }
+      return { status: `En ${diffDays} días`, color: 'bg-yellow-500' }
     } else {
       return { status: 'Programado', color: 'bg-green-500' }
     }
@@ -406,17 +410,14 @@ export default function EventosPage() {
 
                     {/* Tags */}
                     <div className="flex flex-wrap gap-2 mb-4">
-                      {event.tags.slice(0, 3).map((tag, index) => (
-                        <span
-                          key={index}
-                          className="inline-flex items-center px-3 py-1 text-xs font-metropolis font-medium bg-[#E8EDF5] text-[#0D141C] rounded-full"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                      {event.tags.length > 3 && (
+                      {event.tags.length > 0 && (
                         <span className="inline-flex items-center px-3 py-1 text-xs font-metropolis font-medium bg-[#E8EDF5] text-[#0D141C] rounded-full">
-                          +{event.tags.length - 3}
+                          {event.tags[0]}
+                        </span>
+                      )}
+                      {event.tags.length > 1 && (
+                        <span className="inline-flex items-center px-3 py-1 text-xs font-metropolis font-medium bg-[#E8EDF5] text-[#0D141C] rounded-full">
+                          +{event.tags.length - 1} más
                         </span>
                       )}
                     </div>

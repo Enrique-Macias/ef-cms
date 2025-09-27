@@ -66,8 +66,34 @@ export default function EditarEventoPage() {
     locationCountry: ''
   })
 
-  const [originalData, setOriginalData] = useState<Event | null>(null)
-  const [originalDataEnglish, setOriginalDataEnglish] = useState<Event | null>(null)
+  const [originalData, setOriginalData] = useState({
+    title: '',
+    author: '',
+    coverImage: null as File | null,
+    eventDate: '',
+    description: '',
+    images: [] as File[],
+    categories: [] as string[],
+    tags: [] as string[],
+    phrase: '',
+    credits: '',
+    locationCity: '',
+    locationCountry: ''
+  })
+  const [originalDataEnglish, setOriginalDataEnglish] = useState({
+    title: '',
+    author: '',
+    coverImage: null as File | null,
+    eventDate: '',
+    description: '',
+    images: [] as File[],
+    categories: [] as string[],
+    tags: [] as string[],
+    phrase: '',
+    credits: '',
+    locationCity: '',
+    locationCountry: ''
+  })
   const [isEnglishMode, setIsEnglishMode] = useState(false)
   const [newCategory, setNewCategory] = useState('')
   const [newTag, setNewTag] = useState('')
@@ -90,11 +116,8 @@ export default function EditarEventoPage() {
           const data = await response.json()
           const eventData = data.event
           
-          setOriginalData(eventData)
-          setOriginalDataEnglish(eventData)
-          
           // Populate Spanish form
-          setFormData({
+          const spanishFormData = {
             title: eventData.title_es,
             author: eventData.author,
             coverImage: eventData.coverImageUrl || null,
@@ -107,10 +130,10 @@ export default function EditarEventoPage() {
             credits: eventData.credits,
             locationCity: eventData.location_city,
             locationCountry: eventData.location_country
-          })
+          }
           
           // Populate English form
-          setFormDataEnglish({
+          const englishFormData = {
             title: eventData.title_en,
             author: eventData.author,
             coverImage: eventData.coverImageUrl || null,
@@ -123,7 +146,13 @@ export default function EditarEventoPage() {
             credits: eventData.credits_en || '',
             locationCity: eventData.location_city,
             locationCountry: eventData.location_country
-          })
+          }
+          
+          // Set the form data and original data
+          setFormData(spanishFormData)
+          setFormDataEnglish(englishFormData)
+          setOriginalData(spanishFormData)
+          setOriginalDataEnglish(englishFormData)
         } else {
           toast.error('Error loading event')
         }
@@ -138,42 +167,9 @@ export default function EditarEventoPage() {
     loadEventData()
   }, [eventId]) // Remove toast dependency to prevent infinite loops
 
-  // Check if there are changes
-  const hasChanges = () => {
-    if (!originalData) return false
-    
-    // Check changes in Spanish form
-    const spanishChanges = 
-      formData.title !== originalData.title_es ||
-      formData.author !== originalData.author ||
-      formData.eventDate !== originalData.date ||
-      formData.description !== originalData.body_es ||
-      formData.phrase !== originalData.phrase ||
-      formData.credits !== originalData.credits ||
-      formData.locationCity !== originalData.location_city ||
-      formData.locationCountry !== originalData.location_country ||
-      JSON.stringify(formData.categories) !== JSON.stringify([originalData.category]) ||
-      JSON.stringify(formData.tags) !== JSON.stringify(originalData.tags) ||
-      (formData.coverImage instanceof File ? true : formData.coverImage !== originalData.coverImageUrl) ||
-      JSON.stringify(formData.images) !== JSON.stringify(originalData.eventImages ? originalData.eventImages.map((img: Record<string, unknown>) => img.imageUrl) : [])
-    
-    // Check changes in English form
-    const englishChanges = 
-      formDataEnglish.title !== originalData.title_en ||
-      formDataEnglish.author !== originalData.author ||
-      formDataEnglish.eventDate !== originalData.date ||
-      formDataEnglish.description !== originalData.body_en ||
-      formDataEnglish.phrase !== originalData.phrase_en ||
-      formDataEnglish.credits !== originalData.credits_en ||
-      formDataEnglish.locationCity !== originalData.location_city ||
-      formDataEnglish.locationCountry !== originalData.location_country ||
-      JSON.stringify(formDataEnglish.categories) !== JSON.stringify([originalData.category_en]) ||
-      JSON.stringify(formDataEnglish.tags) !== JSON.stringify(originalData.tags_en) ||
-      (formDataEnglish.coverImage instanceof File ? true : formDataEnglish.coverImage !== originalData.coverImageUrl) ||
-      JSON.stringify(formDataEnglish.images) !== JSON.stringify(originalData.eventImages ? originalData.eventImages.map((img: Record<string, unknown>) => img.imageUrl) : [])
-    
-    return spanishChanges || englishChanges
-  }
+  // Check if form has changes
+  const hasChanges = JSON.stringify(formData) !== JSON.stringify(originalData) || 
+                    JSON.stringify(formDataEnglish) !== JSON.stringify(originalDataEnglish)
 
   // Handle form input changes
   const handleInputChange = (field: string, value: string) => {
@@ -616,7 +612,7 @@ export default function EditarEventoPage() {
               {translations.editEvent}
             </h1>
             <p className="font-metropolis font-regular text-lg" style={{ color: '#4A739C' }}>
-              {isEnglishMode ? originalData.title_en : originalData.title_es}
+              {isEnglishMode ? originalDataEnglish.title : originalData.title}
             </p>
           </div>
         </div>
@@ -636,7 +632,7 @@ export default function EditarEventoPage() {
 
           <button
             onClick={handleUpdate}
-            disabled={isUpdating || !hasChanges()}
+            disabled={isUpdating || !hasChanges}
             className="inline-flex items-center px-6 py-3 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 hover:bg-[#4A739C] disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ backgroundColor: '#5A6F80', '--tw-ring-color': '#5A6F80' } as React.CSSProperties}
           >

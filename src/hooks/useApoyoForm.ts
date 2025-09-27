@@ -4,15 +4,13 @@ export interface ApoyoFormData {
   title: string
   description: string
   widgetCode: string
-  isActive: boolean
 }
 
 export const useApoyoForm = () => {
   const [formData, setFormData] = useState<ApoyoFormData>({
     title: '',
     description: '',
-    widgetCode: '',
-    isActive: true
+    widgetCode: ''
   })
 
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -39,8 +37,7 @@ export const useApoyoForm = () => {
     setFormData({
       title: '',
       description: '',
-      widgetCode: '',
-      isActive: true
+      widgetCode: ''
     })
     setErrors({})
   }

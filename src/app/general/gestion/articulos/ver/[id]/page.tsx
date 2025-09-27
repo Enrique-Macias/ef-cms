@@ -337,18 +337,36 @@ export default function VerArticuloPage() {
             </h3>
             <div className="space-y-3 text-sm font-metropolis font-regular" style={{ color: '#4A739C' }}>
               <div>
-                <span className="font-medium">{isEnglishMode ? 'Created:' : 'Creado:'}</span> {new Date(article.createdAt).toLocaleDateString(isEnglishMode ? 'en-US' : 'es-ES', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
+                <span className="font-medium">{isEnglishMode ? 'Created:' : 'Creado:'}</span> {(() => {
+                  const formatted = new Date(article.createdAt).toLocaleDateString(isEnglishMode ? 'en-US' : 'es-ES', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })
+                  // Convert "2 de septiembre de 2025" to "Septiembre 2, 2025" for Spanish
+                  if (!isEnglishMode) {
+                    return formatted.replace(/^(\d+)\s+de\s+(\w+)\s+de\s+(\d+)$/, (match, day, month, year) => {
+                      return month.charAt(0).toUpperCase() + month.slice(1) + ' ' + day + ', ' + year
+                    })
+                  }
+                  return formatted
+                })()}
               </div>
               <div>
-                <span className="font-medium">{isEnglishMode ? 'Updated:' : 'Actualizado:'}</span> {new Date(article.updatedAt).toLocaleDateString(isEnglishMode ? 'en-US' : 'es-ES', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
+                <span className="font-medium">{isEnglishMode ? 'Updated:' : 'Actualizado:'}</span> {(() => {
+                  const formatted = new Date(article.updatedAt).toLocaleDateString(isEnglishMode ? 'en-US' : 'es-ES', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })
+                  // Convert "2 de septiembre de 2025" to "Septiembre 2, 2025" for Spanish
+                  if (!isEnglishMode) {
+                    return formatted.replace(/^(\d+)\s+de\s+(\w+)\s+de\s+(\d+)$/, (match, day, month, year) => {
+                      return month.charAt(0).toUpperCase() + month.slice(1) + ' ' + day + ', ' + year
+                    })
+                  }
+                  return formatted
+                })()}
               </div>
             </div>
           </div>

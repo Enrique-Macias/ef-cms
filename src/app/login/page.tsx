@@ -12,16 +12,17 @@ import Link from 'next/link'
 import { Eye, EyeOff } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { Spinner } from '@/components/ui/spinner'
+import { useToast } from '@/hooks/useToast'
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
   
   const { login, isAuthenticated } = useAuth()
   const router = useRouter()
+  const toast = useToast()
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -37,18 +38,18 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError('')
     setIsLoading(true)
 
     try {
       const result = await login(email, password)
       if (result.success) {
+        toast.success('Sesión iniciada exitosamente')
         router.replace('/general')
       } else {
-        setError(result.error || 'Error al iniciar sesión')
+        toast.error(result.error || 'Credenciales inválidas')
       }
     } catch (error) {
-      setError('Error de conexión')
+      toast.error('Error de conexión')
     } finally {
       setIsLoading(false)
     }
@@ -131,12 +132,6 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Error Message */}
-            {error && (
-              <div className="text-red-600 text-sm font-metropolis font-normal text-center">
-                {error}
-              </div>
-            )}
 
             {/* Forgot Password Link */}
             <div className="text-left" style={{ marginTop: '5px' }}>

@@ -44,6 +44,7 @@ export default function EditarFundadorPage() {
   
   // State
   const [fundador, setFundador] = useState<Fundador | null>(null)
+  const [originalData, setOriginalData] = useState<Fundador | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isPublishing, setIsPublishing] = useState(false)
   const [isDragOver, setIsDragOver] = useState(false)
@@ -66,6 +67,7 @@ export default function EditarFundadorPage() {
         
         const fundadorData = await response.json()
         setFundador(fundadorData)
+        setOriginalData(fundadorData)
         
         // Populate form with existing data
         setFormData({
@@ -114,6 +116,30 @@ export default function EditarFundadorPage() {
     }
   }
 
+  // Check if there are changes
+  const hasChanges = () => {
+    if (!originalData) return false
+    
+    // Check changes in Spanish form
+    const spanishChanges = 
+      formData.name !== originalData.name ||
+      formData.role_es !== originalData.role_es ||
+      formData.body_es !== originalData.body_es ||
+      formData.facebookUrl !== (originalData.facebookUrl || '') ||
+      formData.instagramUrl !== (originalData.instagramUrl || '') ||
+      formData.image !== null
+    
+    // Check changes in English form
+    const englishChanges = 
+      formDataEnglish.name !== originalData.name ||
+      formDataEnglish.role_es !== originalData.role_en ||
+      formDataEnglish.body_es !== originalData.body_en ||
+      formDataEnglish.facebookUrl !== (originalData.facebookUrl || '') ||
+      formDataEnglish.instagramUrl !== (originalData.instagramUrl || '') ||
+      formDataEnglish.image !== null
+    
+    return spanishChanges || englishChanges
+  }
 
   // Convert File to base64
   const fileToBase64 = (file: File): Promise<string> => {
@@ -248,17 +274,22 @@ export default function EditarFundadorPage() {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-3">
           <button
             onClick={handleLanguageToggle}
-            className="px-4 py-2 bg-[#5A6F80] text-white rounded-md text-sm font-medium hover:bg-[#4A5F70] transition-all duration-200"
+            className={`inline-flex items-center px-4 py-3 border rounded-md shadow-sm text-sm font-medium transition-all duration-200 ${
+              isEnglishMode 
+                ? 'border-[#5A6F80] text-[#5A6F80] bg-white hover:bg-gray-50' 
+                : 'border-[#5A6F80] text-white bg-[#5A6F80] hover:bg-[#4A739C]'
+            }`}
           >
             {isEnglishMode ? 'Spanish' : 'English'}
           </button>
           <button
             onClick={handleSubmit}
-            disabled={isPublishing}
-            className="px-6 py-2 bg-[#5A6F80] text-white rounded-md text-sm font-medium hover:bg-[#4A5F70] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+            disabled={isPublishing || !hasChanges()}
+            className="inline-flex items-center px-6 py-3 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 hover:bg-[#4A739C] disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ backgroundColor: '#5A6F80', '--tw-ring-color': '#5A6F80' } as React.CSSProperties}
           >
             {isPublishing ? (
               <div className="flex items-center space-x-2">

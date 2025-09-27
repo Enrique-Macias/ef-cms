@@ -205,10 +205,10 @@ export default function FundadoresPage() {
               />
             </div>
 
-            {/* Date Filter */}
+            {/* Filter Button */}
             <div className="relative">
-              <button
-                className={`inline-flex items-center px-4 py-2 border rounded-md shadow-sm text-sm font-medium transition-all duration-200 ${
+              <button 
+                className={`inline-flex items-center justify-center w-10 h-10 border rounded-full shadow-sm text-sm font-medium transition-colors ${
                   dateFilter 
                     ? 'border-[#5A6F80] bg-[#E8EDF5] text-[#0D141C]' 
                     : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'

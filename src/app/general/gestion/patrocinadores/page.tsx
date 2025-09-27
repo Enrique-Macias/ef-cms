@@ -12,6 +12,8 @@ export default function PatrocinadoresPage() {
   const [sponsors, setSponsors] = useState<Sponsor[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [dateFilter, setDateFilter] = useState<string | null>(null)
+  const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
 
@@ -32,14 +34,43 @@ export default function PatrocinadoresPage() {
     }
   }
 
+  // Handle date filter changes
+  const handleDateFilter = (filter: string | null) => {
+    setDateFilter(filter)
+    setCurrentPage(1)
+  }
+
   useEffect(() => {
     fetchSponsors()
   }, [])
 
-
-  const filteredSponsors = sponsors.filter(sponsor =>
-    sponsor.name.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  // Filter sponsors based on search and date
+  const filteredSponsors = sponsors.filter(sponsor => {
+      const matches = sponsor.name.toLowerCase().includes(searchTerm.toLowerCase())
+    
+    // Apply date filter if selected
+    if (dateFilter && matches) {
+      const now = new Date()
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+      const sponsorDate = new Date(sponsor.createdAt)
+      const sponsorDay = new Date(sponsorDate.getFullYear(), sponsorDate.getMonth(), sponsorDate.getDate())
+      
+      switch (dateFilter) {
+        case 'hoy':
+          return sponsorDay.getTime() === today.getTime()
+        case 'ultima-semana':
+          const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
+          return sponsorDay >= weekAgo
+        case 'ultimo-mes':
+          const monthAgo = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate())
+          return sponsorDay >= monthAgo
+        default:
+          return true
+      }
+    }
+    
+    return matches
+  })
 
   const paginatedSponsors = filteredSponsors.slice(
     (currentPage - 1) * itemsPerPage,
@@ -95,21 +126,96 @@ export default function PatrocinadoresPage() {
         </button>
       </div>
 
-      {/* Search Bar */}
+      {/* Search and Filter Bar */}
       <div className="bg-white rounded-lg p-6 mb-6">
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+          <div className="flex flex-col md:flex-row gap-4 flex-1">
+            {/* Search Bar */}
+            <div className="relative flex-1 max-w-md">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <input
+                type="text"
+                placeholder="Buscar por nombre del patrocinador..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:border-gray-300 sm:text-sm"
+                style={{ '--tw-ring-color': '#5A6F80' } as React.CSSProperties}
+              />
+            </div>
+
+            {/* Filter Button */}
+            <div className="relative">
+              <button 
+                className={`inline-flex items-center justify-center w-10 h-10 border rounded-full shadow-sm text-sm font-medium transition-colors ${
+                  dateFilter 
+                    ? 'border-[#5A6F80] bg-[#E8EDF5] text-[#0D141C]' 
+                    : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                }`}
+                style={{ '--tw-ring-color': '#5A6F80' } as React.CSSProperties}
+                onClick={() => setIsFilterMenuOpen(!isFilterMenuOpen)}
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+              </button>
+
+              {/* Filter Dropdown Menu */}
+              {isFilterMenuOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 border border-gray-200">
+                  <div className="py-1">
+                    <button
+                      className={`block w-full text-left px-4 py-2 text-sm transition-colors ${
+                        dateFilter === null ? 'bg-[#E8EDF5] text-[#0D141C]' : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                      onClick={() => {
+                        handleDateFilter(null)
+                        setIsFilterMenuOpen(false)
+                      }}
+                    >
+                      Todas las fechas
+                    </button>
+                    <button
+                      className={`block w-full text-left px-4 py-2 text-sm transition-colors ${
+                        dateFilter === 'hoy' ? 'bg-[#E8EDF5] text-[#0D141C]' : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                      onClick={() => {
+                        handleDateFilter('hoy')
+                        setIsFilterMenuOpen(false)
+                      }}
+                    >
+                      Hoy
+                    </button>
+                    <button
+                      className={`block w-full text-left px-4 py-2 text-sm transition-colors ${
+                        dateFilter === 'ultima-semana' ? 'bg-[#E8EDF5] text-[#0D141C]' : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                      onClick={() => {
+                        handleDateFilter('ultima-semana')
+                        setIsFilterMenuOpen(false)
+                      }}
+                    >
+                      Última semana
+                    </button>
+                    <button
+                      className={`block w-full text-left px-4 py-2 text-sm transition-colors ${
+                        dateFilter === 'ultimo-mes' ? 'bg-[#E8EDF5] text-[#0D141C]' : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                      onClick={() => {
+                        handleDateFilter('ultimo-mes')
+                        setIsFilterMenuOpen(false)
+                      }}
+                    >
+                      Último mes
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
-          <input
-            type="text"
-            placeholder="Buscar por nombre del patrocinador..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-[#5A6F80] focus:border-[#5A6F80] sm:text-sm"
-          />
         </div>
       </div>
 

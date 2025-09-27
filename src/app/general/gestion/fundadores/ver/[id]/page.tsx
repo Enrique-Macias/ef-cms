@@ -228,23 +228,25 @@ export default function VerFundadorPage() {
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-8">
           {/* Image */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-metropolis font-bold mb-4" style={{ color: '#0D141C' }}>
-              {isEnglishMode ? 'Image' : 'Imagen'}
-            </h2>
-            <div className="relative w-full h-64 lg:h-96">
-              <Image
-                src={fundador.imageUrl}
-                alt={fundador.name}
-                fill
-                className="object-cover rounded-lg"
-              />
+          <div className="bg-white border rounded-lg shadow-lg overflow-hidden" style={{ borderColor: '#CFDBE8' }}>
+            <div className="p-6">
+              <h2 className="text-lg font-metropolis font-semibold mb-4" style={{ color: '#0D141C' }}>
+                {isEnglishMode ? 'Image' : 'Imagen'}
+              </h2>
+              <div className="relative w-full h-64 lg:h-96">
+                <Image
+                  src={fundador.imageUrl}
+                  alt={fundador.name}
+                  fill
+                  className="object-cover rounded-lg"
+                />
+              </div>
             </div>
           </div>
 
           {/* Description */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-metropolis font-bold mb-4" style={{ color: '#0D141C' }}>
+          <div className="bg-white border rounded-lg shadow-lg p-6" style={{ borderColor: '#CFDBE8' }}>
+            <h2 className="text-lg font-metropolis font-semibold mb-4" style={{ color: '#0D141C' }}>
               {isEnglishMode ? 'Description' : 'Descripción'}
             </h2>
             <div className="prose max-w-none">
@@ -259,8 +261,8 @@ export default function VerFundadorPage() {
         <div className="space-y-6">
           {/* Social Media */}
           {(fundador.facebookUrl || fundador.instagramUrl) && (
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h2 className="text-xl font-metropolis font-bold mb-4" style={{ color: '#0D141C' }}>
+            <div className="bg-white border rounded-lg shadow-lg p-6" style={{ borderColor: '#CFDBE8' }}>
+              <h2 className="text-lg font-metropolis font-semibold mb-4" style={{ color: '#0D141C' }}>
                 {isEnglishMode ? 'Social Networks' : 'Redes Sociales'}
               </h2>
               <div className="space-y-3">
@@ -299,8 +301,8 @@ export default function VerFundadorPage() {
           )}
 
           {/* Metadata */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-metropolis font-bold mb-4" style={{ color: '#0D141C' }}>
+          <div className="bg-white border rounded-lg shadow-lg p-6" style={{ borderColor: '#CFDBE8' }}>
+            <h2 className="text-lg font-metropolis font-semibold mb-4" style={{ color: '#0D141C' }}>
               {isEnglishMode ? 'Information' : 'Información'}
             </h2>
             <div className="space-y-3">
