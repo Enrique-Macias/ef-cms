@@ -203,6 +203,20 @@ model Fundador {
   @@map("fundador")
 }
 
+model GlobalSettings {
+  id               String   @id @default(uuid())
+  location         String
+  mail             String
+  facebookUrl      String?
+  instagramUrl     String?
+  whatsappNumber   String?
+  mainLogo         String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("global_settings")
+}
+
 enum Role {
   ADMIN
   EDITOR

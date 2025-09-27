@@ -23,7 +23,8 @@ import {
   DocumentTextIcon,
   BuildingOfficeIcon,
   HeartIcon,
-  StarIcon
+  StarIcon,
+  GlobeAltIcon
 } from '@heroicons/react/24/outline'
 import {
   HomeIcon as HomeIconSolid,
@@ -38,7 +39,8 @@ import {
   DocumentTextIcon as DocumentTextIconSolid,
   BuildingOfficeIcon as BuildingOfficeIconSolid,
   HeartIcon as HeartIconSolid,
-  StarIcon as StarIconSolid
+  StarIcon as StarIconSolid,
+  GlobeAltIcon as GlobeAltIconSolid
 } from '@heroicons/react/24/solid'
 
 interface NavigationItem {
@@ -70,6 +72,7 @@ const navigation: NavigationItem[] = [
       { name: 'Apoyo', href: '/general/gestion/apoyo', icon: HeartIcon, iconSolid: HeartIconSolid },
     ]
   },
+  { name: 'Global', href: '/general/global', icon: GlobeAltIcon, iconSolid: GlobeAltIconSolid },
   { name: 'Usuarios', href: '/general/usuarios', icon: UsersIcon, iconSolid: UsersIconSolid, adminOnly: true },
   { name: 'Actividad', href: '/general/actividad', icon: ChartBarIcon, iconSolid: ChartBarIconSolid },
   { name: 'Configuración', href: '/general/configuracion', icon: Cog6ToothIcon, iconSolid: Cog6ToothIconSolid },

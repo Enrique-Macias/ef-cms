@@ -49,6 +49,7 @@ export const auditResources = {
   ARTICLES: 'articles',
   APOYO: 'apoyo',
   SPONSORS: 'sponsors',
+  GLOBAL_SETTINGS: 'global_settings',
 };
 
 // Convenience functions for common operations
@@ -103,6 +104,8 @@ export const getResourceTypeInSpanish = (resource: string): string => {
       return 'Apoyo';
     case 'sponsors':
       return 'Patrocinador';
+    case 'global_settings':
+      return 'Configuración Global';
     default:
       return resource;
   }
@@ -127,6 +130,8 @@ export const getResourceTypeFromSpanish = (spanishType: string): string => {
       return 'apoyo';
     case 'Patrocinador':
       return 'sponsors';
+    case 'Configuración Global':
+      return 'global_settings';
     default:
       return spanishType.toLowerCase();
   }
@@ -236,6 +241,8 @@ export const getAuditLogsForActividad = async (
           title = changes?.title || 'Sin título';
         } else if (log.resource === 'sponsors') {
           title = changes?.name || 'Sin título';
+        } else if (log.resource === 'global_settings') {
+          title = 'Configuración Global';
         } else {
           title = changes?.title || changes?.title_es || 'Sin título';
         }
