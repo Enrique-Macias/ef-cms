@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getFundadorById, updateFundador, deleteFundador } from '@/lib/fundadorService'
+import { uploadImageFromBase64, deleteImage } from '@/lib/cloudinary'
+import { validateServerImagesForContentType } from '@/utils/serverImageValidation'
 import { createAuditLog, auditActions } from '@/lib/audit'
 import { getAuthenticatedUser } from '@/utils/authUtils'
 
@@ -54,6 +56,39 @@ export async function PUT(
       )
     }
 
+    // Handle image upload to Cloudinary if it's a base64 string
+    let finalImageUrl = imageUrl
+    if (imageUrl && imageUrl.startsWith('data:image/')) {
+      // Validate image before upload
+      const imageValidation = validateServerImagesForContentType('team', imageUrl, true)
+      if (!imageValidation.isValid) {
+        return NextResponse.json(
+          { error: imageValidation.errorMessage },
+          { status: 400 }
+        )
+      }
+
+      try {
+        finalImageUrl = await uploadImageFromBase64(imageUrl, 'fundadores')
+        
+        // Delete old image from Cloudinary if it exists and is different
+        if (currentFundador.imageUrl && currentFundador.imageUrl !== finalImageUrl && currentFundador.imageUrl.includes('cloudinary.com')) {
+          try {
+            await deleteImage(currentFundador.imageUrl)
+          } catch (deleteError) {
+            console.warn('Error deleting old image:', deleteError)
+            // Don't fail the update if image deletion fails
+          }
+        }
+      } catch (uploadError) {
+        console.error('Error uploading image:', uploadError)
+        return NextResponse.json(
+          { error: 'Error al subir imagen' },
+          { status: 500 }
+        )
+      }
+    }
+
     const fundador = await updateFundador(id, {
       id,
       name,
@@ -61,7 +96,7 @@ export async function PUT(
       role_en,
       body_es,
       body_en,
-      imageUrl,
+      imageUrl: finalImageUrl,
       facebookUrl,
       instagramUrl,
     })
@@ -110,6 +145,16 @@ export async function DELETE(
         { error: 'Fundador no encontrado' },
         { status: 404 }
       )
+    }
+
+    // Delete image from Cloudinary if it exists
+    if (currentFundador.imageUrl && currentFundador.imageUrl.includes('cloudinary.com')) {
+      try {
+        await deleteImage(currentFundador.imageUrl)
+      } catch (deleteError) {
+        console.warn('Error deleting image from Cloudinary:', deleteError)
+        // Don't fail the deletion if image deletion fails
+      }
     }
 
     await deleteFundador(id)

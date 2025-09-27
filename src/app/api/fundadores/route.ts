@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createFundador, getAllFundadores } from '@/lib/fundadorService'
+import { uploadImageFromBase64 } from '@/lib/cloudinary'
+import { validateServerImagesForContentType } from '@/utils/serverImageValidation'
 import { createAuditLog, auditActions } from '@/lib/audit'
 import { getAuthenticatedUser } from '@/utils/authUtils'
 
@@ -37,13 +39,36 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Upload image to Cloudinary if it's a base64 string
+    let finalImageUrl = imageUrl
+    if (imageUrl.startsWith('data:image/')) {
+      // Validate image before upload
+      const imageValidation = validateServerImagesForContentType('team', imageUrl, true)
+      if (!imageValidation.isValid) {
+        return NextResponse.json(
+          { error: imageValidation.errorMessage },
+          { status: 400 }
+        )
+      }
+
+      try {
+        finalImageUrl = await uploadImageFromBase64(imageUrl, 'fundadores')
+      } catch (uploadError) {
+        console.error('Error uploading image:', uploadError)
+        return NextResponse.json(
+          { error: 'Error al subir imagen' },
+          { status: 500 }
+        )
+      }
+    }
+
     const fundador = await createFundador({
       name,
       role_es,
       role_en,
       body_es,
       body_en,
-      imageUrl,
+      imageUrl: finalImageUrl,
       facebookUrl,
       instagramUrl,
     })
