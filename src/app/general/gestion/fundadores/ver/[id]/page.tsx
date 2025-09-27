@@ -28,6 +28,7 @@ export default function VerFundadorPage() {
   const [fundador, setFundador] = useState<Fundador | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [isEnglishMode, setIsEnglishMode] = useState(false)
 
   useEffect(() => {
@@ -61,9 +62,6 @@ export default function VerFundadorPage() {
 
   const handleDelete = async () => {
     if (!fundador) return
-    
-    const confirmed = window.confirm('¿Estás seguro de que quieres eliminar este fundador? Esta acción no se puede deshacer.')
-    if (!confirmed) return
 
     setIsDeleting(true)
     
@@ -87,6 +85,7 @@ export default function VerFundadorPage() {
       toast.error(`Error al eliminar el fundador: ${error instanceof Error ? error.message : 'Error desconocido'}`)
     } finally {
       setIsDeleting(false)
+      setIsDeleteModalOpen(false)
     }
   }
 
@@ -186,21 +185,14 @@ export default function VerFundadorPage() {
 
           {/* Delete Button */}
           <button
-            onClick={handleDelete}
+            onClick={() => setIsDeleteModalOpen(true)}
             disabled={isDeleting}
             className="inline-flex items-center px-4 py-3 border border-red-300 rounded-md shadow-sm text-sm font-medium text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
-            {isDeleting ? (
-              <>
-                <Spinner size="sm" />
-                <span className="ml-2">{isEnglishMode ? 'Deleting...' : 'Eliminando...'}</span>
-              </>
-            ) : (
-              isEnglishMode ? 'Delete' : 'Eliminar'
-            )}
+            {isEnglishMode ? 'Delete' : 'Eliminar'}
           </button>
 
           {/* Edit Button */}
@@ -328,6 +320,84 @@ export default function VerFundadorPage() {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* Black overlay with 60% opacity */}
+          <div 
+            className="absolute inset-0 bg-black opacity-60"
+            onClick={() => setIsDeleteModalOpen(false)}
+          ></div>
+          
+          {/* Modal content */}
+          <div className="relative bg-white rounded-lg shadow-xl w-full max-w-xl mx-4 z-10">
+            {/* Modal body */}
+            <div className="p-6 text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              
+              <h3 className="text-lg font-metropolis font-bold text-[#0D141C] mb-2">
+                {isEnglishMode ? 'Are you sure you want to delete this founder?' : '¿Estás seguro que deseas eliminar este fundador?'}
+              </h3>
+              
+              <p className="text-sm font-metropolis font-regular text-[#4A739C] mb-6">
+                {isEnglishMode ? 'You will not be able to undo this action.' : 'No podrás revertir esta acción.'}
+              </p>
+
+              {/* Founder info */}
+              <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden">
+                    <Image
+                      src={fundador.imageUrl}
+                      alt={fundador.name}
+                      width={48}
+                      height={48}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-metropolis font-medium text-[#0D141C]">
+                      {fundador.name}
+                    </p>
+                    <p className="text-sm font-metropolis font-regular text-[#4A739C]">
+                      {isEnglishMode ? fundador.role_en : fundador.role_es}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal footer */}
+            <div className="flex items-center justify-center space-x-3 p-6 border-t border-gray-200">
+              <button
+                onClick={() => setIsDeleteModalOpen(false)}
+                className="px-4 py-2 text-sm font-metropolis font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5A6F80]"
+              >
+                {isEnglishMode ? 'Cancel' : 'Cancelar'}
+              </button>
+              <button 
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="px-4 py-2 text-sm font-metropolis font-medium text-white bg-[#F43F5E] border border-transparent rounded-md hover:bg-[#E11D48] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isDeleting ? (
+                  <div className="flex items-center space-x-2">
+                    <Spinner size="sm" />
+                    <span>{isEnglishMode ? 'Deleting...' : 'Eliminando...'}</span>
+                  </div>
+                ) : (
+                  isEnglishMode ? 'Delete' : 'Eliminar'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
