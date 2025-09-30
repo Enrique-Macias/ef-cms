@@ -193,7 +193,17 @@ export default function AgregarFundadorPage() {
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-8">
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="bg-white rounded-lg shadow-lg p-6 relative">
+          {/* Translation Loading Overlay */}
+          {isTranslating && (
+            <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center z-10 rounded-lg">
+              <div className="text-center">
+                <Spinner size="lg" />
+                <p className="mt-4 text-lg font-medium text-gray-700">Traduciendo contenido...</p>
+                <p className="mt-2 text-sm text-gray-500">Por favor espera mientras se traduce el contenido al inglés</p>
+              </div>
+            </div>
+          )}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Left Column - Form Fields */}
             <div className="space-y-6">

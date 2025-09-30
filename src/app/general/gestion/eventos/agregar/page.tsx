@@ -366,7 +366,7 @@ export default function AgregarEventoPage() {
       <div className="bg-white border rounded-lg p-6 shadow-lg relative" style={{ borderColor: '#CFDBE8' }}>
         {/* Translation Loading Overlay */}
         {isTranslating && (
-          <div className="absolute inset-0 bg-white bg-opacity-90 flex items-start justify-center z-10 rounded-lg pt-8">
+          <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center z-10 rounded-lg">
             <div className="text-center">
               <Spinner size="lg" />
               <p className="mt-4 text-lg font-medium text-gray-700">Traduciendo contenido...</p>

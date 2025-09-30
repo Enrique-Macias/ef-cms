@@ -9,7 +9,12 @@ export interface GlobalSettings {
   facebookUrl: string | null
   instagramUrl: string | null
   whatsappNumber: string | null
+  web3formsKey: string | null
   mainLogo: string
+  contactPersonImageUrl: string | null
+  contactPersonName: string | null
+  contactPersonRoleEs: string | null
+  contactPersonRoleEn: string | null
   createdAt: Date
   updatedAt: Date
 }
@@ -20,7 +25,12 @@ export interface CreateGlobalSettingsData {
   facebookUrl?: string
   instagramUrl?: string
   whatsappNumber?: string
+  web3formsKey?: string
   mainLogo: string
+  contactPersonImageUrl?: string
+  contactPersonName?: string
+  contactPersonRoleEs?: string
+  contactPersonRoleEn?: string
 }
 
 export interface UpdateGlobalSettingsData {
@@ -30,7 +40,12 @@ export interface UpdateGlobalSettingsData {
   facebookUrl?: string
   instagramUrl?: string
   whatsappNumber?: string
+  web3formsKey?: string
   mainLogo?: string
+  contactPersonImageUrl?: string
+  contactPersonName?: string
+  contactPersonRoleEs?: string
+  contactPersonRoleEn?: string
 }
 
 export async function createGlobalSettings(data: CreateGlobalSettingsData): Promise<GlobalSettings> {
@@ -41,7 +56,12 @@ export async function createGlobalSettings(data: CreateGlobalSettingsData): Prom
       facebookUrl: data.facebookUrl,
       instagramUrl: data.instagramUrl,
       whatsappNumber: data.whatsappNumber,
+      web3formsKey: data.web3formsKey,
       mainLogo: data.mainLogo,
+      contactPersonImageUrl: data.contactPersonImageUrl,
+      contactPersonName: data.contactPersonName,
+      contactPersonRoleEs: data.contactPersonRoleEs,
+      contactPersonRoleEn: data.contactPersonRoleEn,
     },
   })
 }
@@ -59,7 +79,12 @@ export async function updateGlobalSettings(data: UpdateGlobalSettingsData): Prom
       facebookUrl: data.facebookUrl,
       instagramUrl: data.instagramUrl,
       whatsappNumber: data.whatsappNumber,
+      web3formsKey: data.web3formsKey,
       mainLogo: data.mainLogo,
+      contactPersonImageUrl: data.contactPersonImageUrl,
+      contactPersonName: data.contactPersonName,
+      contactPersonRoleEs: data.contactPersonRoleEs,
+      contactPersonRoleEn: data.contactPersonRoleEn,
     },
   })
 }

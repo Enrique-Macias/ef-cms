@@ -24,7 +24,8 @@ import {
   BuildingOfficeIcon,
   HeartIcon,
   StarIcon,
-  GlobeAltIcon
+  GlobeAltIcon,
+  QuestionMarkCircleIcon
 } from '@heroicons/react/24/outline'
 import {
   HomeIcon as HomeIconSolid,
@@ -40,7 +41,8 @@ import {
   BuildingOfficeIcon as BuildingOfficeIconSolid,
   HeartIcon as HeartIconSolid,
   StarIcon as StarIconSolid,
-  GlobeAltIcon as GlobeAltIconSolid
+  GlobeAltIcon as GlobeAltIconSolid,
+  QuestionMarkCircleIcon as QuestionMarkCircleIconSolid
 } from '@heroicons/react/24/solid'
 
 interface NavigationItem {
@@ -70,9 +72,10 @@ const navigation: NavigationItem[] = [
       { name: 'Artículos', href: '/general/gestion/articulos', icon: DocumentTextIcon, iconSolid: DocumentTextIconSolid },
       { name: 'Patrocinadores', href: '/general/gestion/patrocinadores', icon: BuildingOfficeIcon, iconSolid: BuildingOfficeIconSolid },
       { name: 'Apoyo', href: '/general/gestion/apoyo', icon: HeartIcon, iconSolid: HeartIconSolid },
+      { name: 'FAQ', href: '/general/gestion/faq', icon: QuestionMarkCircleIcon, iconSolid: QuestionMarkCircleIconSolid },
     ]
   },
-  { name: 'Global', href: '/general/global', icon: GlobeAltIcon, iconSolid: GlobeAltIconSolid },
+  { name: 'Global', href: '/general/global', icon: GlobeAltIcon, iconSolid: GlobeAltIconSolid, adminOnly: true },
   { name: 'Usuarios', href: '/general/usuarios', icon: UsersIcon, iconSolid: UsersIconSolid, adminOnly: true },
   { name: 'Actividad', href: '/general/actividad', icon: ChartBarIcon, iconSolid: ChartBarIconSolid },
   { name: 'Configuración', href: '/general/configuracion', icon: Cog6ToothIcon, iconSolid: Cog6ToothIconSolid },

@@ -50,6 +50,8 @@ export const auditResources = {
   APOYO: 'apoyo',
   SPONSORS: 'sponsors',
   GLOBAL_SETTINGS: 'global_settings',
+  PAGOS: 'pagos',
+  FAQ: 'faq',
 };
 
 // Convenience functions for common operations
@@ -106,6 +108,10 @@ export const getResourceTypeInSpanish = (resource: string): string => {
       return 'Patrocinador';
     case 'global_settings':
       return 'Configuración Global';
+    case 'pagos':
+      return 'Pagos';
+    case 'faq':
+      return 'FAQ';
     default:
       return resource;
   }
@@ -132,6 +138,10 @@ export const getResourceTypeFromSpanish = (spanishType: string): string => {
       return 'sponsors';
     case 'Configuración Global':
       return 'global_settings';
+    case 'Pagos':
+      return 'pagos';
+    case 'FAQ':
+      return 'faq';
     default:
       return spanishType.toLowerCase();
   }
@@ -243,6 +253,10 @@ export const getAuditLogsForActividad = async (
           title = changes?.name || 'Sin título';
         } else if (log.resource === 'global_settings') {
           title = 'Configuración Global';
+        } else if (log.resource === 'pagos') {
+          title = 'Configuración de Pagos';
+        } else if (log.resource === 'faq') {
+          title = changes?.question_es || changes?.question_en || 'Sin título';
         } else {
           title = changes?.title || changes?.title_es || 'Sin título';
         }

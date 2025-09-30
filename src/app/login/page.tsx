@@ -132,18 +132,6 @@ export default function LoginPage() {
               </div>
             </div>
 
-
-            {/* Forgot Password Link */}
-            <div className="text-left" style={{ marginTop: '5px' }}>
-              <Link 
-                href="/forgot-password"
-                className="font-metropolis font-normal text-sm hover:text-button transition-colors"
-                style={{ color: '#4F4F4F' }}
-              >
-                ¿Olvidaste la contraseña?
-              </Link>
-            </div>
-
             {/* Login Button */}
             <Button 
               type="submit" 

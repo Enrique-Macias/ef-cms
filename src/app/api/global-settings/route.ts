@@ -21,18 +21,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
-    const body = await request.json()
-    const { location, mail, facebookUrl, instagramUrl, whatsappNumber, mainLogo } = body
-
-    // Validate required fields
-    if (!location || !mail || !mainLogo) {
-      return NextResponse.json({ error: 'Location, mail, and main logo are required' }, { status: 400 })
+    // Check if user has ADMIN role
+    if (user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Acceso denegado. Solo administradores pueden crear configuraciones globales.' }, { status: 403 })
     }
+
+    const body = await request.json()
+    const { location, mail, facebookUrl, instagramUrl, whatsappNumber, web3formsKey, mainLogo, contactPersonImageUrl, contactPersonName, contactPersonRoleEs, contactPersonRoleEn } = body
+
+    // All fields are optional now
 
     // Upload main logo to Cloudinary if it's a base64 string
     let uploadedMainLogo = mainLogo
-    if (mainLogo.startsWith('data:image/')) {
+    if (mainLogo && mainLogo.startsWith('data:image/')) {
       uploadedMainLogo = await uploadImageFromBase64(mainLogo, 'global-settings')
+    }
+
+    // Upload contact person image to Cloudinary if it's a base64 string
+    let uploadedContactPersonImage = contactPersonImageUrl
+    if (contactPersonImageUrl && contactPersonImageUrl.startsWith('data:image/')) {
+      uploadedContactPersonImage = await uploadImageFromBase64(contactPersonImageUrl, 'global-settings')
     }
 
     const globalSettings = await createGlobalSettings({
@@ -41,7 +49,12 @@ export async function POST(request: NextRequest) {
       facebookUrl,
       instagramUrl,
       whatsappNumber,
+      web3formsKey,
       mainLogo: uploadedMainLogo,
+      contactPersonImageUrl: uploadedContactPersonImage,
+      contactPersonName,
+      contactPersonRoleEs,
+      contactPersonRoleEn,
     })
 
     // Create audit log
@@ -55,7 +68,12 @@ export async function POST(request: NextRequest) {
         facebookUrl,
         instagramUrl,
         whatsappNumber,
+        web3formsKey,
         mainLogo: uploadedMainLogo,
+        contactPersonImageUrl: uploadedContactPersonImage,
+        contactPersonName,
+        contactPersonRoleEs,
+        contactPersonRoleEn,
       },
     })
 

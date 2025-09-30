@@ -14,9 +14,14 @@ export async function PUT(
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
+    // Check if user has ADMIN role
+    if (user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Acceso denegado. Solo administradores pueden actualizar configuraciones globales.' }, { status: 403 })
+    }
+
     const { id } = await params
     const body = await request.json()
-    const { location, mail, facebookUrl, instagramUrl, whatsappNumber, mainLogo } = body
+    const { location, mail, facebookUrl, instagramUrl, whatsappNumber, web3formsKey, mainLogo, contactPersonImageUrl, contactPersonName, contactPersonRoleEs, contactPersonRoleEn } = body
 
     // Get current global settings to compare changes
     const currentGlobalSettings = await getGlobalSettings()
@@ -37,6 +42,19 @@ export async function PUT(
       uploadedMainLogo = currentGlobalSettings.mainLogo
     }
 
+    // Upload contact person image to Cloudinary if it's a new base64 string
+    let uploadedContactPersonImage = contactPersonImageUrl
+    if (contactPersonImageUrl && contactPersonImageUrl.startsWith('data:image/')) {
+      // Delete old contact person image if it exists
+      if (currentGlobalSettings.contactPersonImageUrl) {
+        await deleteImage(currentGlobalSettings.contactPersonImageUrl)
+      }
+      uploadedContactPersonImage = await uploadImageFromBase64(contactPersonImageUrl, 'global-settings')
+    } else if (contactPersonImageUrl === currentGlobalSettings.contactPersonImageUrl) {
+      // Keep existing contact person image if no change
+      uploadedContactPersonImage = currentGlobalSettings.contactPersonImageUrl
+    }
+
     const updatedGlobalSettings = await updateGlobalSettings({
       id,
       location,
@@ -44,7 +62,12 @@ export async function PUT(
       facebookUrl,
       instagramUrl,
       whatsappNumber,
+      web3formsKey,
       mainLogo: uploadedMainLogo,
+      contactPersonImageUrl: uploadedContactPersonImage,
+      contactPersonName,
+      contactPersonRoleEs,
+      contactPersonRoleEn,
     })
 
     // Create audit log
@@ -58,7 +81,12 @@ export async function PUT(
         facebookUrl,
         instagramUrl,
         whatsappNumber,
+        web3formsKey,
         mainLogo: uploadedMainLogo,
+        contactPersonImageUrl: uploadedContactPersonImage,
+        contactPersonName,
+        contactPersonRoleEs,
+        contactPersonRoleEn,
       },
     })
 
@@ -79,6 +107,11 @@ export async function DELETE(
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
+    // Check if user has ADMIN role
+    if (user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Acceso denegado. Solo administradores pueden eliminar configuraciones globales.' }, { status: 403 })
+    }
+
     const { id } = await params
 
     // Get current global settings for audit log
@@ -90,6 +123,11 @@ export async function DELETE(
     // Delete main logo from Cloudinary if it exists
     if (currentGlobalSettings.mainLogo) {
       await deleteImage(currentGlobalSettings.mainLogo)
+    }
+
+    // Delete contact person image from Cloudinary if it exists
+    if (currentGlobalSettings.contactPersonImageUrl) {
+      await deleteImage(currentGlobalSettings.contactPersonImageUrl)
     }
 
     await deleteGlobalSettings(id)

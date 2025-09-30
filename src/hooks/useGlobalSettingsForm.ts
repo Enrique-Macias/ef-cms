@@ -6,7 +6,12 @@ export interface GlobalSettingsFormData {
   facebookUrl: string
   instagramUrl: string
   whatsappNumber: string
+  web3formsKey: string
   mainLogo: File | null
+  contactPersonImageUrl: string
+  contactPersonName: string
+  contactPersonRoleEs: string
+  contactPersonRoleEn: string
 }
 
 export interface GlobalSettingsFormErrors {
@@ -15,7 +20,12 @@ export interface GlobalSettingsFormErrors {
   facebookUrl?: string
   instagramUrl?: string
   whatsappNumber?: string
+  web3formsKey?: string
   mainLogo?: string
+  contactPersonImageUrl?: string
+  contactPersonName?: string
+  contactPersonRoleEs?: string
+  contactPersonRoleEn?: string
 }
 
 export function useGlobalSettingsForm() {
@@ -25,7 +35,12 @@ export function useGlobalSettingsForm() {
     facebookUrl: '',
     instagramUrl: '',
     whatsappNumber: '',
+    web3formsKey: '',
     mainLogo: null,
+    contactPersonImageUrl: '',
+    contactPersonName: '',
+    contactPersonRoleEs: '',
+    contactPersonRoleEn: '',
   })
 
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -80,7 +95,12 @@ export function useGlobalSettingsForm() {
       facebookUrl: '',
       instagramUrl: '',
       whatsappNumber: '',
+      web3formsKey: '',
       mainLogo: null,
+      contactPersonImageUrl: '',
+      contactPersonName: '',
+      contactPersonRoleEs: '',
+      contactPersonRoleEn: '',
     })
     setErrors({})
   }, [])
@@ -91,7 +111,12 @@ export function useGlobalSettingsForm() {
     facebookUrl?: string;
     instagramUrl?: string;
     whatsappNumber?: string;
+    web3formsKey?: string;
     mainLogo?: string;
+    contactPersonImageUrl?: string;
+    contactPersonName?: string;
+    contactPersonRoleEs?: string;
+    contactPersonRoleEn?: string;
   }) => {
     setFormData({
       location: data.location || '',
@@ -99,7 +124,12 @@ export function useGlobalSettingsForm() {
       facebookUrl: data.facebookUrl || '',
       instagramUrl: data.instagramUrl || '',
       whatsappNumber: data.whatsappNumber || '',
+      web3formsKey: data.web3formsKey || '',
       mainLogo: null, // We don't set the file from API data
+      contactPersonImageUrl: data.contactPersonImageUrl || '',
+      contactPersonName: data.contactPersonName || '',
+      contactPersonRoleEs: data.contactPersonRoleEs || '',
+      contactPersonRoleEn: data.contactPersonRoleEn || '',
     })
   }, [])
 
